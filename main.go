@@ -16,10 +16,10 @@ func main() {
 	userRepo := repository.NewUserRepository(config.DB)
 	userCRUD := crud.NewUserCRUD(userRepo)
 	roleCRUD := crud.NewRoleCRUD(config.DB)
-	permissionCRUD := crud.NewPermissionCRUD(config.DB)
+	// permissionCRUD := crud.NewPermissionCRUD(config.DB)
 	authService := service.NewAuthService(userCRUD, roleCRUD)
 	router := gin.Default()
-
+	routes.CpuRoute(router)
 	// Serve static files from the uploads directory
 	router.Static("/uploads", "./uploads")
 
