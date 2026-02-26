@@ -37,3 +37,14 @@ func GetRamInfo() gin.HandlerFunc {
 		c.JSON(200, info)
 	}
 }
+
+func GetDiskInfo() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		info, err := HardWare.GetDiskInfo()
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(200, info)
+	}
+}

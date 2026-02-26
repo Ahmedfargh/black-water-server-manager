@@ -21,19 +21,27 @@ type RamInfo struct {
 	SwapInfo      SwapInfo
 }
 
-func GetRamInfo() (RamInfo, error) {
-	info := RamInfo{}
-	//load Virtual Memeory
-	v, _ := mem.VirtualMemory()
-	info.Vertiual_info.Total_memory = int32(v.Total / 1024 / 1024)
-	info.Vertiual_info.Used_memory = int32(v.Used / 1024 / 1024)
-	info.Vertiual_info.Free_memory = int32(v.Free / 1024 / 1024)
-	info.Vertiual_info.Used_percent = int32(v.UsedPercent)
+func get_swap_info(info *RamInfo) (RamInfo, error) {
 	//load Swap Memory
 	s, _ := mem.SwapMemory()
 	info.SwapInfo.Total_memory = int32(s.Total / 1024 / 1024)
 	info.SwapInfo.Used_memory = int32(s.Used / 1024 / 1024)
 	info.SwapInfo.Free_memory = int32(s.Free / 1024 / 1024)
 	info.SwapInfo.Used_percent = int32(s.UsedPercent)
+	return *info, nil
+}
+func get_virtual_info(info *RamInfo) (RamInfo, error) {
+	v, _ := mem.VirtualMemory()
+	info.Vertiual_info.Total_memory = int32(v.Total / 1024 / 1024)
+	info.Vertiual_info.Used_memory = int32(v.Used / 1024 / 1024)
+	info.Vertiual_info.Free_memory = int32(v.Free / 1024 / 1024)
+	info.Vertiual_info.Used_percent = int32(v.UsedPercent)
+	return *info, nil
+}
+func GetRamInfo() (RamInfo, error) {
+	info := RamInfo{}
+	//load Virtual Memeory
+	get_virtual_info(&info)
+	get_swap_info(&info)
 	return info, nil
 }

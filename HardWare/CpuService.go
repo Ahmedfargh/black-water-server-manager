@@ -13,7 +13,7 @@ type CpuInfo struct {
 	Max_Cpu_run        uint
 	Arch               string
 	Os                 string
-	Cpu_Hard_Ware_Info map[int]map[string]string // Integer key (CPU index) -> map of hardware info
+	Cpu_Hard_Ware_Info map[int]map[string]string 
 }
 
 func GetCpuInfo() (CpuInfo, error) {
@@ -24,19 +24,13 @@ func GetCpuInfo() (CpuInfo, error) {
 		Os:                 runtime.GOOS,
 		Cpu_Hard_Ware_Info: make(map[int]map[string]string),
 	}
-
-	// Get CPU information
 	cpuInfo, err := cpu.Info()
 	if err != nil {
 		return info, fmt.Errorf("failed to get CPU info: %w", err)
 	}
 
-	// Populate the map with CPU information
 	for i, val := range cpuInfo {
-		// Create a map for this CPU's hardware info
 		cpuHardwareInfo := make(map[string]string)
-
-		// Populate all hardware info for this CPU
 		cpuHardwareInfo["model"] = val.ModelName
 		cpuHardwareInfo["vendor"] = val.VendorID
 		cpuHardwareInfo["family"] = val.Family
@@ -46,8 +40,6 @@ func GetCpuInfo() (CpuInfo, error) {
 		cpuHardwareInfo["mhz"] = fmt.Sprintf("%.2f", val.Mhz)
 		cpuHardwareInfo["cache_size"] = strconv.Itoa(int(val.CacheSize))
 		cpuHardwareInfo["microcode"] = val.Microcode
-
-		// Convert flags slice to string
 		if len(val.Flags) > 0 {
 			flagsStr := ""
 			for _, flag := range val.Flags {
@@ -56,11 +48,8 @@ func GetCpuInfo() (CpuInfo, error) {
 			cpuHardwareInfo["flags"] = flagsStr
 		}
 
-		// Add CPU index information
 		cpuHardwareInfo["cpu_index"] = strconv.Itoa(i)
 		cpuHardwareInfo["cpu_id"] = strconv.Itoa(int(val.CPU))
-
-		// Store in the main map with integer key
 		info.Cpu_Hard_Ware_Info[i] = cpuHardwareInfo
 	}
 
