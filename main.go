@@ -19,10 +19,11 @@ func main() {
 	// permissionCRUD := crud.NewPermissionCRUD(config.DB)
 	authService := service.NewAuthService(userCRUD, roleCRUD)
 	router := gin.Default()
+	routes.AuthRoutes(router, userCRUD, authService, roleCRUD)
+
 	routes.CpuRoute(router)
 	// Serve static files from the uploads directory
 	router.Static("/uploads", "./uploads")
 
-	routes.AuthRoutes(router, userCRUD, authService, roleCRUD)
 	router.Run(config.PortNumber())
 }

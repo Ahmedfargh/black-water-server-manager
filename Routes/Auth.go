@@ -13,7 +13,7 @@ func AuthRoutes(router *gin.Engine, userCRUD *crud.UserCRUD, authService *servic
 	router.POST("/login", authentication.Login(authService))
 	router.POST("/register", authentication.Register(authService))
 
-	authenticated := router.Group("/").Use(authentication.AuthMiddleware())
+	authenticated := router.Group("/users").Use(authentication.AuthMiddleware())
 	{
 		fmt.Println("main grouping")
 		rolesHandlers := authentication.NewRolesHandlers(roleCRUD)
