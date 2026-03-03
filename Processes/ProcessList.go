@@ -53,3 +53,26 @@ func GetProcesses() ([]processes, error) {
 	}
 	return processList, nil
 }
+func GetProcessByPID(pid int32) (processes, error) {
+	var proc processes
+	cmdlinePath := fmt.Sprintf("/proc/%d/cmdline", pid)
+	cmdlineBytes, err := os.ReadFile(cmdlinePath)
+	if err != nil {
+		return proc, fmt.Errorf("failed to read cmdline file: %w", err)
+	}
+	proc.Name = string(cmdlineBytes)
+	statusPath := fmt.Sprintf("/proc/%d/status", pid)
+	statusBytes, err := os.ReadFile(statusPath)
+	if err != nil {
+		return proc, fmt.Errorf("failed to read status file: %w", err)
+	}
+	statusLines := strings.Split(strings.TrimSpace(string(statusBytes)), "\n")
+	for _, line := range statusLines {
+		if strings.HasPrefix(line, "State:") {
+			proc.Status = strings.TrimSpace(strings.TrimPrefix(line, "State:"))
+			break
+		}
+	}
+	proc.PID = pid
+	return proc, nil
+}

@@ -10,5 +10,6 @@ func ProcessRoute(router *gin.Engine) {
 	router.Group("/info")
 	{
 		router.Use(authentication.AuthMiddleware()).GET("/processes", info.GetProcessInfo())
+		router.Use(authentication.AuthMiddleware()).GET("/process/single/:pid", info.GetProcessByPID())
 	}
 }
