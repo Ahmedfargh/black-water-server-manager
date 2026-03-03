@@ -22,6 +22,7 @@ func main() {
 	routes.AuthRoutes(router, userCRUD, authService, roleCRUD)
 
 	routes.CpuRoute(router)
+	routes.ProcessRoute(router)
 	// Serve static files from the uploads directory
 	router.Static("/uploads", "./uploads")
 

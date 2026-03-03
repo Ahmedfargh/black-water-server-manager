@@ -1,0 +1,99 @@
+{
+	"info": {
+		"_postman_id": "c8d434e3-c87d-4d33-874d-d5569f123af5",
+		"name": "HardWare Info",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "21593029"
+	},
+	"item": [
+		{
+			"name": "GPU INFO",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{authToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/gpu",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"gpu"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "CPU INFO",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{authToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/cpu",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"cpu"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "RAM INFO",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{authToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/ram",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"ram"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "HardDisk",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		}
+	]
+}
