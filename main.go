@@ -12,7 +12,7 @@ import (
 
 func main() {
 	config.ConnectDB()
-	config.DB.AutoMigrate(&models.User{}, &models.Role{}, &models.Permission{})
+	config.DB.AutoMigrate(&models.User{}, &models.Role{}, &models.Permission{}, &models.Process{})
 	userRepo := repository.NewUserRepository(config.DB)
 	userCRUD := crud.NewUserCRUD(userRepo)
 	roleCRUD := crud.NewRoleCRUD(config.DB)

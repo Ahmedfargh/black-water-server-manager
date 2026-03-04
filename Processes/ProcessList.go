@@ -3,19 +3,24 @@ package processes
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
-	//"github.com/shirou/gopsutil/v3/process"
+
+	config "github.com/ahmedfargh/server-manager/Config"
+	models "github.com/ahmedfargh/server-manager/Database/Models"
+	repository "github.com/ahmedfargh/server-manager/Database/Repository"
+	// "github.com/shirou/gopsutil/v3/process"
 )
 
-type processes struct {
+type ProcessInfo struct {
 	PID    int32
 	Name   string
 	Status string
 }
 
-func GetProcesses() ([]processes, error) {
-	var processList []processes
+func GetProcesses() ([]ProcessInfo, error) {
+	var processList []ProcessInfo
 	files, err := os.ReadDir("/proc")
 	if err != nil {
 		return processList, fmt.Errorf("failed to read /proc directory: %w", err)
@@ -23,7 +28,7 @@ func GetProcesses() ([]processes, error) {
 
 	for _, file := range files {
 		if file.IsDir() {
-			var proc processes
+			var proc ProcessInfo
 			pid := file.Name()
 			pidInt, err := strconv.Atoi(pid)
 			if err != nil {
@@ -53,8 +58,8 @@ func GetProcesses() ([]processes, error) {
 	}
 	return processList, nil
 }
-func GetProcessByPID(pid int32) (processes, error) {
-	var proc processes
+func GetProcessByPID(pid int32) (ProcessInfo, error) {
+	var proc ProcessInfo
 	cmdlinePath := fmt.Sprintf("/proc/%d/cmdline", pid)
 	cmdlineBytes, err := os.ReadFile(cmdlinePath)
 	if err != nil {
@@ -75,4 +80,44 @@ func GetProcessByPID(pid int32) (processes, error) {
 	}
 	proc.PID = pid
 	return proc, nil
+}
+func saveProcessToDB(proc *models.Process) (*models.Process, error) {
+	repo := repository.NewProcessRepository(config.DB)
+	err := repo.CreateProcess(proc)
+	if err != nil {
+		return nil, err
+	}
+	return proc, nil
+}
+func GetPaginatedProcesses(page, pageSize int) ([]models.Process, int64, error) {
+	repo := repository.NewProcessRepository(config.DB)
+	return repo.GetPaginatedProcesses(page, pageSize)
+}
+
+func StartProcess(command string, args ...string) (*models.Process, error) {
+	cmd := exec.Command(command, args...)
+	err := cmd.Start()
+	if err != nil {
+		return nil, fmt.Errorf("failed to start process: %w", err)
+	}
+	go func() {
+		err := cmd.Wait()
+		if err != nil {
+			fmt.Printf("Process exited with error: %v\n", err)
+		} else {
+			fmt.Printf("Process exited successfully\n")
+		}
+	}()
+	proc := models.Process{
+		PID:     int32(cmd.Process.Pid),
+		Name:    command,
+		Status:  "Running",
+		Command: command,
+		Args:    strings.Join(args, " "),
+	}
+	saved, err := saveProcessToDB(&proc)
+	if err != nil {
+		return nil, err
+	}
+	return saved, nil
 }

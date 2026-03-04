@@ -95,8 +95,10 @@ Before you begin, ensure you have the following installed:
 - `GET /info/disk` - Disk space information
 
 #### Process Management (Requires Auth)
-- `GET /info/processes` - List all running processes
+- `GET /info/processes` - List all running system processes
 - `GET /info/process/single/:pid` - Detailed info for a specific process
+- `GET /info/process/log` - Paginated history of started processes (Query params: `page`, `pageSize`)
+- `POST /info/process/start` - Start a new process (JSON body: `command`, `args`)
 
 ## 🤝 Contributing
 
