@@ -121,3 +121,14 @@ func StartProcess(command string, args ...string) (*models.Process, error) {
 	}
 	return saved, nil
 }
+func KillProcess(pid int32) error {
+	proc, err := os.FindProcess(int(pid))
+	if err != nil {
+		return fmt.Errorf("failed to find process: %w", err)
+	}
+	err = proc.Kill()
+	if err != nil {
+		return fmt.Errorf("failed to kill process: %w", err)
+	}
+	return nil
+}

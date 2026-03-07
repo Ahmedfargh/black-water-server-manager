@@ -13,5 +13,6 @@ func ProcessRoute(router *gin.Engine) {
 		router.Use(authentication.AuthMiddleware()).GET("/process/single/:pid", info.GetProcessByPID())
 		router.Use(authentication.AuthMiddleware()).POST("/process/start", info.StartProcess())
 		router.Use(authentication.AuthMiddleware()).GET("/process/log", info.GetProcessLog())
+		router.Use(authentication.AuthMiddleware()).DELETE("/process/kill/:pid", info.KillProcess())
 	}
 }

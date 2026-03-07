@@ -97,3 +97,18 @@ func StartProcess() gin.HandlerFunc {
 		c.JSON(200, gin.H{"message": "Process started"})
 	}
 }
+func KillProcess() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		pid, err := strconv.Atoi(c.Param("pid"))
+		if err != nil {
+			c.JSON(400, gin.H{"error": "Invalid PID"})
+			return
+		}
+		err = processes.KillProcess(int32(pid))
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(200, gin.H{"message": "Process killed"})
+	}
+}
