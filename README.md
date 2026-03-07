@@ -13,6 +13,21 @@ This application allows you to monitor hardware performance (CPU, GPU, RAM, Disk
 - **Database Seeding:** Quick setup with initial roles, permissions, and default admin user.
 - **Static File Serving:** Built-in support for handling file uploads.
 
+## 🌐 Microservice Integration
+
+Blackwater is designed to be language-agnostic. Since it provides a standard RESTful API secured by JWT, it can seamlessly integrate as a specialized microservice into any modern architecture. This allows you to offload low-level system monitoring and process management to a dedicated Go-powered service while maintaining your primary application logic in your preferred framework.
+
+### How to Integrate
+Your main application (regardless of language) can interact with Blackwater by:
+1. **Authentication:** Authenticate your service or users via the `/login` endpoint to receive a JWT token.
+2. **RESTful Communication:** Use standard HTTP clients to consume hardware and process data.
+3. **Cross-Framework Examples:**
+   - **PHP (Laravel):** Use `Guzzle` or the `Http` facade to monitor server health from your dashboard.
+   - **Python (Django/FastAPI):** Use `requests` or `httpx` to trigger and manage background system processes.
+   - **Node.js (Express/NestJS):** Use `axios` or `fetch` for real-time hardware monitoring.
+   - **C# (.NET):** Use `HttpClient` to integrate deep server control into enterprise Windows or Linux applications.
+   - **Java (Spring Boot):** Use `RestTemplate` or `WebClient` for system-level resource orchestration.
+
 ## 🛠️ Tech Stack
 
 - **Language:** Go (1.25+)
