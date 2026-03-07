@@ -14,6 +14,15 @@ func SeedPermissions(permissionCRUD *crud.PermissionCRUD) {
 		"delete_user",
 		"manage_roles",
 		"manage_permissions",
+		"read_processes",
+		"read_process",
+		"start_process",
+		"read_process_log",
+		"kill_process",
+		"read_cpu",
+		"read_gpu",
+		"read_ram",
+		"read_disk",
 	}
 
 	for _, p := range permissions {

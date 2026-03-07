@@ -24,25 +24,31 @@ func AuthRoutes(router *gin.Engine, userCRUD *crud.UserCRUD, authService *servic
 }
 
 func UserRoutes(router *gin.RouterGroup, userCRUD *crud.UserCRUD) {
-	router.Group("/users").Use(authentication.CheckRole("read_users"))
+	usersGroup := router.Group("/users")
 	{
-		router.GET("/", authentication.GetUsers(userCRUD))
-		router.POST("/acount/update", authentication.UpdateProfile(userCRUD))
+		usersGroup.GET("/", authentication.CheckRole("read_user"), authentication.GetUsers(userCRUD))
+		usersGroup.POST("/acount/update", authentication.UpdateProfile(userCRUD))
 	}
 
-	fmt.Println("crud user grouping")
-	router.GET("/crud/users/:id", authentication.GetUser(userCRUD))
-	router.POST("/crud/users/", authentication.CreateUser(userCRUD))
-	router.PUT("/crud/users/:id", authentication.UpdateUser(userCRUD))
-	router.DELETE("/crud/users/:id", authentication.DeleteUser(userCRUD))
-	router.GET("/crud/users/list", authentication.ListAll(userCRUD))
+	crudGroup := router.Group("/crud/users")
+	{
+		crudGroup.GET("/:id", authentication.CheckRole("read_user"), authentication.GetUser(userCRUD))
+		crudGroup.POST("/", authentication.CheckRole("create_user"), authentication.CreateUser(userCRUD))
+		crudGroup.PUT("/:id", authentication.CheckRole("update_user"), authentication.UpdateUser(userCRUD))
+		crudGroup.DELETE("/:id", authentication.CheckRole("delete_user"), authentication.DeleteUser(userCRUD))
+		crudGroup.GET("/list", authentication.CheckRole("read_user"), authentication.ListAll(userCRUD))
+	}
 
 	router.GET("/profile/me", authentication.GetProfile(userCRUD))
 }
 
 func RoleRoutes(router *gin.RouterGroup, rolesHandlers *authentication.RolesHandlers) {
-	router.GET("/roles", rolesHandlers.GetRoles())
-	router.POST("/roles", rolesHandlers.CreateRole)
-	router.GET("/role/:id", rolesHandlers.GetRoleByID())
-	router.POST("/roles/update/:id", rolesHandlers.UpdateRole)
+	rolesGroup := router.Group("")
+	{
+		rolesGroup.Use(authentication.CheckRole("manage_roles"))
+		rolesGroup.GET("/roles", rolesHandlers.GetRoles())
+		rolesGroup.POST("/roles", rolesHandlers.CreateRole)
+		rolesGroup.GET("/role/:id", rolesHandlers.GetRoleByID())
+		rolesGroup.POST("/roles/update/:id", rolesHandlers.UpdateRole)
+	}
 }

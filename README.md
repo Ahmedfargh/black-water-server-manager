@@ -7,10 +7,10 @@ This application allows you to monitor hardware performance (CPU, GPU, RAM, Disk
 ## 🚀 Features
 
 - **Hardware Monitoring:** Real-time information about CPU, GPU, RAM, and Disk usage.
-- **Process Management:** View detailed information about running system processes.
+- **Process Management:** View detailed information about running system processes, start new ones, and terminate existing ones.
 - **User Authentication:** Secure JWT-based login and registration.
-- **Role-Based Access Control (RBAC):** Manage users, roles, and permissions effectively.
-- **Database Seeding:** Quick setup with initial roles and permissions.
+- **Role-Based Access Control (RBAC):** Granular control over system features using roles and permissions.
+- **Database Seeding:** Quick setup with initial roles, permissions, and default admin user.
 - **Static File Serving:** Built-in support for handling file uploads.
 
 ## 🛠️ Tech Stack
@@ -82,23 +82,64 @@ Before you begin, ensure you have the following installed:
    - `Proccess Collection.postman_collection.json`
    - `User Mangement.postman_collection.json`
 
-### Key Endpoints
+## 🛡️ RBAC & Permissions
 
-#### Authentication
+The system uses a flexible Role-Based Access Control (RBAC) system. Each user is assigned a Role, and each Role has a set of Permissions. Permissions can also be assigned directly to a User.
+
+### Available Permissions
+
+| Permission | Description |
+|---|---|
+| `create_user` | Create new users |
+| `read_user` | View user details and list users |
+| `update_user` | Update existing users |
+| `delete_user` | Remove users from the system |
+| `manage_roles` | Create, read, and update roles |
+| `manage_permissions` | Manage system-wide permissions |
+| `read_processes` | List all running system processes |
+| `read_process` | View detailed info for a single process |
+| `start_process` | Initiate new processes on the server |
+| `read_process_log` | Access the log of started processes |
+| `kill_process` | Terminate running processes |
+| `read_cpu` | Access CPU usage and information |
+| `read_gpu` | Access GPU usage and information |
+| `read_ram` | Access RAM usage and information |
+| `read_disk` | Access Disk usage and information |
+
+## 🔗 Key Endpoints
+
+### Authentication
 - `POST /login` - User login
 - `POST /register` - User registration
 
-#### Hardware Info (Requires Auth)
-- `GET /info/cpu` - CPU usage statistics
-- `GET /info/gpu` - GPU information
-- `GET /info/ram` - Memory usage
-- `GET /info/disk` - Disk space information
+### User Management (Requires Auth)
+- `GET /users/` - List users (`read_user`)
+- `POST /users/acount/update` - Update own profile
+- `GET /users/profile/me` - Get own profile details
+- `GET /users/crud/users/:id` - Get user by ID (`read_user`)
+- `POST /users/crud/users/` - Create user (`create_user`)
+- `PUT /users/crud/users/:id` - Update user (`update_user`)
+- `DELETE /users/crud/users/:id` - Delete user (`delete_user`)
+- `GET /users/crud/users/list` - List all users (`read_user`)
 
-#### Process Management (Requires Auth)
-- `GET /info/processes` - List all running system processes
-- `GET /info/process/single/:pid` - Detailed info for a specific process
-- `GET /info/process/log` - Paginated history of started processes (Query params: `page`, `pageSize`)
-- `POST /info/process/start` - Start a new process (JSON body: `command`, `args`)
+### Role Management (Requires Auth)
+- `GET /users/roles` - List all roles (`manage_roles`)
+- `POST /users/roles` - Create new role (`manage_roles`)
+- `GET /users/role/:id` - Get role by ID (`manage_roles`)
+- `POST /users/roles/update/:id` - Update role (`manage_roles`)
+
+### Hardware Info (Requires Auth)
+- `GET /info/cpu` - CPU usage statistics (`read_cpu`)
+- `GET /info/gpu` - GPU information (`read_gpu`)
+- `GET /info/ram` - Memory usage (`read_ram`)
+- `GET /info/disk` - Disk space information (`read_disk`)
+
+### Process Management (Requires Auth)
+- `GET /info/processes` - List all running system processes (`read_processes`)
+- `GET /info/process/single/:pid` - Detailed info for a specific process (`read_process`)
+- `GET /info/process/log` - Paginated history of started processes (`read_process_log`)
+- `POST /info/process/start` - Start a new process (`start_process`)
+- `DELETE /info/process/kill/:pid` - Terminate a process (`kill_process`)
 
 ## 🤝 Contributing
 

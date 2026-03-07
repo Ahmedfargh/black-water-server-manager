@@ -9,8 +9,156 @@
 		{
 			"name": "List Processs",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{authToken}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": []
+				"header": [],
+				"url": {
+					"raw": "{{host}}/processes",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"processes"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get By Process",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{authToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/processes/single/5064",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"processes",
+						"single",
+						"5064"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Start Process",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{authToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"command\":\"apt\",\n    \"args\": \"update\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/process/start",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"process",
+						"start"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "process log",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{authToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/process/log?page=2",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"process",
+						"log"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "2"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "kill process",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{authToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/process/kill/{{pid}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"process",
+						"kill",
+						"{{pid}}"
+					]
+				}
 			},
 			"response": []
 		}
