@@ -7,6 +7,7 @@ import (
 )
 
 func ProcessRoute(router *gin.Engine) {
+
 	router.Group("/info")
 	{
 		router.Use(authentication.AuthMiddleware()).GET("/processes", authentication.CheckRole("read_processes"), info.GetProcessInfo())

@@ -23,7 +23,7 @@ func main() {
 
 	routes.CpuRoute(router)
 	routes.ProcessRoute(router)
-	// Serve static files from the uploads directory
+	routes.RegisterRealTimeRoutes(router)
 	router.Static("/uploads", "./uploads")
 
 	router.Run(config.PortNumber())

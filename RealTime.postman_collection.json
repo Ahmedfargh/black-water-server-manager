@@ -1,0 +1,37 @@
+{
+	"info": {
+		"_postman_id": "a637d77b-60b6-4b2a-89a1-f3b177e62678",
+		"name": "RealTime Collection",
+		"description": "Collection for WebSocket and real-time endpoints.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Process WebSocket",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "ws://{{host}}/ws/processes",
+					"protocol": "ws",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"ws",
+						"processes"
+					]
+				},
+				"description": "Connects to the process monitoring WebSocket hub to receive real-time updates every 5 seconds."
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "host",
+			"value": "localhost:8080",
+			"type": "string"
+		}
+	]
+}
