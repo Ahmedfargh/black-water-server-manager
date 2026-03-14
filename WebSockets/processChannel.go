@@ -2,20 +2,23 @@ package WebSockets
 
 import (
 	"encoding/json"
-	"fmt"
+	"log"
 	"net/http"
 	"sync"
 	"time"
 
 	processes "github.com/ahmedfargh/server-manager/Processes"
-
 	"github.com/gorilla/websocket"
 )
 
+type Hub struct {
+}
 type ProcessChannel struct {
 	Conn    *websocket.Conn
 	mu      sync.Mutex
-	message chan []byte
+	send    chan []byte
+	receive chan []byte
+	stop    chan struct{}
 }
 
 var upgrader = websocket.Upgrader{
@@ -26,10 +29,11 @@ var upgrader = websocket.Upgrader{
 
 func NewChannel() *ProcessChannel {
 	return &ProcessChannel{
-		message: make(chan []byte),
+		send:    make(chan []byte, 100),
+		receive: make(chan []byte, 100),
+		stop:    make(chan struct{}),
 	}
 }
-
 func (p *ProcessChannel) Connect(w http.ResponseWriter, r *http.Request) error {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -37,36 +41,53 @@ func (p *ProcessChannel) Connect(w http.ResponseWriter, r *http.Request) error {
 	}
 	p.Conn = conn
 
-	// We block here to keep the connection alive.
-	// The handler in Routes will trigger Disconnect when this returns.
-	for {
-		// Placeholder for actual process data
-		data := map[string]interface{}{"status": "alive", "time": time.Now().Format(time.RFC3339)}
-		process, err := processes.GetProcesses()
-		data["processes"] = process
-		processes, err := json.Marshal(data)
-		if err != nil {
-			return err
-		}
+	// Create the signaling channel
+	done := make(chan struct{})
 
-		p.mu.Lock()
-		if p.Conn == nil {
-			p.mu.Unlock()
-			return nil
-		}
-		err = p.Conn.WriteMessage(websocket.TextMessage, processes)
-		p.mu.Unlock()
+	// Start process monitoring
+	go p.StartMonitoring()
 
-		if err != nil {
-			return err
-		}
-		time.Sleep(5 * time.Second)
-	}
+	// Pass 'done' to the pumps so they can signal when they exit
+	go p.WritePump(done)
+	// go p.ReadPump(done)
+
+	// This now waits correctly until ReadPump or WritePump finishes
+	<-done
+	log.Println("Connection closed gracefully")
+	return nil
 }
 
+func (p *ProcessChannel) WritePump(done chan struct{}) {
+	defer func() {
+		p.Disconnect()
+		close(done) // This triggers the <-done in Connect
+	}()
+	for {
+		select {
+		case message := <-p.send:
+			// Gorilla requires a lock if multiple goroutines write,
+			// but since only WritePump writes, we are safe here.
+			err := p.Conn.WriteMessage(websocket.TextMessage, message)
+			if err != nil {
+				return
+			}
+		case <-p.stop:
+			return
+		}
+	}
+}
 func (p *ProcessChannel) Disconnect() error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
+	
+	select {
+	case <-p.stop:
+		// already closed
+		return nil
+	default:
+		close(p.stop) // Signal all goroutines to stop
+	}
+
 	if p.Conn != nil {
 		err := p.Conn.Close()
 		p.Conn = nil
@@ -74,44 +95,82 @@ func (p *ProcessChannel) Disconnect() error {
 	}
 	return nil
 }
-
-func (p *ProcessChannel) Send(data interface{}) error {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	if p.Conn == nil {
-		return fmt.Errorf("connection not established")
-	}
-
-	bytes, err := json.Marshal(data)
-	if err != nil {
-		return err
-	}
-
-	return p.Conn.WriteMessage(websocket.TextMessage, bytes)
-}
-
-func (p *ProcessChannel) Receive() (<-chan []byte, error) {
-	if p.Conn == nil {
-		return nil, fmt.Errorf("connection not established")
-	}
-
-	go func() {
-		for {
+func (p *ProcessChannel) MonitorConnection() {
+	ticker := time.NewTicker(10 * time.Second)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ticker.C:
 			p.mu.Lock()
 			conn := p.Conn
 			p.mu.Unlock()
 			if conn == nil {
 				return
 			}
-
-			_, msg, err := conn.ReadMessage()
+			err := conn.WriteMessage(websocket.PingMessage, []byte{})
 			if err != nil {
-				close(p.message)
+				p.Disconnect()
 				return
 			}
-			p.message <- msg
+		case <-p.stop:
+			return
+		}
+	}
+}
+func (p *ProcessChannel) Send(data interface{}) error {
+	bytes, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	select {
+	case p.send <- bytes:
+	default:
+		// Channel full, skip update to stay async
+		log.Println("Send buffer full, skipping update")
+	}
+	return nil
+}
+
+func (p *ProcessChannel) Receive() (<-chan []byte, error) {
+	go func() {
+		for {
+			_, message, err := p.Conn.ReadMessage()
+			if err != nil {
+				p.Disconnect()
+				return
+			}
+			select {
+			case p.receive <- message:
+			default:
+				log.Println("Receive buffer full, skipping message")
+			}
 		}
 	}()
+	return p.receive, nil
+}
 
-	return p.message, nil
+func (p *ProcessChannel) StartMonitoring() {
+	ticker := time.NewTicker(5 * time.Second)
+	defer ticker.Stop()
+
+	// Initial fetch and send
+	p.updateProcesses()
+
+	for {
+		select {
+		case <-ticker.C:
+			p.updateProcesses()
+		case <-p.stop:
+			return
+		}
+	}
+}
+
+func (p *ProcessChannel) updateProcesses() {
+	processList, err := processes.GetProcesses()
+	if err != nil {
+		log.Println("Error getting processes:", err)
+		return
+	}
+	p.Send(processList)
 }
