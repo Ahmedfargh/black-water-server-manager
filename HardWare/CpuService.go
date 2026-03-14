@@ -13,7 +13,7 @@ type CpuInfo struct {
 	Max_Cpu_run        uint
 	Arch               string
 	Os                 string
-	Cpu_Hard_Ware_Info map[int]map[string]string 
+	Cpu_Hard_Ware_Info map[int]map[string]string
 }
 
 func GetCpuInfo() (CpuInfo, error) {
