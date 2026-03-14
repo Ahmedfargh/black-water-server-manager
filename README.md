@@ -105,6 +105,15 @@ Before you begin, ensure you have the following installed:
 
 ### Real-Time Monitoring (WebSockets)
 - `WS /ws/processes` - Live process stream (Broadcasts every 5s)
+- `WS /ws/cpu-temperature` - Live CPU temperature stream (Broadcasts every 1s)
+
+## 🏗️ Scalable Hub Architecture
+
+To support thousands of concurrent users (e.g., 2000+), Blackwater implements a **Centralized Hub Pattern** for WebSockets:
+
+- **Single Source of Truth:** System metrics (processes, temperature) are fetched and processed once by a background worker.
+- **Efficient Broadcasting:** Instead of each connection polling the kernel independently, a single JSON payload is generated and broadcasted to all active subscribers.
+- **Low Latency:** This approach reduces I/O wait times and CPU usage from $O(N)$ to $O(1)$ for data gathering, ensuring consistent performance regardless of the number of connected clients.
 
 ## 🛡️ Permissions
 
