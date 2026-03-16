@@ -23,6 +23,7 @@ func SeedPermissions(permissionCRUD *crud.PermissionCRUD) {
 		"read_gpu",
 		"read_ram",
 		"read_disk",
+		"read_network",
 	}
 
 	for _, p := range permissions {

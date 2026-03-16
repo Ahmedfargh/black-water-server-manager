@@ -1,0 +1,18 @@
+{
+	"info": {
+		"_postman_id": "72a39b96-91ce-43cd-91f8-894db7e2b2b0",
+		"name": "Network Monitor",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "21593029"
+	},
+	"item": [
+		{
+			"name": "network monitor (all)",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		}
+	]
+}

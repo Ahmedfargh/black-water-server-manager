@@ -24,6 +24,7 @@ func main() {
 	routes.CpuRoute(router)
 	routes.ProcessRoute(router)
 	routes.RegisterRealTimeRoutes(router)
+	routes.NetworkRoutes(router)
 	router.Static("/uploads", "./uploads")
 
 	router.Run(config.PortNumber())

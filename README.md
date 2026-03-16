@@ -6,7 +6,7 @@ This application allows you to monitor hardware performance (CPU, GPU, RAM, Disk
 
 ## 🚀 Features
 
-- **Hardware Monitoring:** Real-time information about CPU, GPU, RAM, and Disk usage.
+- **Hardware Monitoring:** Real-time information about CPU, GPU, RAM, Disk, and Network usage.
 - **Process Management:** View detailed information about running system processes, start new ones, and terminate existing ones.
 - **Real-Time Monitoring (WebSockets):** Efficiently stream process updates to multiple clients using a centralized Hub pattern.
 - **User Authentication:** Secure JWT-based login and registration.
@@ -95,6 +95,7 @@ Before you begin, ensure you have the following installed:
 - `GET /gpu` - GPU information
 - `GET /ram` - Memory usage
 - `GET /disk` - Disk space information
+- `GET /network` - Network usage statistics
 
 ### Process Management (Requires Auth)
 - `GET /processes` - List all running system processes
@@ -124,6 +125,8 @@ To support thousands of concurrent users (e.g., 2000+), Blackwater implements a 
 | `kill_process` | Terminate running processes |
 | `read_cpu` | Access CPU usage and information |
 | `read_ram` | Access RAM usage and information |
+| `read_disk` | Access Disk usage and information |
+| `read_network` | Access Network usage and information |
 
 ---
 Developed by [Ahmed Farghly](https://github.com/ahmedfargh)
