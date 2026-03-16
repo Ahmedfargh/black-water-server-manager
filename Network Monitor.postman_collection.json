@@ -13,6 +13,34 @@
 				"header": []
 			},
 			"response": []
+		},
+		{
+			"name": "network connection",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{authToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/network/connections",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"network",
+						"connections"
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }

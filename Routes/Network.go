@@ -8,4 +8,5 @@ import (
 
 func NetworkRoutes(router *gin.Engine) {
 	router.GET("/network", authentication.AuthMiddleware(), authentication.CheckRole("read_network"), info.GetNetworkInfo())
+	router.GET("/network/connections", authentication.AuthMiddleware(), authentication.CheckRole("read_network"), info.GetNetworkConnections())
 }

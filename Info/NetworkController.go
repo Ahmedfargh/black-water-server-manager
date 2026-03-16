@@ -18,3 +18,15 @@ func GetNetworkInfo() gin.HandlerFunc {
 		c.JSON(http.StatusOK, networkInfo)
 	}
 }
+func GetNetworkConnections() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		networkService := HardWare.NewNetworkService()
+		networkConnections, err := networkService.GetNetworkConnections()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, networkConnections)
+	}
+}

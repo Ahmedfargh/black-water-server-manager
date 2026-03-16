@@ -20,6 +20,7 @@ func SeedAll(userCRUD *crud.UserCRUD, roleCRUD *crud.RoleCRUD, permissionCRUD *c
 	superAdminPermissions := []string{
 		"create_user", "read_user", "update_user", "delete_user",
 		"manage_roles", "manage_permissions",
+		"read_cpu", "read_gpu", "read_ram", "read_disk", "read_network",
 	}
 	developerPermissions := []string{
 		"read_user", "update_user",
