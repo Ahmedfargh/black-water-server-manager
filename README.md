@@ -96,6 +96,7 @@ Before you begin, ensure you have the following installed:
 - `GET /ram` - Memory usage
 - `GET /disk` - Disk space information
 - `GET /network` - Network usage statistics
+- `GET /network/connections` - List of active network connections with process info
 
 ### Process Management (Requires Auth)
 - `GET /processes` - List all running system processes
