@@ -8,6 +8,7 @@ This application allows you to monitor hardware performance (CPU, GPU, RAM, Disk
 
 - **Hardware Monitoring:** Real-time information about CPU, GPU, RAM, Disk, and Network usage.
 - **Process Management:** View detailed information about running system processes, start new ones, and terminate existing ones.
+- **Process Ownership Tracking:** Automatically record which user started each process for accountability and logging.
 - **Real-Time Monitoring (WebSockets):** Efficiently stream process updates to multiple clients using a centralized Hub pattern.
 - **User Authentication:** Secure JWT-based login and registration.
 - **Role-Based Access Control (RBAC):** Granular control over system features using roles and permissions.

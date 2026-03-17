@@ -94,7 +94,7 @@ func GetPaginatedProcesses(page, pageSize int) ([]models.Process, int64, error) 
 	return repo.GetPaginatedProcesses(page, pageSize)
 }
 
-func StartProcess(command string, args ...string) (*models.Process, error) {
+func StartProcess(userID uint, command string, args ...string) (*models.Process, error) {
 	cmd := exec.Command(command, args...)
 	err := cmd.Start()
 	if err != nil {
@@ -114,6 +114,7 @@ func StartProcess(command string, args ...string) (*models.Process, error) {
 		Status:  "Running",
 		Command: command,
 		Args:    strings.Join(args, " "),
+		UserID:  userID,
 	}
 	saved, err := saveProcessToDB(&proc)
 	if err != nil {

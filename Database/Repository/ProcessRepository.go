@@ -45,7 +45,7 @@ func (r *ProcessRepository) GetPaginatedProcesses(page, pageSize int) ([]models.
 	}
 
 	offset := (page - 1) * pageSize
-	err := r.DB.Limit(pageSize).Offset(offset).Order("id desc").Find(&processes).Error
+	err := r.DB.Limit(pageSize).Offset(offset).Order("id desc").Preload("User").Find(&processes).Error
 	if err != nil {
 		return nil, 0, err
 	}

@@ -9,4 +9,6 @@ type Process struct {
 	Status  string `json:"status"`
 	Command string `json:"command"`
 	Args    string `json:"args"`
+	UserID  uint   `json:"user_id"`
+	User    User   `gorm:"foreignKey:UserID"`
 }

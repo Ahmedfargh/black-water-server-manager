@@ -90,7 +90,13 @@ func StartProcess() gin.HandlerFunc {
 			args = parts[1:]
 		}
 
-		if _, err := processes.StartProcess(cmd, args...); err != nil {
+		userID, exists := c.Get("userID")
+		if !exists {
+			c.JSON(401, gin.H{"error": "User not authenticated"})
+			return
+		}
+
+		if _, err := processes.StartProcess(userID.(uint), cmd, args...); err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
