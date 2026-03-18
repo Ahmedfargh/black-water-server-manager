@@ -21,6 +21,7 @@ This application allows you to monitor hardware performance (CPU, GPU, RAM, Disk
 Blackwater is designed to be language-agnostic. Since it provides a standard RESTful API secured by JWT, it can seamlessly integrate as a specialized microservice into any modern architecture.
 
 ### Real-Time Capabilities
+
 The service includes a WebSocket Hub that fetches system data once and broadcasts it to all connected clients. This minimizes CPU overhead while providing live updates for dashboards and monitoring tools.
 
 ## 🛠️ Tech Stack
@@ -36,6 +37,7 @@ The service includes a WebSocket Hub that fetches system data once and broadcast
 ## 📋 Prerequisites
 
 Before you begin, ensure you have the following installed:
+
 - [Go](https://golang.org/doc/install) (version 1.25 or higher)
 - [MySQL](https://dev.mysql.com/downloads/installer/)
 - Git
@@ -43,30 +45,48 @@ Before you begin, ensure you have the following installed:
 ## ⚙️ Installation
 
 1. **Clone the repository:**
+
    ```bash
    git clone https://github.com/ahmedfargh/server-manager.git
    cd golang-server-controller
    ```
 
 2. **Install dependencies:**
+
    ```bash
    go mod tidy
    ```
 
 3. **Configure Environment Variables:**
    Copy the `.env.example` file to `.env` and update the values.
+
    ```bash
    cp .env.example .env
    ```
 
-4. **Seed the Database:**
+## 🐳 Docker Deployment (Zero-Config Testing)
+
+For developers on **Mac, Windows, or Linux**, Docker provides an isolated environment to test Blackwater's API and Database orchestration immediately without manual configuration.
+
+1. **Configure Environment:**
+   Ensure your `.env` file has the correct `DB_PASSWORD` and `JWT_SECRET`.
+   *Note: For Docker, we recommend `DB_PORT=3307` to avoid conflicts with local MySQL instances.*
+
+2. **Start the Engine:**
    ```bash
-   go run seeder.go
+   docker compose up --build -d
    ```
+
+3. **Access the API:**
+   The server will be available at `http://localhost:8080`.
+
+> [!TIP]
+> **Cross-Platform Compatibility:** While Docker allows you to test the API logic and project structure on Mac and Windows, please note that low-level hardware and firewall features require a native Linux host for full functionality.
 
 ## 🚀 Usage
 
 1. **Start the server:**
+
    ```bash
    go run main.go
    ```
@@ -82,10 +102,12 @@ Before you begin, ensure you have the following installed:
 ## 🔗 Key Endpoints
 
 ### Authentication
+
 - `POST /login` - User login
 - `POST /register` - User registration
 
 ### User Management (Requires Auth)
+
 - `GET /users/` - List users
 - `POST /users/acount/update` - Update profile
 - `GET /users/profile/me` - Get own profile
@@ -93,6 +115,7 @@ Before you begin, ensure you have the following installed:
 - `GET /users/roles` - List all roles
 
 ### Hardware Info (Requires Auth)
+
 - `GET /cpu` - CPU usage statistics
 - `GET /gpu` - GPU information
 - `GET /ram` - Memory usage
@@ -101,6 +124,7 @@ Before you begin, ensure you have the following installed:
 - `GET /network/connections` - List of active network connections with process info
 
 ### Firewall Management (Requires Auth)
+
 - `GET /firewall/status` - Get firewall status (UFW on Debian/Arch, Firewalld on Red Hat)
 - `GET /firewall/enable` - Enable firewall
 - `GET /firewall/disable` - Disable firewall
@@ -108,6 +132,7 @@ Before you begin, ensure you have the following installed:
 - `GET /firewall/list` - List active firewall rules
 
 ### Process Management (Requires Auth)
+
 - `GET /processes` - List all running system processes
 - `GET /process/single/:pid` - Detailed info for a specific process
 - `GET /process/log` - History of started processes
@@ -115,6 +140,7 @@ Before you begin, ensure you have the following installed:
 - `DELETE /process/kill/:pid` - Terminate a process
 
 ### Real-Time Monitoring (WebSockets)
+
 - `WS /ws/processes` - Live process stream (Broadcasts every 5s)
 - `WS /ws/cpu-temperature` - Live CPU temperature stream (Broadcasts every 1s)
 
@@ -128,19 +154,20 @@ To support thousands of concurrent users (e.g., 2000+), Blackwater implements a 
 
 ## 🛡️ Permissions
 
-| Permission | Description |
-|---|---|
-| `read_processes` | List all running system processes |
-| `start_process` | Initiate new processes on the server |
-| `kill_process` | Terminate running processes |
-| `read_cpu` | Access CPU usage and information |
-| `read_ram` | Access RAM usage and information |
-| `read_disk` | Access Disk usage and information |
-| `read_network` | Access Network usage and information |
-| `view_firewall_status` | View the current status of the firewall |
-| `enable_firewall` | Enable the system firewall (UFW/Firewalld) |
-| `disable_firewall` | Disable the system firewall |
-| `view_firewall_rules` | List active and numbered firewall rules |
+| Permission             | Description                                |
+| ---------------------- | ------------------------------------------ |
+| `read_processes`       | List all running system processes          |
+| `start_process`        | Initiate new processes on the server       |
+| `kill_process`         | Terminate running processes                |
+| `read_cpu`             | Access CPU usage and information           |
+| `read_ram`             | Access RAM usage and information           |
+| `read_disk`            | Access Disk usage and information          |
+| `read_network`         | Access Network usage and information       |
+| `view_firewall_status` | View the current status of the firewall    |
+| `enable_firewall`      | Enable the system firewall (UFW/Firewalld) |
+| `disable_firewall`     | Disable the system firewall                |
+| `view_firewall_rules`  | List active and numbered firewall rules    |
 
 ---
+
 Developed by [Ahmed Farghly](https://github.com/ahmedfargh)

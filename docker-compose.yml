@@ -1,0 +1,37 @@
+services:
+  app:
+    build: .
+    container_name: blackwater-app
+    restart: always
+    security_opt:
+      - apparmor:unconfined
+    privileged: true
+    network_mode: host
+    volumes:
+      - /etc/os-release:/etc/os-release:ro
+      - /var/run/dbus:/var/run/dbus
+      - /lib/modules:/lib/modules:ro
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mysql:8.0
+    container_name: blackwater-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-your_root_password}
+      MYSQL_DATABASE: ${DB_NAME:-go_server}
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+volumes:
+  db_data:
