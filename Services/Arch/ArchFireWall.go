@@ -10,7 +10,7 @@ func NewArchFireWall() *ArchFireWall {
 }
 
 func (f *ArchFireWall) UFWAction(action string) (string, error) {
-	cmd := exec.Command("sudo", "ufw", action)
+	cmd := exec.Command("ufw", action)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", err

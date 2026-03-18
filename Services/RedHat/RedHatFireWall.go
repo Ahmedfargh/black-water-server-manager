@@ -23,12 +23,12 @@ func (f *RedHatFireWall) Command(args ...string) (string, error) {
 
 func (f *RedHatFireWall) Enable() (string, error) {
 	// Start and enable the service via systemctl
-	cmd := exec.Command("sudo", "systemctl", "start", "firewalld")
+	cmd := exec.Command("systemctl", "start", "firewalld")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return string(output), err
 	}
-	exec.Command("sudo", "systemctl", "enable", "firewalld").Run()
+	exec.Command("systemctl", "enable", "firewalld").Run()
 	return "Firewalld started and enabled successfully", nil
 }
 
