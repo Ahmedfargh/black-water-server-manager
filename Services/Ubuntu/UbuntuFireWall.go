@@ -9,7 +9,7 @@ func NewUbuntuFireWall() *UbuntuFireWall {
 	return &UbuntuFireWall{}
 }
 func (f *UbuntuFireWall) UFWAction(action string) (string, error) {
-	cmd := exec.Command("ufw", action)
+	cmd := exec.Command("sudo", "ufw", action)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", err
