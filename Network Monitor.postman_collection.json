@@ -7,10 +7,146 @@
 	},
 	"item": [
 		{
+			"name": "FireWall",
+			"item": [
+				{
+					"name": "enable",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/firewall/enable",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"firewall",
+								"enable"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "disable",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/firewall/disable",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"firewall",
+								"disable"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "status",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/firewall/status",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"firewall",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "rules",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/firewall/rules",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"firewall",
+								"rules"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "network monitor (all)",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{authToken}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": []
+				"header": [],
+				"url": {
+					"raw": "{{host}}/network",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"network"
+					]
+				}
 			},
 			"response": []
 		},

@@ -7,6 +7,7 @@ This application allows you to monitor hardware performance (CPU, GPU, RAM, Disk
 ## 🚀 Features
 
 - **Hardware Monitoring:** Real-time information about CPU, GPU, RAM, Disk, and Network usage.
+- **Firewall Management:** Basic UFW (Uncomplicated Firewall) control for Debian-based distributions (enable, disable, status, and rule listing).
 - **Process Management:** View detailed information about running system processes, start new ones, and terminate existing ones.
 - **Process Ownership Tracking:** Automatically record which user started each process for accountability and logging.
 - **Real-Time Monitoring (WebSockets):** Efficiently stream process updates to multiple clients using a centralized Hub pattern.
@@ -99,6 +100,13 @@ Before you begin, ensure you have the following installed:
 - `GET /network` - Network usage statistics
 - `GET /network/connections` - List of active network connections with process info
 
+### Firewall Management (Requires Auth - Debian/Ubuntu)
+- `GET /firewall/status` - Get UFW status
+- `GET /firewall/enable` - Enable UFW
+- `GET /firewall/disable` - Disable UFW
+- `GET /firewall/rules` - List numbered firewall rules
+- `GET /firewall/list` - List active firewall rules
+
 ### Process Management (Requires Auth)
 - `GET /processes` - List all running system processes
 - `GET /process/single/:pid` - Detailed info for a specific process
@@ -129,6 +137,10 @@ To support thousands of concurrent users (e.g., 2000+), Blackwater implements a 
 | `read_ram` | Access RAM usage and information |
 | `read_disk` | Access Disk usage and information |
 | `read_network` | Access Network usage and information |
+| `view_firewall_status` | View the current status of the firewall |
+| `enable_firewall` | Enable the system firewall |
+| `disable_firewall` | Disable the system firewall |
+| `view_firewall_rules` | List active and numbered firewall rules |
 
 ---
 Developed by [Ahmed Farghly](https://github.com/ahmedfargh)

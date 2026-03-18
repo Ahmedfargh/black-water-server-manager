@@ -21,6 +21,9 @@ func SeedAll(userCRUD *crud.UserCRUD, roleCRUD *crud.RoleCRUD, permissionCRUD *c
 		"create_user", "read_user", "update_user", "delete_user",
 		"manage_roles", "manage_permissions",
 		"read_cpu", "read_gpu", "read_ram", "read_disk", "read_network",
+		"enable_firewall", "disable_firewall",
+		"view_firewall_status", "view_firewall_rules", "view_firewall_list",
+		"read_processes", "read_process", "start_process", "read_process_log", "kill_process",
 	}
 	developerPermissions := []string{
 		"read_user", "update_user",
