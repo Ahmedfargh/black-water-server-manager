@@ -26,6 +26,7 @@ func main() {
 	routes.RegisterRealTimeRoutes(router)
 	routes.NetworkRoutes(router)
 	routes.FireWallRoute(router)
+	routes.SetupDockerRoutes(router)
 	router.Static("/uploads", "./uploads")
 
 	router.Run(config.PortNumber())

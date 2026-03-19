@@ -8,6 +8,7 @@ This application allows you to monitor hardware performance (CPU, GPU, RAM, Disk
 
 - **Hardware Monitoring:** Real-time information about CPU, GPU, RAM, Disk, and Network usage.
 - **Firewall Management:** Multi-distro support for Debian/Ubuntu (UFW), Arch Linux (UFW), and Red Hat-based distributions (Firewalld).
+- **Docker Management:** View and monitor Docker containers running on the host.
 - **Process Management:** View detailed information about running system processes, start new ones, and terminate existing ones.
 - **Process Ownership Tracking:** Automatically record which user started each process for accountability and logging.
 - **Real-Time Monitoring (WebSockets):** Efficiently stream process updates to multiple clients using a centralized Hub pattern.
@@ -116,10 +117,10 @@ For developers on **Mac, Windows, or Linux**, Docker provides an isolated enviro
 
 ### Hardware Info (Requires Auth)
 
-- `GET /cpu` - CPU usage statistics
-- `GET /gpu` - GPU information
-- `GET /ram` - Memory usage
-- `GET /disk` - Disk space information
+- `GET /info/cpu` - CPU usage statistics
+- `GET /info/gpu` - GPU information
+- `GET /info/ram` - Memory usage
+- `GET /info/disk` - Disk space information
 - `GET /network` - Network usage statistics
 - `GET /network/connections` - List of active network connections with process info
 
@@ -131,13 +132,17 @@ For developers on **Mac, Windows, or Linux**, Docker provides an isolated enviro
 - `GET /firewall/rules` - List numbered/detailed firewall rules
 - `GET /firewall/list` - List active firewall rules
 
+### Docker Management (Requires Auth)
+
+- `GET /docker/containers` - List all containers running on the host
+
 ### Process Management (Requires Auth)
 
-- `GET /processes` - List all running system processes
-- `GET /process/single/:pid` - Detailed info for a specific process
-- `GET /process/log` - History of started processes
-- `POST /process/start` - Start a new process
-- `DELETE /process/kill/:pid` - Terminate a process
+- `GET /info/processes` - List all running system processes
+- `GET /info/process/single/:pid` - Detailed info for a specific process
+- `GET /info/process/log` - History of started processes
+- `POST /info/process/start` - Start a new process
+- `DELETE /info/process/kill/:pid` - Terminate a process
 
 ### Real-Time Monitoring (WebSockets)
 
@@ -167,6 +172,7 @@ To support thousands of concurrent users (e.g., 2000+), Blackwater implements a 
 | `enable_firewall`      | Enable the system firewall (UFW/Firewalld) |
 | `disable_firewall`     | Disable the system firewall                |
 | `view_firewall_rules`  | List active and numbered firewall rules    |
+| `read_containers`      | List Docker containers                     |
 
 ---
 
