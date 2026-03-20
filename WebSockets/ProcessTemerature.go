@@ -2,7 +2,7 @@ package WebSockets
 
 import (
 	"encoding/json"
-	"fmt"
+	"log"
 	"net/http"
 	"sync"
 	"time"
@@ -11,133 +11,179 @@ import (
 	"github.com/shirou/gopsutil/v3/host"
 )
 
-type CpuTemperature struct {
-	Conn        *websocket.Conn
-	Temperature []host.TemperatureStat `json:"temperature"`
-	mu          sync.Mutex
-	Send        chan []byte
-	Receive     chan []byte
-	Stop        chan struct{}
+type TemperatureClient struct {
+	hub  *TemperatureHub
+	conn *websocket.Conn
+	send chan []byte
 }
 
-func NewCpuChannel() *CpuTemperature {
-	return &CpuTemperature{
-		Send:    make(chan []byte, 100),
-		Receive: make(chan []byte, 100),
-		Stop:    make(chan struct{}),
+type TemperatureHub struct {
+	clients    map[*TemperatureClient]bool
+	broadcast  chan []byte
+	register   chan *TemperatureClient
+	unregister chan *TemperatureClient
+	mu         sync.RWMutex
+}
+
+var (
+	globalTemperatureHub *TemperatureHub
+	tempHubOnce          sync.Once
+)
+
+// GetTemperatureHub returns the singleton instance of TemperatureHub
+func GetTemperatureHub() *TemperatureHub {
+	tempHubOnce.Do(func() {
+		globalTemperatureHub = &TemperatureHub{
+			clients:    make(map[*TemperatureClient]bool),
+			broadcast:  make(chan []byte),
+			register:   make(chan *TemperatureClient),
+			unregister: make(chan *TemperatureClient),
+		}
+		go globalTemperatureHub.run()
+		go globalTemperatureHub.startMonitoring()
+	})
+	return globalTemperatureHub
+}
+
+func (h *TemperatureHub) run() {
+	for {
+		select {
+		case client := <-h.register:
+			h.mu.Lock()
+			h.clients[client] = true
+			h.mu.Unlock()
+			log.Printf("Temperature Client registered: %s", client.conn.RemoteAddr())
+
+		case client := <-h.unregister:
+			h.mu.Lock()
+			if _, ok := h.clients[client]; ok {
+				delete(h.clients, client)
+				close(client.send)
+				log.Printf("Temperature Client unregistered: %s", client.conn.RemoteAddr())
+			}
+			h.mu.Unlock()
+
+		case message := <-h.broadcast:
+			h.mu.RLock()
+			for client := range h.clients {
+				select {
+				case client.send <- message:
+				default:
+					go func(c *TemperatureClient) { h.unregister <- c }(client)
+				}
+			}
+			h.mu.RUnlock()
+		}
 	}
 }
 
-func (c *CpuTemperature) Connect(w http.ResponseWriter, r *http.Request) error {
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		return err
-	}
-	c.Conn = conn
-
-	done := make(chan struct{})
-
-	go c.StartMonitoring()
-
-	go c.WritePump(done)
-
-	<-done
-	return nil
-}
-
-func (c *CpuTemperature) StartMonitoring() {
-	ticker := time.NewTicker(5 * time.Second)
+func (h *TemperatureHub) startMonitoring() {
+	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 
 	for {
 		select {
-		case <-c.Stop:
-			return
 		case <-ticker.C:
-			temperatures, err := host.SensorsTemperatures()
-			// core_sensors := []host.TemperatureStat{}
-			// if err != nil {
-			// 	continue
-			// }
-			// for _, temp := range temperatures {
-			// 	key := strings.ToLower(temp.SensorKey)
-			// 	if strings.Contains(key, "coretemp") {
-			// 		core_sensors = append(core_sensors, temp)
-			// 	} else {
-			// 		fmt.Printf("Skipping non-core temperature sensor: %s\n", temp.SensorKey)
-			// 		continue
-			// 	}
-			// }
-			c.mu.Lock()
-			c.Temperature = temperatures
-			c.mu.Unlock()
-
-			data, err := json.Marshal(c.Temperature)
-			if err != nil {
-				continue
-			}
-			c.Send <- data
+			h.updateTemperature()
 		}
 	}
 }
 
-func (c *CpuTemperature) WritePump(done chan struct{}) {
+func (h *TemperatureHub) updateTemperature() {
+	temperatures, err := host.SensorsTemperatures()
+	if err != nil {
+		log.Println("Error getting temperatures:", err)
+		return
+	}
+
+	bytes, err := json.Marshal(temperatures)
+	if err != nil {
+		log.Println("Error marshaling temperatures:", err)
+		return
+	}
+
+	h.broadcast <- bytes
+}
+
+// Connect upgrades the HTTP connection and adds the client to the hub
+func (h *TemperatureHub) Connect(w http.ResponseWriter, r *http.Request) error {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		return err
+	}
+
+	client := &TemperatureClient{
+		hub:  h,
+		conn: conn,
+		send: make(chan []byte, 256),
+	}
+
+	h.register <- client
+
+	go client.writePump()
+	go client.readPump()
+
+	return nil
+}
+
+func (c *TemperatureClient) readPump() {
 	defer func() {
-		c.Conn.Close()
-		close(done)
+		c.hub.unregister <- c
+		c.conn.Close()
+	}()
+
+	for {
+		_, _, err := c.conn.ReadMessage()
+		if err != nil {
+			break
+		}
+	}
+}
+
+func (c *TemperatureClient) writePump() {
+	ticker := time.NewTicker(30 * time.Second)
+	defer func() {
+		ticker.Stop()
+		c.conn.Close()
 	}()
 
 	for {
 		select {
-		case message, ok := <-c.Send:
-			fmt.Println()
+		case message, ok := <-c.send:
 			if !ok {
-				c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
+				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
-			err := c.Conn.WriteMessage(websocket.TextMessage, message)
+
+			err := c.conn.WriteMessage(websocket.TextMessage, message)
 			if err != nil {
 				return
 			}
-		case <-c.Stop:
-			return
-		}
-	}
-}
-func (c *CpuTemperature) ReadPump() {
-	defer func() {
-		c.Conn.Close()
-	}()
 
-	for {
-		_, message, err := c.Conn.ReadMessage()
-		if err != nil {
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				c.Stop <- struct{}{}
+		case <-ticker.C:
+			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+				return
 			}
-			return
 		}
-		c.Receive <- message
 	}
 }
-func (c *CpuTemperature) send(data interface{}) error {
-	bytes, err := json.Marshal(data)
-	if err != nil {
-		return err
-	}
-	select {
-	case c.Send <- bytes:
-	default:
-		// Channel full, skip update to stay async
-	}
-	return nil
+
+// --- Compatibility Shims ---
+
+type CpuTemperature struct {
+	hub *TemperatureHub
 }
+
+func NewCpuChannel() *CpuTemperature {
+	return &CpuTemperature{
+		hub: GetTemperatureHub(),
+	}
+}
+
+func (c *CpuTemperature) Connect(w http.ResponseWriter, r *http.Request) error {
+	return c.hub.Connect(w, r)
+}
+
 func (c *CpuTemperature) Disconnect() error {
-	select {
-	case <-c.Stop:
-		return nil
-	default:
-		close(c.Stop)
-	}
 	return nil
 }
