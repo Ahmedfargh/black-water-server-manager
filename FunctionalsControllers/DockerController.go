@@ -32,3 +32,16 @@ func GetContainerByIDHandler() gin.HandlerFunc {
 		c.JSON(http.StatusOK, container)
 	}
 }
+
+func ContainerStatusHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		dockerService, err := Services.NewDockerService()
+		container, err := dockerService.ContainerStatus(context.Background(), id)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, container)
+	}
+}

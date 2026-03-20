@@ -1,0 +1,104 @@
+{
+	"info": {
+		"_postman_id": "b4d0c256-41ac-4eab-9372-b249a38d2552",
+		"name": "Docker",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "21593029"
+	},
+	"item": [
+		{
+			"name": "list containers",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{authToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/docker/containers/",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"docker",
+						"containers",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get Container",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{authToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/docker/container/{{container_id}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"docker",
+						"container",
+						"{{container_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "container's states",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{authToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/docker/container/:id/status",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"docker",
+						"container",
+						":id",
+						"status"
+					],
+					"variable": [
+						{
+							"key": "id",
+							"value": "82d12b112be3978e9a81579365b236d407e122d136deb1e84a5bf8861652bfc3"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

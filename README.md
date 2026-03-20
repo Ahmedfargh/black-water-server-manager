@@ -27,7 +27,7 @@ The service includes a WebSocket Hub that fetches system data once and broadcast
 
 ## 🛠️ Tech Stack
 
-- **Language:** Go (1.25+)
+- **Language:** Go (1.24+)
 - **Web Framework:** [Gin](https://github.com/gin-gonic/gin)
 - **WebSocket:** [Gorilla WebSocket](https://github.com/gorilla/websocket)
 - **ORM:** [GORM](https://gorm.io/)
@@ -136,6 +136,7 @@ For developers on **Mac, Windows, or Linux**, Docker provides an isolated enviro
 
 - `GET /docker/containers` - List all containers running on the host
 - `GET /docker/container/:id` - Get detailed information for a specific container
+- `GET /docker/container/:id/status` - Get real-time container metrics (CPU %, Memory Usage/Limit, Network I/O, Block I/O, Pids)
 
 ### Process Management (Requires Auth)
 
