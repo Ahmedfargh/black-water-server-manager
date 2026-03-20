@@ -28,6 +28,5 @@ func main() {
 	routes.FireWallRoute(router)
 	routes.SetupDockerRoutes(router)
 	router.Static("/uploads", "./uploads")
-
 	router.Run(config.PortNumber())
 }

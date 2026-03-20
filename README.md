@@ -8,7 +8,7 @@ This application allows you to monitor hardware performance (CPU, GPU, RAM, Disk
 
 - **Hardware Monitoring:** Real-time information about CPU, GPU, RAM, Disk, and Network usage.
 - **Firewall Management:** Multi-distro support for Debian/Ubuntu (UFW), Arch Linux (UFW), and Red Hat-based distributions (Firewalld).
-- **Docker Management:** View and monitor Docker containers running on the host.
+- **Docker Management:** View, inspect, and monitor Docker containers running on the host.
 - **Process Management:** View detailed information about running system processes, start new ones, and terminate existing ones.
 - **Process Ownership Tracking:** Automatically record which user started each process for accountability and logging.
 - **Real-Time Monitoring (WebSockets):** Efficiently stream process updates to multiple clients using a centralized Hub pattern.
@@ -135,6 +135,7 @@ For developers on **Mac, Windows, or Linux**, Docker provides an isolated enviro
 ### Docker Management (Requires Auth)
 
 - `GET /docker/containers` - List all containers running on the host
+- `GET /docker/container/:id` - Get detailed information for a specific container
 
 ### Process Management (Requires Auth)
 
