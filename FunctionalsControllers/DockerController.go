@@ -45,3 +45,29 @@ func ContainerStatusHandler() gin.HandlerFunc {
 		c.JSON(http.StatusOK, container)
 	}
 }
+func ActionContainerHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		dockerService, err := Services.NewDockerService()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		action := c.Param("action")
+		if action != "start" && action != "stop" && action != "restart" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid action"})
+			return
+		} else if action == "start" {
+			err = dockerService.StartContainer(context.Background(), id)
+		} else if action == "stop" {
+			err = dockerService.StopContainer(context.Background(), id)
+		} else if action == "restart" {
+			err = dockerService.RestartContainer(context.Background(), id)
+		}
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"message": "Container " + action + "ed successfully"})
+	}
+}

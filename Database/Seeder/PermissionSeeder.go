@@ -24,6 +24,13 @@ func SeedPermissions(permissionCRUD *crud.PermissionCRUD) {
 		"read_ram",
 		"read_disk",
 		"read_network",
+		"enable_firewall",
+		"disable_firewall",
+		"view_firewall_status",
+		"view_firewall_rules",
+		"view_firewall_list",
+		"read_containers",
+		"manage_containers",
 	}
 
 	for _, p := range permissions {

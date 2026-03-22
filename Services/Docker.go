@@ -207,3 +207,45 @@ func (d *DockerService) ContainerLogs(ctx context.Context, id string) (io.ReadCl
 	}
 	return logs, nil
 }
+func (d *DockerService) StartContainer(ctx context.Context, id string) error {
+	cli, err := DockerClient.NewClientWithOpts(
+		DockerClient.FromEnv,
+		DockerClient.WithAPIVersionNegotiation(),
+	)
+	if err != nil {
+		return err
+	}
+	err = cli.ContainerStart(ctx, id, container.StartOptions{})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (d *DockerService) StopContainer(ctx context.Context, id string) error {
+	cli, err := DockerClient.NewClientWithOpts(
+		DockerClient.FromEnv,
+		DockerClient.WithAPIVersionNegotiation(),
+	)
+	if err != nil {
+		return err
+	}
+	err = cli.ContainerStop(ctx, id, container.StopOptions{})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (d *DockerService) RestartContainer(ctx context.Context, id string) error {
+	cli, err := DockerClient.NewClientWithOpts(
+		DockerClient.FromEnv,
+		DockerClient.WithAPIVersionNegotiation(),
+	)
+	if err != nil {
+		return err
+	}
+	err = cli.ContainerRestart(ctx, id, container.StopOptions{})
+	if err != nil {
+		return err
+	}
+	return nil
+}

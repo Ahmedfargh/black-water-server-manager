@@ -99,6 +99,46 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Docker Action",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{authToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/docker/container/:id/:action",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"docker",
+						"container",
+						":id",
+						":action"
+					],
+					"variable": [
+						{
+							"key": "id",
+							"value": "ca263c537d65407c037c1e61047b15c2e403e43c2cfa57404a891b133a2489ef"
+						},
+						{
+							"key": "action",
+							"value": "start"
+						}
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }

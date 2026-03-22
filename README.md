@@ -137,6 +137,7 @@ For developers on **Mac, Windows, or Linux**, Docker provides an isolated enviro
 - `GET /docker/containers` - List all containers running on the host
 - `GET /docker/container/:id` - Get detailed information for a specific container
 - `GET /docker/container/:id/status` - Get real-time container metrics (CPU %, Memory Usage/Limit, Network I/O, Block I/O, Pids)
+- `POST /docker/container/:id/:action` - Perform an action on a container (`start`, `stop`, `restart`)
 
 ### Process Management (Requires Auth)
 
@@ -180,6 +181,7 @@ To support large-scale monitoring without overwhelming the host, Blackwater impl
 | `disable_firewall`     | Disable the system firewall                |
 | `view_firewall_rules`  | List active and numbered firewall rules    |
 | `read_containers`      | List Docker containers                     |
+| `manage_containers`    | Start, stop, or restart Docker containers  |
 
 ---
 
