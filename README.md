@@ -11,7 +11,7 @@ This application allows you to monitor hardware performance (CPU, GPU, RAM, Disk
 - **Docker Management:** View, inspect, and monitor Docker containers running on the host.
 - **Process Management:** View detailed information about running system processes, start new ones, and terminate existing ones.
 - **Process Ownership Tracking:** Automatically record which user started each process for accountability and logging.
-- **Real-Time Monitoring (WebSockets):** Efficiently stream process updates to multiple clients using a centralized Hub pattern.
+- **Real-Time Monitoring (WebSockets):** Efficiently stream process updates and container metrics to multiple clients.
 - **User Authentication:** Secure JWT-based login and registration.
 - **Role-Based Access Control (RBAC):** Granular control over system features using roles and permissions.
 - **Database Seeding:** Quick setup with initial roles, permissions, and default admin user.
@@ -23,7 +23,7 @@ Blackwater is designed to be language-agnostic. Since it provides a standard RES
 
 ### Real-Time Capabilities
 
-The service includes a WebSocket Hub that fetches system data once and broadcasts it to all connected clients. This minimizes CPU overhead while providing live updates for dashboards and monitoring tools.
+The service includes multiple WebSocket Hubs that fetch system data once and broadcast it to all connected clients. This minimizes CPU overhead while providing live updates for dashboards and monitoring tools.
 
 ## 🛠️ Tech Stack
 
@@ -150,14 +150,17 @@ For developers on **Mac, Windows, or Linux**, Docker provides an isolated enviro
 
 - `WS /ws/processes` - Live process stream (Broadcasts every 5s)
 - `WS /ws/cpu-temperature` - Live CPU temperature stream (Broadcasts every 1s)
+- `WS /ws/docker/:containerId` - Live container-specific metrics (CPU, Memory, Network, Block I/O)
 
-## 🏗️ Scalable Hub Architecture
+## 🏗️ Dynamic Hub Architecture
 
-To support thousands of concurrent users (e.g., 2000+), Blackwater implements a **Centralized Hub Pattern** for WebSockets:
+To support large-scale monitoring without overwhelming the host, Blackwater implements a sophisticated WebSocket management system:
 
-- **Single Source of Truth:** System metrics (processes, temperature) are fetched and processed once by a background worker.
-- **Efficient Broadcasting:** Instead of each connection polling the kernel independently, a single JSON payload is generated and broadcasted to all active subscribers.
-- **Low Latency:** This approach reduces I/O wait times and CPU usage from $O(N)$ to $O(1)$ for data gathering, ensuring consistent performance regardless of the number of connected clients.
+- **Centralized System Hubs:** System-wide metrics (processes, temperature) use a single source of truth fetched once and broadcasted to all subscribers.
+- **On-Demand Container Hubs:** Monitoring for specific Docker containers is handled by dynamically created hubs.
+  - **Resource Efficient:** A hub is only created when the first user starts monitoring a specific container.
+  - **Automatic Lifecycle:** Hubs and their associated monitoring workers are automatically destroyed when the last client disconnects, saving CPU and memory resources.
+- **$O(1)$ Efficiency:** For any number of clients monitoring the same resource, the system only performs one data-gathering operation, ensuring linear scalability.
 
 ## 🛡️ Permissions
 
