@@ -11,7 +11,7 @@ This application allows you to monitor hardware performance (CPU, GPU, RAM, Disk
 - **Docker Management:** View, inspect, and monitor Docker containers running on the host.
 - **Process Management:** View detailed information about running system processes, start new ones, and terminate existing ones.
 - **Process Ownership Tracking:** Automatically record which user started each process for accountability and logging.
-- **Real-Time Monitoring (WebSockets):** Efficiently stream process updates and container metrics to multiple clients.
+- **Real-Time Monitoring (WebSockets):** Efficiently stream process updates, container metrics, and **live container logs** to multiple clients.
 - **User Authentication:** Secure JWT-based login and registration.
 - **Role-Based Access Control (RBAC):** Granular control over system features using roles and permissions.
 - **Database Seeding:** Quick setup with initial roles, permissions, and default admin user.
@@ -151,15 +151,17 @@ For developers on **Mac, Windows, or Linux**, Docker provides an isolated enviro
 - `WS /ws/processes` - Live process stream (Broadcasts every 5s)
 - `WS /ws/cpu-temperature` - Live CPU temperature stream (Broadcasts every 1s)
 - `WS /ws/docker/:containerId` - Live container-specific metrics (CPU, Memory, Network, Block I/O)
+- **`WS /ws/docker/:containerId/logs`** - Live real-time container log streaming (Follow mode)
 
 ## 🏗️ Dynamic Hub Architecture
 
 To support large-scale monitoring without overwhelming the host, Blackwater implements a sophisticated WebSocket management system:
 
 - **Centralized System Hubs:** System-wide metrics (processes, temperature) use a single source of truth fetched once and broadcasted to all subscribers.
-- **On-Demand Container Hubs:** Monitoring for specific Docker containers is handled by dynamically created hubs.
+- **On-Demand Container Hubs:** Monitoring for specific Docker containers and their logs is handled by dynamically created hubs.
   - **Resource Efficient:** A hub is only created when the first user starts monitoring a specific container.
-  - **Automatic Lifecycle:** Hubs and their associated monitoring workers are automatically destroyed when the last client disconnects, saving CPU and memory resources.
+  - **Automatic Lifecycle:** Hubs and their associated monitoring workers (status pollers and log streamers) are automatically destroyed when the last client disconnects, saving CPU and memory resources.
+- **True Streaming:** Container logs use a direct stream from the Docker daemon (`Follow: true`), ensuring zero-latency updates for log dashboards.
 - **$O(1)$ Efficiency:** For any number of clients monitoring the same resource, the system only performs one data-gathering operation, ensuring linear scalability.
 
 ## 🛡️ Permissions

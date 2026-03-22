@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"time"
 
 	"github.com/docker/docker/api/types/container"
@@ -185,4 +186,24 @@ func (d *DockerService) ContainerStatus(ctx context.Context, id string) (DockerC
 	}
 
 	return d.loadContainerStatus(&v.Stats, v.ID, v.Name)
+}
+func (d *DockerService) ContainerLogs(ctx context.Context, id string) (io.ReadCloser, error) {
+	options := container.LogsOptions{
+		ShowStdout: true,
+		ShowStderr: true,
+		Follow:     true, // ده اللي بيخليها Live زي الـ Terminal عندك
+		Timestamps: true, // اختياري لو عايز وقت جنب كل سطر
+	}
+	cli, err := DockerClient.NewClientWithOpts(
+		DockerClient.FromEnv,
+		DockerClient.WithAPIVersionNegotiation(),
+	)
+	if err != nil {
+		return nil, err
+	}
+	logs, err := cli.ContainerLogs(ctx, id, options)
+	if err != nil {
+		return nil, err
+	}
+	return logs, nil
 }

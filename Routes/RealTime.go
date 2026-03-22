@@ -13,6 +13,7 @@ func RegisterRealTimeRoutes(router *gin.Engine) {
 	router.GET("/ws/processes", gin.WrapH(http.HandlerFunc(ProcessRealTimeHandler)))
 	router.GET("/ws/cpu-temperature", gin.WrapH(http.HandlerFunc(CpuTemperatureRealTimeHandler)))
 	router.GET("/ws/docker/:containerId", gin.WrapH(http.HandlerFunc(DockerRealTimeHandler)))
+	router.GET("/ws/docker/:containerId/logs", gin.WrapH(http.HandlerFunc(DockerRealTimeLogsHandler)))
 }
 
 // ProcessRealTimeHandler handles process-specific WebSocket connections
@@ -38,34 +39,43 @@ func CpuTemperatureRealTimeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func DockerRealTimeHandler(w http.ResponseWriter, r *http.Request) {
-	// Extract containerId from URL path or query
-	// In Gin, router.GET("/ws/docker/:containerId", ...) doesn't directly pass param to http.HandlerFunc easily with gin.WrapH
-	// However, we can use r.Context() or just parse the path if we know the pattern.
-	// Alternatively, we can use query param if simpler, but let's try to get it from path.
-	
-	// A simpler way with gin.WrapH is to use a closure or change the handler to gin.HandlerFunc
-	// But let's assume we can get it from the query for now if path is tricky, 
-	// or better, let's fix the route registration.
-	
-	containerId := r.URL.Query().Get("containerId")
-	if containerId == "" {
-		// Fallback to path parsing if not in query
-		// path is /ws/docker/ID
-		parts := strings.Split(r.URL.Path, "/")
-		if len(parts) > 0 {
-			containerId = parts[len(parts)-1]
-		}
-	}
-
+	containerId := getContainerId(r)
 	if containerId == "" {
 		http.Error(w, "containerId is required", http.StatusBadRequest)
 		return
 	}
-
 	hub := WebSockets.GetDockerHub(containerId)
 	err := hub.Connect(w, r)
 	if err != nil {
 		http.Error(w, "Failed to connect to WebSocket", http.StatusInternalServerError)
 		return
 	}
+}
+
+func DockerRealTimeLogsHandler(w http.ResponseWriter, r *http.Request) {
+	containerId := getContainerId(r)
+	if containerId == "" {
+		http.Error(w, "containerId is required", http.StatusBadRequest)
+		return
+	}
+	hub := WebSockets.GetDockerLogHub(containerId)
+	err := hub.Connect(w, r)
+	if err != nil {
+		http.Error(w, "Failed to connect to WebSocket", http.StatusInternalServerError)
+		return
+	}
+}
+
+func getContainerId(r *http.Request) string {
+	containerId := r.URL.Query().Get("containerId")
+	if containerId == "" {
+		parts := strings.Split(r.URL.Path, "/")
+		for i, part := range parts {
+			if part == "docker" && i+1 < len(parts) {
+				containerId = parts[i+1]
+				break
+			}
+		}
+	}
+	return containerId
 }
