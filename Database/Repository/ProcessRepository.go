@@ -1,4 +1,4 @@
-package repository
+package Repository
 
 import (
 	models "github.com/ahmedfargh/server-manager/Database/Models"

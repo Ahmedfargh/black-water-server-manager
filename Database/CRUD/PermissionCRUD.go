@@ -2,32 +2,33 @@ package crud
 
 import (
 	"errors"
+
 	"github.com/ahmedfargh/server-manager/Database/Models"
 	"github.com/ahmedfargh/server-manager/Database/Repository"
 	"gorm.io/gorm"
 )
 
 type PermissionCRUD struct {
-	Repo *repository.PermissionRepository
+	Repo *Repository.PermissionRepository
 }
 
 func NewPermissionCRUD(db *gorm.DB) *PermissionCRUD {
-	return &PermissionCRUD{Repo: repository.NewPermissionRepository(db)}
+	return &PermissionCRUD{Repo: Repository.NewPermissionRepository(db)}
 }
 
-func (c *PermissionCRUD) CreatePermission(permission *models.Permission) error {
+func (c *PermissionCRUD) CreatePermission(permission *Models.Permission) error {
 	return c.Repo.CreatePermission(permission)
 }
 
-func (c *PermissionCRUD) GetPermissionByName(name string) (*models.Permission, error) {
+func (c *PermissionCRUD) GetPermissionByName(name string) (*Models.Permission, error) {
 	return c.Repo.GetPermissionByName(name)
 }
 
-func (c *PermissionCRUD) FindOrCreatePermission(name string) (*models.Permission, error) {
+func (c *PermissionCRUD) FindOrCreatePermission(name string) (*Models.Permission, error) {
 	permission, err := c.GetPermissionByName(name)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			newPermission := &models.Permission{Name: name}
+			newPermission := &Models.Permission{Name: name}
 			if createErr := c.CreatePermission(newPermission); createErr != nil {
 				return nil, createErr
 			}

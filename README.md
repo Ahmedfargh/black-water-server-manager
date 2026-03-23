@@ -8,6 +8,7 @@ This application allows you to monitor hardware performance (CPU, GPU, RAM, Disk
 
 - **Hardware Monitoring:** Real-time information about CPU, GPU, RAM, Disk, and Network usage.
 - **Firewall Management:** Multi-distro support for Debian/Ubuntu (UFW), Arch Linux (UFW), and Red Hat-based distributions (Firewalld).
+- **Audit Logging:** Automatically record system actions (firewall changes, etc.) with user attribution for security and accountability.
 - **Docker Management:** View, inspect, and monitor Docker containers running on the host.
 - **Process Management:** View detailed information about running system processes, start new ones, and terminate existing ones.
 - **Process Ownership Tracking:** Automatically record which user started each process for accountability and logging.
@@ -132,6 +133,10 @@ For developers on **Mac, Windows, or Linux**, Docker provides an isolated enviro
 - `GET /firewall/rules` - List numbered/detailed firewall rules
 - `GET /firewall/list` - List active firewall rules
 
+### Audit Logs (Requires Auth)
+
+- `GET /audit/list` - List system audit logs (supports `page`, `limit`, and `type` filters)
+
 ### Docker Management (Requires Auth)
 
 - `GET /docker/containers` - List all containers running on the host
@@ -182,6 +187,7 @@ To support large-scale monitoring without overwhelming the host, Blackwater impl
 | `view_firewall_rules`  | List active and numbered firewall rules    |
 | `read_containers`      | List Docker containers                     |
 | `manage_containers`    | Start, stop, or restart Docker containers  |
+| `view_audit_logs`      | Access and filter system audit logs        |
 
 ---
 

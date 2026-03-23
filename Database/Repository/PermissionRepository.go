@@ -1,7 +1,7 @@
-package repository
+package Repository
 
 import (
-	"github.com/ahmedfargh/server-manager/Database/Models"
+	models "github.com/ahmedfargh/server-manager/Database/Models"
 	"gorm.io/gorm"
 )
 

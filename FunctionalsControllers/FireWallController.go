@@ -8,7 +8,7 @@ import (
 func EnableFireWallHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		firewall := Services.NewFirewall()
-		text, error := firewall.Enable()
+		text, error := firewall.Enable(c.GetInt("userID"))
 		if error != nil {
 			c.JSON(500, gin.H{"error": error.Error()})
 			return
@@ -19,7 +19,7 @@ func EnableFireWallHandler() gin.HandlerFunc {
 func DisableFireWallHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		firewall := Services.NewFirewall()
-		text, error := firewall.Disable()
+		text, error := firewall.Disable(c.GetInt("userID"))
 		if error != nil {
 			c.JSON(500, gin.H{"error": error.Error()})
 			return
@@ -30,7 +30,7 @@ func DisableFireWallHandler() gin.HandlerFunc {
 func StatusFireWallHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		firewall := Services.NewFirewall()
-		text, error := firewall.Status()
+		text, error := firewall.Status(c.GetInt("userID"))
 		if error != nil {
 			c.JSON(500, gin.H{"error": error.Error()})
 			return

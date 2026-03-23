@@ -12,12 +12,13 @@ import (
 
 func main() {
 	config.ConnectDB()
-	config.DB.AutoMigrate(&models.User{}, &models.Role{}, &models.Permission{}, &models.Process{})
+	config.DB.AutoMigrate(&models.User{}, &models.Role{}, &models.Permission{}, &models.Process{}, &models.AuditLog{})
 	userRepo := repository.NewUserRepository(config.DB)
 	userCRUD := crud.NewUserCRUD(userRepo)
 	roleCRUD := crud.NewRoleCRUD(config.DB)
 	// permissionCRUD := crud.NewPermissionCRUD(config.DB)
 	authService := service.NewAuthService(userCRUD, roleCRUD)
+
 	router := gin.Default()
 	routes.AuthRoutes(router, userCRUD, authService, roleCRUD)
 
@@ -27,6 +28,7 @@ func main() {
 	routes.NetworkRoutes(router)
 	routes.FireWallRoute(router)
 	routes.SetupDockerRoutes(router)
+	routes.AuditRoutes(router)
 	router.Static("/uploads", "./uploads")
 	router.Run(config.PortNumber())
 }
