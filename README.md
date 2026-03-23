@@ -12,6 +12,7 @@ This application allows you to monitor hardware performance (CPU, GPU, RAM, Disk
 - **Docker Management:** View, inspect, and monitor Docker containers running on the host.
 - **Process Management:** View detailed information about running system processes, start new ones, and terminate existing ones.
 - **Process Ownership Tracking:** Automatically record which user started each process for accountability and logging.
+- **System Audit Logging:** Track and persist administrative actions, such as Firewall state changes, for security and compliance.
 - **Real-Time Monitoring (WebSockets):** Efficiently stream process updates, container metrics, and **live container logs** to multiple clients.
 - **User Authentication:** Secure JWT-based login and registration.
 - **Role-Based Access Control (RBAC):** Granular control over system features using roles and permissions.
