@@ -102,6 +102,30 @@ For developers on **Mac, Windows, or Linux**, Docker provides an isolated enviro
    - `User Mangement.postman_collection.json`
    - `RealTime.postman_collection.json` (WebSockets)
 
+   ## Command-Line Interface (CLI)
+
+   A companion CLI is available at `cmd/cli/bwcli` to provide quick, local interactions with the service.
+
+   - **Build the CLI:**
+
+      ```bash
+      go build -o bwcli ./cmd/cli
+      ```
+
+   - **Run with Go:**
+
+      ```bash
+      go run ./cmd/cli
+      ```
+
+   - **List available commands:**
+
+      ```bash
+      ./bwcli --help
+      ```
+
+   Use `./bwcli --help` to discover available subcommands (for example: `auth`, `docker`, `system`).
+
 ## 🔗 Key Endpoints
 
 ### Authentication
