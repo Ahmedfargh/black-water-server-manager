@@ -12,7 +12,7 @@ import (
 
 func main() {
 	config.ConnectDB()
-	config.DB.AutoMigrate(&models.User{}, &models.Role{}, &models.Permission{}, &models.Process{}, &models.AuditLog{})
+	config.DB.AutoMigrate(&models.User{}, &models.Role{}, &models.Permission{}, &models.Process{}, &models.AuditLog{}, &models.Site{}, &models.SiteHealthStatus{})
 	userRepo := repository.NewUserRepository(config.DB)
 	userCRUD := crud.NewUserCRUD(userRepo)
 	roleCRUD := crud.NewRoleCRUD(config.DB)
@@ -29,6 +29,7 @@ func main() {
 	routes.FireWallRoute(router)
 	routes.SetupDockerRoutes(router)
 	routes.AuditRoutes(router)
+	routes.SiteRoutes(router)
 	router.Static("/uploads", "./uploads")
 	router.Run(config.PortNumber())
 }
