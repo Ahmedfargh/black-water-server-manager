@@ -11,5 +11,6 @@ func SiteRoutes(router *gin.Engine) {
 	{
 		siteRouters.POST("/create", authentication.AuthMiddleware(), authentication.CheckRole("site_create"), controller.CreateSiteHandler())
 		siteRouters.GET("/list", authentication.AuthMiddleware(), authentication.CheckRole("site_read"), controller.GetSitesHandler())
+		siteRouters.GET("/full-checkup", authentication.AuthMiddleware(), authentication.CheckRole("site_read"), controller.GetFullSitesCheckUpHandler())
 	}
 }

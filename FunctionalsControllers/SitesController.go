@@ -8,6 +8,7 @@ import (
 	service "github.com/ahmedfargh/server-manager/Database/CRUD"
 	models "github.com/ahmedfargh/server-manager/Database/Models"
 	repo "github.com/ahmedfargh/server-manager/Database/Repository"
+	functional_service "github.com/ahmedfargh/server-manager/Services"
 	"github.com/gin-gonic/gin"
 )
 
@@ -29,17 +30,20 @@ func CreateSiteHandler() gin.HandlerFunc {
 		results, err := http.Get(site.Health_Route)
 		var health_message string
 		if err != nil {
-			if results.StatusCode != 200 {
+			if results.StatusCode >= 400 && results.StatusCode < 500 {
+				health_message = "the site " + site.Name + " is not found"
+			} else if results.StatusCode >= 500 {
 				health_message = "the site " + site.Name + " is down"
 			} else {
-				health_message = "the site " + site.Name + " is up"
+				health_message = "the site " + site.Name + " is health"
 			}
 		} else {
-			if results.StatusCode != 200 {
+			if results.StatusCode >= 400 && results.StatusCode < 500 {
+				health_message = "the site " + site.Name + " is not found"
+			} else if results.StatusCode >= 500 {
 				health_message = "the site " + site.Name + " is down"
 			} else {
-				health_message = "the site " + site.Name + " is up"
-
+				health_message = "the site " + site.Name + " is health"
 			}
 		}
 		c.JSON(http.StatusOK, gin.H{"message": "Site created successfully", "health_message": health_message})
@@ -64,5 +68,16 @@ func GetSitesHandler() gin.HandlerFunc {
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{"sites": sites, "total": total, "page": page, "limit": limit})
+	}
+}
+func GetFullSitesCheckUpHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		service := functional_service.NewSiteHealthService()
+		results, err := service.RunCheckUp()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"results": results})
 	}
 }

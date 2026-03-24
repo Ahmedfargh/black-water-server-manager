@@ -11,6 +11,7 @@ This application allows you to monitor hardware performance (CPU, GPU, RAM, Disk
 - **Audit Logging:** Automatically record system actions (firewall changes, etc.) with user attribution for security and accountability.
 - **Docker Management:** View, inspect, and monitor Docker containers running on the host.
 - **Process Management:** View detailed information about running system processes, start new ones, and terminate existing ones.
+- **Site Health Monitoring:** Monitor external sites' availability and performance, logging status history (UP, Redirection, Not Found, Server Error).
 - **Process Ownership Tracking:** Automatically record which user started each process for accountability and logging.
 - **System Audit Logging:** Track and persist administrative actions, such as Firewall state changes, for security and compliance.
 - **Real-Time Monitoring (WebSockets):** Efficiently stream process updates, container metrics, and **live container logs** to multiple clients.
@@ -177,6 +178,12 @@ For developers on **Mac, Windows, or Linux**, Docker provides an isolated enviro
 - `POST /info/process/start` - Start a new process
 - `DELETE /info/process/kill/:pid` - Terminate a process
 
+### Site Health Monitoring (Requires Auth)
+
+- `POST /site/create` - Add a new site for health monitoring
+- `GET /site/list` - List all monitored sites with their status
+- `GET /site/full-checkup` - Trigger an immediate health check for all sites
+
 ### Real-Time Monitoring (WebSockets)
 
 - `WS /ws/processes` - Live process stream (Broadcasts every 5s)
@@ -213,6 +220,8 @@ To support large-scale monitoring without overwhelming the host, Blackwater impl
 | `read_containers`      | List Docker containers                     |
 | `manage_containers`    | Start, stop, or restart Docker containers  |
 | `view_audit_logs`      | Access and filter system audit logs        |
+| `site_create`          | Create new sites for health monitoring     |
+| `site_read`            | View monitored sites and health checkups   |
 
 ---
 

@@ -1,8 +1,6 @@
 package Models
 
 import (
-	"fmt"
-
 	config "github.com/ahmedfargh/server-manager/Config"
 	"gorm.io/gorm"
 )
@@ -24,7 +22,6 @@ func (User) TableName() string {
 }
 
 func (u User) ToMap() map[string]interface{} {
-	fmt.Println(u.Role.Permissions)
 	return map[string]interface{}{
 		"id":               u.ID,
 		"username":         u.Username,

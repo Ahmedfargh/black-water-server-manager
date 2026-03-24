@@ -33,7 +33,7 @@ func (r *SiteRepository) GetSites(page uint, limit uint) ([]models.Site, uint, e
 		return nil, 0, err
 	}
 	offset := (page - 1) * limit
-	err := Config.DB.Limit(int(limit)).Offset(int(offset)).Order("id desc").Preload("User").Find(&sites).Error
+	err := Config.DB.Limit(int(limit)).Offset(int(offset)).Order("id desc").Find(&sites).Error
 	if err != nil {
 		return nil, 0, err
 	}
@@ -44,4 +44,11 @@ func (r *SiteRepository) UpdateSite(site *models.Site, id uint) error {
 }
 func (r *SiteRepository) DeleteSite(site *models.Site) error {
 	return r.DB.Delete(site).Error
+}
+func (r *SiteRepository) CreateSiteHealthStatus(SiteHealthStatus *models.SiteHealthStatus) (*models.SiteHealthStatus, error) {
+	err := r.DB.Create(SiteHealthStatus).Error
+	if err != nil {
+		return nil, err
+	}
+	return SiteHealthStatus, nil
 }

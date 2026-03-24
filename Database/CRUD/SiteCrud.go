@@ -24,3 +24,7 @@ func (c *SiteCrud) GetSites(page int, limit int) ([]models.Site, uint, error) {
 	return repository.NewSiteRepository(Config.DB).GetSites(uint(page), uint(limit))
 
 }
+
+func (c *SiteCrud) AddAnalytics(site *models.SiteHealthStatus, id uint) (*models.SiteHealthStatus, error) {
+	return c.Rep.CreateSiteHealthStatus(site)
+}
