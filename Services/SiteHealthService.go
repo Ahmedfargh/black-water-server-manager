@@ -137,8 +137,6 @@ func (s *SiteHealthService) GetSiteStatusReport(site_id uint, start_date string,
 	return report, nil
 }
 func (s *SiteHealthService) GetSiteHealthStatus(site_id uint, page int, limit int) ([]Models.SiteHealthStatus, uint, error) {
-	// بننادي مباشرة على الـ CRUD اللي بيكلم الـ Repository
-	// الـ CRUD المفروض بيرجع (Data, TotalCount, Error)
 	results, total, err := s.crud_service.GetSiteHealthStatus(site_id, page, limit)
 
 	if err != nil {
