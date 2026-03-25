@@ -3,7 +3,12 @@ package functionalscontrollers
 import (
 	"context"
 	"net/http"
+	"strconv"
 
+	Config "github.com/ahmedfargh/server-manager/Config"
+	crud "github.com/ahmedfargh/server-manager/Database/CRUD"
+	models "github.com/ahmedfargh/server-manager/Database/Models"
+	repo "github.com/ahmedfargh/server-manager/Database/Repository"
 	"github.com/ahmedfargh/server-manager/Services"
 	"github.com/gin-gonic/gin"
 )
@@ -69,5 +74,128 @@ func ActionContainerHandler() gin.HandlerFunc {
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{"message": "Container " + action + "ed successfully"})
+	}
+}
+
+func CreateDockerHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var docker models.Docker
+		if err := c.ShouldBindJSON(&docker); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		rep := repo.NewDockerRepository(Config.DB)
+		dc := crud.NewDockerCrud(rep)
+		if err := dc.CreateDocker(docker); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusCreated, gin.H{"message": "Docker record created"})
+	}
+}
+
+func UpdateDockerHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		idStr := c.Param("id")
+		id64, err := strconv.ParseUint(idStr, 10, 32)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+			return
+		}
+		rep := repo.NewDockerRepository(Config.DB)
+		dc := crud.NewDockerCrud(rep)
+		existing, err := dc.GetDockerByID(uint(id64))
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "docker not found"})
+			return
+		}
+		var payload models.Docker
+		if err := c.ShouldBindJSON(&payload); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		payload.ID = existing.ID
+		if err := dc.UpdateDocker(&payload); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"message": "Docker updated"})
+	}
+}
+
+func DeleteDockerHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		idStr := c.Param("id")
+		id64, err := strconv.ParseUint(idStr, 10, 32)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+			return
+		}
+		rep := repo.NewDockerRepository(Config.DB)
+		dc := crud.NewDockerCrud(rep)
+		existing, err := dc.GetDockerByID(uint(id64))
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "docker not found"})
+			return
+		}
+		if err := dc.DeleteDocker(existing); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"message": "Docker deleted"})
+	}
+}
+
+func SetDockerLimitsHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		idStr := c.Param("id")
+		id64, err := strconv.ParseUint(idStr, 10, 32)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+			return
+		}
+		var payload struct {
+			MaxCPU    float32 `json:"max_cpu_consumation"`
+			MaxMemory float32 `json:"max_memory_consumation"`
+			OnMaxCPU  string  `json:"on_max_cpu_consumation"`
+			OnMaxMem  string  `json:"on_max_memory_consumation"`
+		}
+		if err := c.ShouldBindJSON(&payload); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if payload.MaxCPU < 0 || payload.MaxCPU > 100 || payload.MaxMemory < 0 || payload.MaxMemory > 100 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "max values must be between 0 and 100"})
+			return
+		}
+		validActions := map[string]bool{"restart": true, "start": true, "stop": true, "remove": true, "nothing": true}
+		if payload.OnMaxCPU != "" && !validActions[payload.OnMaxCPU] {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid on_max_cpu_consumation action"})
+			return
+		}
+		if payload.OnMaxMem != "" && !validActions[payload.OnMaxMem] {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid on_max_memory_consumation action"})
+			return
+		}
+		rep := repo.NewDockerRepository(Config.DB)
+		dc := crud.NewDockerCrud(rep)
+		existing, err := dc.GetDockerByID(uint(id64))
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "docker not found"})
+			return
+		}
+		existing.MaxCpuConsumation = payload.MaxCPU
+		existing.MaxMemoryConsumation = payload.MaxMemory
+		if payload.OnMaxCPU != "" {
+			existing.OnMaxCpuConsumation = models.DockerAllowedAction(payload.OnMaxCPU)
+		}
+		if payload.OnMaxMem != "" {
+			existing.OnMaxMemoryConsumation = models.DockerAllowedAction(payload.OnMaxMem)
+		}
+		if err := dc.UpdateDocker(existing); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"message": "Docker limits updated"})
 	}
 }
