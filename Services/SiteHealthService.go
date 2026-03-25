@@ -106,3 +106,41 @@ func (s *SiteHealthService) RunCheckUp() (map[uint][]Models.SiteHealthStatus, er
 	}
 	return results, nil
 }
+func (s *SiteHealthService) GetSiteHealthStatus(site_id uint, page int, limit int) ([]Models.SiteHealthStatus, uint, error) {
+	return s.crud_service.GetSiteHealthStatus(site_id, page, limit)
+}
+func (s *SiteHealthService) GetSiteStatusReport(site_id uint, start_date string, end_date string) (map[string]interface{}, error) {
+	results, err := s.crud_service.Rep.GetSiteHealthStatusByDate(site_id, start_date, end_date)
+	if err != nil {
+		return nil, err
+	}
+	total_up := 0
+	total_redirection := 0
+	total_not_found := 0
+	total_server_error := 0
+	total := len(results)
+	for _, result := range results {
+		switch result.Status {
+		case "up":
+			total_up++
+			break
+		case "redirection":
+			total_redirection++
+			break
+		case "not_found":
+			total_not_found++
+			break
+		case "server_error":
+			total_server_error++
+			break
+		}
+	}
+	report := map[string]interface{}{
+		"total":              total,
+		"total_up":           total_up,
+		"total_redirection":  total_redirection,
+		"total_not_found":    total_not_found,
+		"total_server_error": total_server_error,
+	}
+	return report, nil
+}

@@ -28,3 +28,10 @@ func (c *SiteCrud) GetSites(page int, limit int) ([]models.Site, uint, error) {
 func (c *SiteCrud) AddAnalytics(site *models.SiteHealthStatus, id uint) (*models.SiteHealthStatus, error) {
 	return c.Rep.CreateSiteHealthStatus(site)
 }
+func (c *SiteCrud) GetSiteHealthStatus(site_id uint, page int, limit int) ([]models.SiteHealthStatus, uint, error) {
+	return c.Rep.GetSiteHealthStatus(site_id, page, limit)
+}
+func (c *SiteCrud) getSiteHealthStatusByDate(site_id uint, start_date string, end_date string) ([]models.SiteHealthStatus, error) {
+	return c.Rep.GetSiteHealthStatusByDate(site_id, start_date, end_date)
+
+}

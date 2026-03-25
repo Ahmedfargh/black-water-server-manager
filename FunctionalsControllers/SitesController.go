@@ -1,6 +1,7 @@
 package functionalscontrollers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -79,5 +80,47 @@ func GetFullSitesCheckUpHandler() gin.HandlerFunc {
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{"results": results})
+	}
+}
+func GetSiteHealthStatusHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		site_id, err := strconv.Atoi(c.Param("site_id"))
+		page_str := c.DefaultQuery("page", "1")
+		limit_str := c.DefaultQuery("limit", "10")
+		page, err := strconv.Atoi(page_str)
+		if err != nil || page <= 0 {
+			page = 1
+		}
+		limit, err := strconv.Atoi(limit_str)
+		if err != nil || limit <= 0 {
+			limit = 10
+		}
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid site ID"})
+			return
+		}
+		service := functional_service.NewSiteHealthService()
+		results, total, err := service.GetSiteHealthStatus(uint(site_id), page, limit)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		}
+		c.JSON(http.StatusOK, gin.H{"results": results, "total": total, "page": page, "limit": limit})
+	}
+}
+func GetSiteStatusReportHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		site_id, err := strconv.Atoi(c.Param("site_id"))
+		start_date := c.Query("start_date")
+		end_date := c.Query("end_date")
+		if err != nil {
+		}
+		service := functional_service.NewSiteHealthService()
+		report, err := service.GetSiteStatusReport(uint(site_id), start_date, end_date)
+		if err != nil {
+			fmt.Println(err)
+			c.JSON(http.StatusOK, gin.H{"error": err})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"report": report})
 	}
 }

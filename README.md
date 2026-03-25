@@ -183,6 +183,8 @@ For developers on **Mac, Windows, or Linux**, Docker provides an isolated enviro
 - `POST /site/create` - Add a new site for health monitoring
 - `GET /site/list` - List all monitored sites with their status
 - `GET /site/full-checkup` - Trigger an immediate health check for all sites
+ - `GET /site/health-status/:site_id` - Get paginated health records for a site. Supports query parameters `page` (default `1`) and `limit` (default `10`). You can also filter by date range using `start_date` and `end_date` in `YYYY-MM-DD` format. Requires authentication and `site_read` permission.
+ - `GET /site/status-report/:site_id` - Get a status report for a site (aggregated results). Optional query parameters: `start_date` and `end_date` (`YYYY-MM-DD`). Requires authentication and `site_read` permission.
 
 ### Real-Time Monitoring (WebSockets)
 
