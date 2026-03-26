@@ -12,7 +12,7 @@ func SetupDockerRoutes(router *gin.Engine) {
 		dockerGroup.POST("/container", Authentication.AuthMiddleware(), Authentication.CheckRole("manage_containers"), functionalscontrollers.CreateDockerHandler())
 		dockerGroup.PUT("/container/:id", Authentication.AuthMiddleware(), Authentication.CheckRole("manage_containers"), functionalscontrollers.UpdateDockerHandler())
 		dockerGroup.DELETE("/container/:id", Authentication.AuthMiddleware(), Authentication.CheckRole("manage_containers"), functionalscontrollers.DeleteDockerHandler())
-		dockerGroup.POST("/container/:id/limits", Authentication.AuthMiddleware(), Authentication.CheckRole("manage_containers"), functionalscontrollers.SetDockerLimitsHandler())
+		// dockerGroup.POST("/container/:id/limits", Authentication.AuthMiddleware(), Authentication.CheckRole("manage_containers"), functionalscontrollers.SetDockerLimitsHandler())
 		dockerGroup.GET("/containers", Authentication.AuthMiddleware(), Authentication.CheckRole("read_containers"), functionalscontrollers.GetContainersHandler())
 		dockerGroup.GET("/container/:id", Authentication.AuthMiddleware(), Authentication.CheckRole("read_containers"), functionalscontrollers.GetContainerByIDHandler())
 		dockerGroup.GET("/container/:id/status", Authentication.AuthMiddleware(), Authentication.CheckRole("read_containers"), functionalscontrollers.ContainerStatusHandler())
