@@ -159,6 +159,7 @@ func SetDockerLimitsHandler() gin.HandlerFunc {
 			MaxMemory float32 `json:"max_memory_consumation"`
 			OnMaxCPU  string  `json:"on_max_cpu_consumation"`
 			OnMaxMem  string  `json:"on_max_memory_consumation"`
+			Action    string  `json:"action"`
 		}
 		if err := c.ShouldBindJSON(&payload); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -177,6 +178,10 @@ func SetDockerLimitsHandler() gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid on_max_memory_consumation action"})
 			return
 		}
+		if payload.Action != "restart" && payload.Action != "start" && payload.Action != "stop" && payload.Action != "remove" && payload.Action != "nothing" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid action"})
+			return
+		}
 		rep := repo.NewDockerRepository(Config.DB)
 		dc := crud.NewDockerCrud(rep)
 		existing, err := dc.GetDockerByID(uint(id64))
@@ -186,16 +191,22 @@ func SetDockerLimitsHandler() gin.HandlerFunc {
 		}
 		existing.MaxCpuConsumation = payload.MaxCPU
 		existing.MaxMemoryConsumation = payload.MaxMemory
+		results, err := false, nil
 		if payload.OnMaxCPU != "" {
-			existing.OnMaxCpuConsumation = models.DockerAllowedAction(payload.OnMaxCPU)
+			results, err = dc.AddEventAction(existing, "max_cpu_consumation", payload.Action, payload.MaxCPU)
+
 		}
 		if payload.OnMaxMem != "" {
-			existing.OnMaxMemoryConsumation = models.DockerAllowedAction(payload.OnMaxMem)
+			results, err = dc.AddEventAction(existing, "max_memory_consumation", payload.Action, payload.MaxMemory)
 		}
 		if err := dc.UpdateDocker(existing); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{"message": "Docker limits updated"})
+		if !results {
+
+			c.JSON(http.StatusOK, gin.H{"message": "Docker limits updated"})
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "no update"})
 	}
 }

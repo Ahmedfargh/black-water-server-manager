@@ -7,6 +7,9 @@ import (
 	"io"
 	"time"
 
+	Config "github.com/ahmedfargh/server-manager/Config"
+	CRUD "github.com/ahmedfargh/server-manager/Database/CRUD"
+	Repository "github.com/ahmedfargh/server-manager/Database/Repository"
 	"github.com/docker/docker/api/types/container"
 	DockerClient "github.com/docker/docker/client"
 )
@@ -191,8 +194,8 @@ func (d *DockerService) ContainerLogs(ctx context.Context, id string) (io.ReadCl
 	options := container.LogsOptions{
 		ShowStdout: true,
 		ShowStderr: true,
-		Follow:     true, // ده اللي بيخليها Live زي الـ Terminal عندك
-		Timestamps: true, // اختياري لو عايز وقت جنب كل سطر
+		Follow:     true,
+		Timestamps: true,
 	}
 	cli, err := DockerClient.NewClientWithOpts(
 		DockerClient.FromEnv,
@@ -248,4 +251,12 @@ func (d *DockerService) RestartContainer(ctx context.Context, id string) error {
 		return err
 	}
 	return nil
+}
+func (d *DockerService) AddEventAction(ctx context.Context, id string, event string, action string, value float32) (bool, error) {
+	docker_crud_service := CRUD.NewDockerCrud(Repository.NewDockerRepository(Config.DB))
+	docker, err := docker_crud_service.GetDockerByContainerID(id)
+	if err != nil {
+		return false, err
+	}
+	return docker_crud_service.AddEventAction(docker, event, action, value)
 }

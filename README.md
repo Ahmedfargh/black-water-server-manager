@@ -9,12 +9,14 @@ This application allows you to monitor hardware performance (CPU, GPU, RAM, Disk
 - **Hardware Monitoring:** Real-time information about CPU, GPU, RAM, Disk, and Network usage.
 - **Firewall Management:** Multi-distro support for Debian/Ubuntu (UFW), Arch Linux (UFW), and Red Hat-based distributions (Firewalld).
 - **Audit Logging:** Automatically record system actions (firewall changes, etc.) with user attribution for security and accountability.
-- **Docker Management:** View, inspect, and monitor Docker containers running on the host.
+- **Docker Management & Auto-Discovery:** Automatically discover and persist running containers on the host, monitor their metrics, and stream live logs.
+- **Resource Limits & Automated Actions:** Define CPU and Memory consumption thresholds for containers with automated response actions (Stop, Restart, etc.).
 - **Process Management:** View detailed information about running system processes, start new ones, and terminate existing ones.
 - **Site Health Monitoring:** Monitor external sites' availability and performance, logging status history (UP, Redirection, Not Found, Server Error).
 - **Process Ownership Tracking:** Automatically record which user started each process for accountability and logging.
 - **System Audit Logging:** Track and persist administrative actions, such as Firewall state changes, for security and compliance.
 - **Real-Time Monitoring (WebSockets):** Efficiently stream process updates, container metrics, and **live container logs** to multiple clients.
+- **Background Synchronization:** A background manager periodically (every 10s) synchronizes the state of all containers on the host with the database.
 - **User Authentication:** Secure JWT-based login and registration.
 - **Role-Based Access Control (RBAC):** Granular control over system features using roles and permissions.
 - **Database Seeding:** Quick setup with initial roles, permissions, and default admin user.
@@ -27,6 +29,14 @@ Blackwater is designed to be language-agnostic. Since it provides a standard RES
 ### Real-Time Capabilities
 
 The service includes multiple WebSocket Hubs that fetch system data once and broadcast it to all connected clients. This minimizes CPU overhead while providing live updates for dashboards and monitoring tools.
+
+### 🐳 Docker Auto-Discovery & Persistence
+
+Blackwater implements a background **Docker Manager** that automatically detects all running containers on the host system upon startup and continues to monitor them.
+
+- **Automatic Registration:** Any new container running on the server is automatically discovered and persisted in the database.
+- **State Synchronization:** The system periodically (every 10 seconds) syncs container metadata (Status, Image, Ports, Command) between the Docker Engine and the local database.
+- **Policy Management:** Users can define resource limits (CPU/Memory) and automated actions (Restart/Stop) for each container, which the manager can enforce.
 
 ## 🛠️ Tech Stack
 
@@ -169,6 +179,9 @@ For developers on **Mac, Windows, or Linux**, Docker provides an isolated enviro
 - `GET /docker/container/:id` - Get detailed information for a specific container
 - `GET /docker/container/:id/status` - Get real-time container metrics (CPU %, Memory Usage/Limit, Network I/O, Block I/O, Pids)
 - `POST /docker/container/:id/:action` - Perform an action on a container (`start`, `stop`, `restart`)
+- `POST /docker/container` - Register/Create a new container management record
+- `PUT /docker/container/:id` - Update an existing container management record (e.g., update limits/policies)
+- `DELETE /docker/container/:id` - Remove a container management record
 
 ### Process Management (Requires Auth)
 

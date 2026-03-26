@@ -139,6 +139,122 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Create Docker Record",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{authToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"container_id\": \"test_container_id\",\n    \"name\": \"test_container\",\n    \"image\": \"nginx:latest\",\n    \"status\": \"running\",\n    \"command\": \"nginx -g 'daemon off;'\",\n    \"created\": \"2023-10-27T10:00:00Z\",\n    \"ports\": \"80/tcp\",\n    \"max_cpu_consumation\": 50.0,\n    \"max_memory_consumation\": 50.0,\n    \"on_max_cpu_consumation\": \"restart\",\n    \"on_max_memory_consumation\": \"stop\",\n    \"on_stopped\": \"start\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/docker/container",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"docker",
+						"container"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Docker Record",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{authToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"max_cpu_consumation\": 75.0,\n    \"max_memory_consumation\": 80.0,\n    \"on_max_cpu_consumation\": \"nothing\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/docker/container/:id",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"docker",
+						"container",
+						":id"
+					],
+					"variable": [
+						{
+							"key": "id",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Docker Record",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{authToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/docker/container/:id",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"docker",
+						"container",
+						":id"
+					],
+					"variable": [
+						{
+							"key": "id",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }

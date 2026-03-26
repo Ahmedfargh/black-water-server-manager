@@ -37,3 +37,21 @@ func (c *DockerCrud) DeleteDocker(docker *models.Docker) error {
 func (c *DockerCrud) GetDockerByContainerID(containerID string) (*models.Docker, error) {
 	return c.Rep.GetDockerByContainerID(containerID)
 }
+func (c *DockerCrud) AddEventAction(docker *models.Docker, event string, action string, value float32) (bool, error) {
+	if event == models.MaxCpuConsumation {
+		docker.MaxCpuConsumation = value
+		docker.OnMaxCpuConsumation = action
+	}
+	if event == models.MaxMemoryConsumation {
+		docker.MaxMemoryConsumation = value
+		docker.OnMaxMemoryConsumation = action
+	}
+	if event == models.Stopped {
+		docker.OnStopped = action
+	}
+	err := c.Rep.UpdateDocker(docker)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}

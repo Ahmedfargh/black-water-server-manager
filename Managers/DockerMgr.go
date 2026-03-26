@@ -6,6 +6,12 @@ import (
 
 	time "time"
 
+	"encoding/json"
+
+	Config "github.com/ahmedfargh/server-manager/Config"
+	CRUD "github.com/ahmedfargh/server-manager/Database/CRUD"
+	Models "github.com/ahmedfargh/server-manager/Database/Models"
+	Repository "github.com/ahmedfargh/server-manager/Database/Repository"
 	Docker "github.com/ahmedfargh/server-manager/Services"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container" // Added for correct types
@@ -68,6 +74,8 @@ func (dm *DockerManager) DiscoverContainers(ctx context.Context) error {
 	return nil
 }
 func (dm *DockerManager) UpdateDockerContainerStatus() error {
+	docker_crud := CRUD.NewDockerCrud(Repository.NewDockerRepository(Config.DB))
+
 	dm.mu.Lock()
 	defer dm.mu.Unlock()
 	for _, container := range dm.Containers {
@@ -76,6 +84,22 @@ func (dm *DockerManager) UpdateDockerContainerStatus() error {
 			return err
 		}
 		dm.Containers[container.ID] = inspect
+		cmd, er := json.Marshal(inspect.Config.Cmd)
+		if er != nil {
+			cmd = []byte("uknown command")
+		}
+		ports, _ := json.Marshal(inspect.NetworkSettings.Ports)
+
+		docker_model := Models.Docker{
+			ContainerID: inspect.ID,
+			Name:        inspect.Name,
+			Image:       inspect.Config.Image,
+			Status:      inspect.State.Status,
+			Command:     string(cmd),
+			Created:     inspect.Created,
+			Ports:       string(ports),
+		}
+		docker_crud.Rep.CreateDocker(&docker_model)
 		return nil
 	}
 	return nil
