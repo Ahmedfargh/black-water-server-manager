@@ -31,8 +31,8 @@ type Docker struct {
 	Command                string  `gorm:"not null" json:"command"`
 	Created                string  `gorm:"not null" json:"created"`
 	Ports                  string  `gorm:"not null" json:"ports"`
-	MaxCpuConsumation      float32 `gorm:"not null;check:max_cpu_consumation >= 0 AND max_cpu_consumation <= 100" json:"max_cpu_consumation"`
-	MaxMemoryConsumation   float32 `gorm:"not null;check:max_memory_consumation >= 0 AND max_memory_consumation <= 100" json:"max_memory_consumation"`
+	MaxCpuConsumation      float64 `gorm:"not null;check:max_cpu_consumation >= 0 AND max_cpu_consumation <= 100" json:"max_cpu_consumation"`
+	MaxMemoryConsumation   float64 `gorm:"not null;check:max_memory_consumation >= 0 AND max_memory_consumation <= 100" json:"max_memory_consumation"`
 	OnMaxCpuConsumation    string  `gorm:"type:varchar(20);default:'nothing'" json:"on_max_cpu_consumation"`
 	OnMaxMemoryConsumation string  `gorm:"type:varchar(20);default:'nothing'" json:"on_max_memory_consumation"`
 	OnStopped              string  `gorm:"type:varchar(20);default:'nothing'" json:"on_stopped"`

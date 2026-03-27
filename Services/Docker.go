@@ -252,7 +252,7 @@ func (d *DockerService) RestartContainer(ctx context.Context, id string) error {
 	}
 	return nil
 }
-func (d *DockerService) AddEventAction(ctx context.Context, id string, event string, action string, value float32) (bool, error) {
+func (d *DockerService) AddEventAction(ctx context.Context, id string, event string, action string, value float64) (bool, error) {
 	docker_crud_service := CRUD.NewDockerCrud(Repository.NewDockerRepository(Config.DB))
 	docker, err := docker_crud_service.GetDockerByContainerID(id)
 	if err != nil {

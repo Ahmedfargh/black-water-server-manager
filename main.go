@@ -1,8 +1,6 @@
 package main
 
 import (
-	context "context"
-
 	service "github.com/ahmedfargh/server-manager/Authentication/Service"
 	config "github.com/ahmedfargh/server-manager/Config"
 	crud "github.com/ahmedfargh/server-manager/Database/CRUD"
@@ -34,7 +32,9 @@ func main() {
 	log.Printf("Startup sample - CPU cores: %d, CPU%%: %.2f, RAM%%: %.2f, RAM used: %.2fMB", numCPU, cpuStart, memStart.UsedPercent, float64(memStart.Used)/1024/1024)
 
 	dockerMgr := Mgrs.GetDockerManager()
-	dockerMgr.DiscoverContainers(context.Background())
+	// dockerMgr.DiscoverContainers(context.Background())
+	// dockerMgr.UpdateDockerContainerStatus()
+
 	config.ConnectDB()
 	config.DB.AutoMigrate(&models.User{}, &models.Role{}, &models.Permission{}, &models.Process{}, &models.AuditLog{}, &models.Site{}, &models.SiteHealthStatus{}, &models.Docker{})
 	userRepo := repository.NewUserRepository(config.DB)
@@ -58,6 +58,7 @@ func main() {
 
 	endTime := time.Now()
 	cpuEndVals, _ := cpu.Percent(200*time.Millisecond, false)
+	go dockerMgr.StartMonitoring()
 	var cpuEnd float64
 	if len(cpuEndVals) > 0 {
 		cpuEnd = cpuEndVals[0]

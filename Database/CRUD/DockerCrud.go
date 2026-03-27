@@ -37,7 +37,7 @@ func (c *DockerCrud) DeleteDocker(docker *models.Docker) error {
 func (c *DockerCrud) GetDockerByContainerID(containerID string) (*models.Docker, error) {
 	return c.Rep.GetDockerByContainerID(containerID)
 }
-func (c *DockerCrud) AddEventAction(docker *models.Docker, event string, action string, value float32) (bool, error) {
+func (c *DockerCrud) AddEventAction(docker *models.Docker, event string, action string, value float64) (bool, error) {
 	if event == models.MaxCpuConsumation {
 		docker.MaxCpuConsumation = value
 		docker.OnMaxCpuConsumation = action

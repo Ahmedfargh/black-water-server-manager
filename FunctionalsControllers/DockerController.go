@@ -155,8 +155,8 @@ func SetDockerLimitsHandler() gin.HandlerFunc {
 			return
 		}
 		var payload struct {
-			MaxCPU    float32 `json:"max_cpu_consumation"`
-			MaxMemory float32 `json:"max_memory_consumation"`
+			MaxCPU    float64 `json:"max_cpu_consumation"`
+			MaxMemory float64 `json:"max_memory_consumation"`
 			OnMaxCPU  string  `json:"on_max_cpu_consumation"`
 			OnMaxMem  string  `json:"on_max_memory_consumation"`
 			Action    string  `json:"action"`
