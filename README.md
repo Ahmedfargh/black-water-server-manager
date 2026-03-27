@@ -79,6 +79,28 @@ Before you begin, ensure you have the following installed:
    cp .env.example .env
    ```
 
+   ### 🗄️ Database Setup
+   Blackwater supports both **MySQL** and **SQLite**. This flexibility allows the system to run efficiently on everything from high-performance clusters to **low-end servers and machines** with limited resources.
+
+   You can choose your preferred driver in the `.env` file:
+
+   - **For MySQL:**
+     ```env
+     DB_DRIVER=mysql
+     DB_HOST=127.0.0.1
+     DB_PORT=3306
+     DB_NAME=go_server
+     DB_USER=root
+     DB_PASSWORD=your_password
+     ```
+
+   - **For SQLite (Recommended for Low-End Systems):**
+     ```env
+     DB_DRIVER=sqlite
+     DB_NAME=blackwater
+     ```
+     *Note: SQLite is zero-config, requires no separate database server, and is ideal for environments with restricted CPU or memory.*
+
 ## 🐳 Docker Deployment (Zero-Config Testing)
 
 For developers on **Mac, Windows, or Linux**, Docker provides an isolated environment to test Blackwater's API and Database orchestration immediately without manual configuration.

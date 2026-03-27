@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -25,21 +27,40 @@ func ConnectDB() {
 	}
 
 	// 2. Read variables
-	dbUser := os.Getenv("DB_USER")
-	dbPass := os.Getenv("DB_PASSWORD")
-	dbHost := os.Getenv("DB_HOST")
-	dbPort := os.Getenv("DB_PORT")
-	dbName := os.Getenv("DB_NAME")
+	dbDriver := os.Getenv("DB_DRIVER")
 	JwtSecret = os.Getenv("JWT_SECRET")
 
-	// 3. Construct DSN (Data Source Name)
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		dbUser, dbPass, dbHost, dbPort, dbName)
+	var database *gorm.DB
+	var dbErr error
 
-	// 4. Open Connection
-	database, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+	// 3. Open Connection based on driver
+	if dbDriver == "sqlite" {
+		dbName := os.Getenv("DB_NAME")
+		if dbName == "" {
+			dbName = "blackwater.db"
+		} else if !strings.HasSuffix(dbName, ".db") {
+			dbName = dbName + ".db"
+		}
+		fmt.Printf("Connecting to SQLite database: %s\n", dbName)
+		database, dbErr = gorm.Open(sqlite.Open(dbName), &gorm.Config{})
+	} else {
+		// Default to MySQL
+		dbUser := os.Getenv("DB_USER")
+		dbPass := os.Getenv("DB_PASSWORD")
+		dbHost := os.Getenv("DB_HOST")
+		dbPort := os.Getenv("DB_PORT")
+		dbName := os.Getenv("DB_NAME")
+
+		// Construct DSN (Data Source Name)
+		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+			dbUser, dbPass, dbHost, dbPort, dbName)
+
+		fmt.Printf("Connecting to MySQL database: %s\n", dbName)
+		database, dbErr = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	}
+
+	if dbErr != nil {
+		log.Fatalf("Failed to connect to database: %v", dbErr)
 	}
 
 	fmt.Println("Database connection successfully opened")
