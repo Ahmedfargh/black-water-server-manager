@@ -9,7 +9,7 @@ This application allows you to monitor hardware performance (CPU, GPU, RAM, Disk
 - **Hardware Monitoring:** Real-time information about CPU, GPU, RAM, Disk, and Network usage.
 - **Firewall Management:** Multi-distro support for Debian/Ubuntu (UFW), Arch Linux (UFW), and Red Hat-based distributions (Firewalld).
 - **Audit Logging:** Automatically record system actions (firewall changes, etc.) with user attribution for security and accountability.
-- **Docker Auto-Heal & Resource Monitoring:** Automatically monitor container resource usage (CPU/Memory) and health status, triggering automated actions (Restart, Stop, etc.) when thresholds are exceeded.
+- **Docker Auto-Heal & Resource Monitoring:** Automatically monitor container resource usage (CPU/Memory) and health status (e.g., detecting stopped containers), triggering automated actions (Restart, Start, Stop, etc.) when thresholds are exceeded or abnormalities are detected.
 - **Docker Management & Auto-Discovery:** Automatically discover and persist running containers on the host, monitor their metrics, and stream live logs.
 - **Resource Limits & Automated Actions:** Define CPU and Memory consumption thresholds for containers with automated response actions (Stop, Restart, etc.).
 - **Process Management:** View detailed information about running system processes, start new ones, and terminate existing ones.
