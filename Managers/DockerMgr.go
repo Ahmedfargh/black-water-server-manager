@@ -126,11 +126,14 @@ func (dm *DockerManager) GetDockerState(containerID string) (Docker.DockerContai
 func (dm *DockerManager) Act(action string, docker *Models.Docker) (string, error) {
 	if action == "restart" {
 		err := dm.Client.ContainerRestart(Context.Background(), docker.ContainerID, container.StopOptions{})
+		message := "Container restarted that has id " + docker.ContainerID + " That Has Name " + docker.Name
+		go dm.NotifyDockerStatus(message, nil)
 		if err != nil {
 			return "", err
 		}
 	} else if action == "stop" {
 		docker_service, err := Docker.NewDockerService()
+
 		if err != nil {
 			fmt.Println(err)
 			return "", err
@@ -140,17 +143,26 @@ func (dm *DockerManager) Act(action string, docker *Models.Docker) (string, erro
 			fmt.Println(err_stop)
 			return "", err
 		}
+		message := "Container stopped that has id " + docker.ContainerID + " That Has Name " + docker.Name
+		go dm.NotifyDockerStatus(message, nil)
+		return "", nil
 	} else if action == "remove" {
 		err := dm.Client.ContainerRemove(Context.Background(), docker.ContainerID, DockerTypes.RemoveOptions{})
 		if err != nil {
 			return "", err
 		}
+		message := "Container removed that has id " + docker.ContainerID + " That Has Name " + docker.Name
+		go dm.NotifyDockerStatus(message, nil)
+		return "", nil
 	} else if action == "start" {
 		err := dm.Client.ContainerStart(Context.Background(), docker.ContainerID, container.StartOptions{})
 		if err != nil {
 			fmt.Println(err)
 			return "", err
 		}
+		message := "Container started that has id " + docker.ContainerID + " That Has Name " + docker.Name
+		go dm.NotifyDockerStatus(message, nil)
+		return "", nil
 	}
 	return "", nil
 }
@@ -180,7 +192,7 @@ func (dm *DockerManager) ActForAbnormality(docker *Models.Docker, docker_state *
 }
 func (dm *DockerManager) StartMonitoring() {
 	// 1. Create a ticker for 1 second
-	ticker := time.NewTicker(60 * time.Second)
+	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 
 	for {
@@ -211,7 +223,7 @@ func (dm *DockerManager) CheckAll() {
 		// Create a local copy to avoid pointer issues with goroutines
 		c := container
 
-		if c.MaxCpuConsumation > 0 {
+		if c.MaxCpuConsumation > -1 {
 			stats, err := doc.ContainerStatus(context.Background(), c.ContainerID)
 			if err != nil {
 				continue
@@ -239,4 +251,13 @@ func (dm *DockerManager) CheckAll() {
 			go dm.ActForAbnormality(&c, &Docker.DockerContainerStats{}, "stopped", c.OnStopped)
 		}
 	}
+}
+func (dm *DockerManager) NotifyDockerStatus(messsage string, metadata map[string]string) (any, error) {
+
+	users := []Models.User{}
+	Config.DB.Find(&users)
+	fmt.Println("User Count:-", len(users))
+	NotificationManager := NewNotificationManager(nil)
+	NotificationManager.NotifyUsers(users, messsage, metadata)
+	return "", nil
 }

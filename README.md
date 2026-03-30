@@ -10,6 +10,7 @@ This application allows you to monitor hardware performance (CPU, GPU, RAM, Disk
 - **Firewall Management:** Multi-distro support for Debian/Ubuntu (UFW), Arch Linux (UFW), and Red Hat-based distributions (Firewalld).
 - **Audit Logging:** Automatically record system actions (firewall changes, etc.) with user attribution for security and accountability.
 - **Docker Auto-Heal & Resource Monitoring:** Automatically monitor container resource usage (CPU/Memory) and health status (e.g., detecting stopped containers), triggering automated actions (Restart, Start, Stop, etc.) when thresholds are exceeded or abnormalities are detected.
+- **Docker Notifications (Telegram):** Receive instant alerts on Telegram when containers start, stop, or restart, or when resource thresholds are exceeded.
 - **Docker Management & Auto-Discovery:** Automatically discover and persist running containers on the host, monitor their metrics, and stream live logs.
 - **Resource Limits & Automated Actions:** Define CPU and Memory consumption thresholds for containers with automated response actions (Stop, Restart, etc.).
 - **Process Management:** View detailed information about running system processes, start new ones, and terminate existing ones.
@@ -228,6 +229,27 @@ For developers on **Mac, Windows, or Linux**, Docker provides an isolated enviro
 - `WS /ws/cpu-temperature` - Live CPU temperature stream (Broadcasts every 1s)
 - `WS /ws/docker/:containerId` - Live container-specific metrics (CPU, Memory, Network, Block I/O)
 - **`WS /ws/docker/:containerId/logs`** - Live real-time container log streaming (Follow mode)
+
+## 🔔 Notification System
+
+Blackwater includes a robust notification system that keeps you informed about critical server events, specifically focusing on Docker container status and resource health.
+
+### 🛡️ Docker Notifications
+
+Notifications are triggered by several events:
+- **Container Lifecycle:** Alerts when a container is started, stopped, restarted, or removed.
+- **Auto-Heal Actions:** Notifications when the system automatically takes action (e.g., restarting a container) due to high CPU or memory consumption.
+- **Abnormalities:** Alerts when resource thresholds (CPU/Memory) are exceeded, even if no automated action is configured.
+
+### ⚙️ Configuration (Telegram)
+
+Currently, Blackwater supports **Telegram** as the primary notification driver. Each user can configure their own notification settings:
+
+1. **Bot Token:** Obtain a bot token from [@BotFather](https://t.me/botfather).
+2. **Chat ID:** Find your Telegram Chat ID (you can use [@userinfobot](https://t.me/userinfobot)).
+3. **User Profile:** Update your profile settings via the API or CLI with your `notification_driver` (set to `Telegram`), `telegram_bot_token`, and `telegram_chat_id`.
+
+These settings are stored per-user, allowing different team members to receive notifications on their own Telegram accounts.
 
 ## 🏗️ Dynamic Hub Architecture
 

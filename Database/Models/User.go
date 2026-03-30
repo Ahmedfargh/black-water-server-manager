@@ -7,14 +7,17 @@ import (
 
 type User struct {
 	gorm.Model
-	Username    string       `gorm:"unique;not null" json:"username" form:"username" validate:"required,min=3,max=32"`
-	Email       string       `gorm:"unique;not null" json:"email" form:"email" validate:"required,email"`
-	Password    string       `gorm:"not null" json:"password" form:"password" validate:"required,min=8"`
-	RoleID      uint         `gorm:"not null" json:"role_id" form:"role_id"`
-	Role        Role         // Belongs to Role
-	ImagePath   string       `json:"image_path"`
-	Status      bool         `gorm:"default:false" json:"status" form:"status"`
-	Permissions []Permission `gorm:"many2many:user_permissions;"`
+	Username           string       `gorm:"unique;not null" json:"username" form:"username" validate:"required,min=3,max=32"`
+	Email              string       `gorm:"unique;not null" json:"email" form:"email" validate:"required,email"`
+	Password           string       `gorm:"not null" json:"password" form:"password" validate:"required,min=8"`
+	RoleID             uint         `gorm:"not null" json:"role_id" form:"role_id"`
+	Role               Role         // Belongs to Role
+	ImagePath          string       `json:"image_path"`
+	Status             bool         `gorm:"default:false" json:"status" form:"status"`
+	Permissions        []Permission `gorm:"many2many:user_permissions;"`
+	NotificationDriver string       `json:"notification_driver" default:"Telegram"`
+	TelegramChatID     string       `json:"telegram_chat_id" default:"null"`
+	TelegramBotToken   string       `json:"telegram_bot_token" default:"null"`
 }
 
 func (User) TableName() string {

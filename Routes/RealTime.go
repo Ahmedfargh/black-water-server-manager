@@ -4,16 +4,17 @@ import (
 	"net/http"
 	"strings"
 
+	MiddleWare "github.com/ahmedfargh/server-manager/Authentication"
 	"github.com/ahmedfargh/server-manager/WebSockets"
 	"github.com/gin-gonic/gin"
 )
 
 // RegisterRealTimeRoutes registers all WebSocket endpoints with the Gin router
 func RegisterRealTimeRoutes(router *gin.Engine) {
-	router.GET("/ws/processes", gin.WrapH(http.HandlerFunc(ProcessRealTimeHandler)))
-	router.GET("/ws/cpu-temperature", gin.WrapH(http.HandlerFunc(CpuTemperatureRealTimeHandler)))
-	router.GET("/ws/docker/:containerId", gin.WrapH(http.HandlerFunc(DockerRealTimeHandler)))
-	router.GET("/ws/docker/:containerId/logs", gin.WrapH(http.HandlerFunc(DockerRealTimeLogsHandler)))
+	router.GET("/ws/processes", MiddleWare.AuthMiddleware(), gin.WrapH(http.HandlerFunc(ProcessRealTimeHandler)))
+	router.GET("/ws/cpu-temperature", MiddleWare.AuthMiddleware(), gin.WrapH(http.HandlerFunc(CpuTemperatureRealTimeHandler)))
+	router.GET("/ws/docker/:containerId", MiddleWare.AuthMiddleware(), gin.WrapH(http.HandlerFunc(DockerRealTimeHandler)))
+	router.GET("/ws/docker/:containerId/logs", MiddleWare.AuthMiddleware(), gin.WrapH(http.HandlerFunc(DockerRealTimeLogsHandler)))
 }
 
 // ProcessRealTimeHandler handles process-specific WebSocket connections
