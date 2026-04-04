@@ -18,6 +18,8 @@ type User struct {
 	NotificationDriver string       `json:"notification_driver" default:"Telegram"`
 	TelegramChatID     string       `json:"telegram_chat_id" default:"null"`
 	TelegramBotToken   string       `json:"telegram_bot_token" default:"null"`
+	DiscordChannelID   string       `json:"discord_channel_id" default:"null"`
+	DiscordBotToken    string       `json:"discord_bot_token" default:"null"`
 }
 
 func (User) TableName() string {
@@ -26,14 +28,19 @@ func (User) TableName() string {
 
 func (u User) ToMap() map[string]interface{} {
 	return map[string]interface{}{
-		"id":               u.ID,
-		"username":         u.Username,
-		"email":            u.Email,
-		"role":             u.Role.Name,
-		"image_path":       config.GetKey("APP_URL") + u.ImagePath,
-		"status":           u.Status,
-		"permissions":      u.Permissions,
-		"roles_permssions": u.Role.Permissions,
+		"id":                  u.ID,
+		"username":            u.Username,
+		"email":               u.Email,
+		"role":                u.Role.Name,
+		"image_path":          config.GetKey("APP_URL") + u.ImagePath,
+		"status":              u.Status,
+		"permissions":         u.Permissions,
+		"roles_permssions":    u.Role.Permissions,
+		"notification_driver": u.NotificationDriver,
+		"telegram_chat_id":    u.TelegramChatID,
+		"telegram_bot_token":  u.TelegramBotToken,
+		"discord_channel_id":  u.DiscordChannelID,
+		"discord_bot_token":   u.DiscordBotToken,
 	}
 }
 func (u User) HasPermission(permission string) bool {

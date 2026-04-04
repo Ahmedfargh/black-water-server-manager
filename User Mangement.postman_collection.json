@@ -413,6 +413,44 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Update Notification Settings",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"notification_driver\": \"Telegram\",\n    \"telegram_bot_token\": \"your_telegram_bot_token\",\n    \"telegram_chat_id\": \"your_telegram_chat_id\",\n    \"discord_bot_token\": \"your_discord_bot_token\",\n    \"discord_channel_id\": \"your_discord_channel_id\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/users/notifications/settings",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"users",
+								"notifications",
+								"settings"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		}

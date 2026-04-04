@@ -28,7 +28,6 @@ func (nm *NotificationManager) CheckNotificationStatus(notificationID string) (a
 }
 func (nm *NotificationManager) NotifyUsers(users []Models.User, message string, metadata map[string]string) {
 	for _, user := range users {
-		fmt.Println("Driver:-" + user.NotificationDriver)
 
 		factory := Factory.NewNotificationDriver()
 		params := map[string]any{
@@ -38,8 +37,18 @@ func (nm *NotificationManager) NotifyUsers(users []Models.User, message string, 
 
 		drv := factory.GetDriver(user.NotificationDriver, params)
 		if drv != nil {
-			mgr := NewNotificationManager(drv)
-			mgr.Notify("", message, metadata)
+			if user.NotificationDriver == "Telegram" {
+				mgr := NewNotificationManager(drv)
+				mgr.Notify("", message, metadata)
+			} else if user.NotificationDriver == "Discord" {
+				fmt.Println("Sending Discord Notification")
+				metadata["title"] = "BlackWater Server Manager"
+				metadata["description"] = message
+				metadata["bot_token"] = user.DiscordBotToken
+				metadata["channel_id"] = user.DiscordChannelID
+				mgr := NewNotificationManager(drv)
+				mgr.Notify("", message, metadata)
+			}
 		}
 
 	}

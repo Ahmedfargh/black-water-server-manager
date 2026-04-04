@@ -310,6 +310,45 @@ func UpdateProfile(userCRUD *crud.UserCRUD) gin.HandlerFunc {
 		c.JSON(200, user)
 	}
 }
+func UpdateNotificationSettings(authService *service.AuthService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID, exists := c.Get("userID")
+		if !exists {
+			c.JSON(401, gin.H{"error": "unauthorized"})
+			return
+		}
+
+		var input struct {
+			NotificationDriver string `json:"notification_driver" binding:"required"`
+			TelegramBotToken   string `json:"telegram_bot_token"`
+			TelegramChatID     string `json:"telegram_chat_id"`
+			DiscordBotToken    string `json:"discord_bot_token"`
+			DiscordChannelID   string `json:"discord_channel_id"`
+		}
+
+		if err := c.ShouldBindJSON(&input); err != nil {
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+
+		err := authService.UpdateNotificationSettings(
+			userID.(uint),
+			input.NotificationDriver,
+			input.TelegramBotToken,
+			input.TelegramChatID,
+			input.DiscordBotToken,
+			input.DiscordChannelID,
+		)
+
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(200, gin.H{"message": "notification settings updated successfully"})
+	}
+}
+
 func ListAll(userCRUD *crud.UserCRUD) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))

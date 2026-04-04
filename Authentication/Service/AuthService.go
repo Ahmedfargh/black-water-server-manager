@@ -88,3 +88,18 @@ func (s *AuthService) Login(email, password string) (map[string]interface{}, err
 
 	return response, nil
 }
+
+func (s *AuthService) UpdateNotificationSettings(userID uint, driver, telegramToken, telegramChatID, discordToken, discordChannelID string) error {
+	user, err := s.UserCRUD.GetUserByID(userID)
+	if err != nil {
+		return err
+	}
+
+	user.NotificationDriver = driver
+	user.TelegramBotToken = telegramToken
+	user.TelegramChatID = telegramChatID
+	user.DiscordBotToken = discordToken
+	user.DiscordChannelID = discordChannelID
+
+	return s.UserCRUD.UpdateUser(user, userID)
+}

@@ -18,16 +18,17 @@ func AuthRoutes(router *gin.Engine, userCRUD *crud.UserCRUD, authService *servic
 		fmt.Println("main grouping")
 		rolesHandlers := authentication.NewRolesHandlers(roleCRUD)
 
-		UserRoutes(authenticated.(*gin.RouterGroup), userCRUD)
+		UserRoutes(authenticated.(*gin.RouterGroup), userCRUD, authService)
 		RoleRoutes(authenticated.(*gin.RouterGroup), rolesHandlers)
 	}
 }
 
-func UserRoutes(router *gin.RouterGroup, userCRUD *crud.UserCRUD) {
+func UserRoutes(router *gin.RouterGroup, userCRUD *crud.UserCRUD, authService *service.AuthService) {
 	usersGroup := router.Group("/users")
 	{
 		usersGroup.GET("/", authentication.CheckRole("read_user"), authentication.GetUsers(userCRUD))
 		usersGroup.POST("/acount/update", authentication.UpdateProfile(userCRUD))
+		usersGroup.POST("/notifications/settings", authentication.UpdateNotificationSettings(authService))
 	}
 
 	crudGroup := router.Group("/crud/users")
