@@ -23,7 +23,7 @@ import (
 
 func InitBackgroundTasks(mgr *Mgrs.BackgroundTaskManager) {
 	hardwareReport := &reports.BackgroundHardwareReport{
-		RunEachSeconds: 1, // Run every 60 seconds
+		RunEachSeconds: 35, // Run every 60 seconds
 	}
 	fmt.Println("Init Background Task")
 	mgr.AddTask(hardwareReport)
