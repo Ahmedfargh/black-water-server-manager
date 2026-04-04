@@ -241,15 +241,34 @@ Notifications are triggered by several events:
 - **Auto-Heal Actions:** Notifications when the system automatically takes action (e.g., restarting a container) due to high CPU or memory consumption.
 - **Abnormalities:** Alerts when resource thresholds (CPU/Memory) are exceeded, even if no automated action is configured.
 
-### ⚙️ Configuration (Telegram)
+### ⚙️ Supported Drivers
 
-Currently, Blackwater supports **Telegram** as the primary notification driver. Each user can configure their own notification settings:
+Blackwater supports both **Telegram** and **Discord** for real-time notifications. Each user can configure their own preferred notification driver and credentials:
 
+#### 🔹 Telegram Configuration
 1. **Bot Token:** Obtain a bot token from [@BotFather](https://t.me/botfather).
 2. **Chat ID:** Find your Telegram Chat ID (you can use [@userinfobot](https://t.me/userinfobot)).
-3. **User Profile:** Update your profile settings via the API or CLI with your `notification_driver` (set to `Telegram`), `telegram_bot_token`, and `telegram_chat_id`.
 
-These settings are stored per-user, allowing different team members to receive notifications on their own Telegram accounts.
+#### 🔹 Discord Configuration
+1. **Bot Token:** Create a bot on the [Discord Developer Portal](https://discord.com/developers/applications) and obtain its token.
+2. **Channel ID:** Right-click the desired channel in Discord and select "Copy Channel ID" (requires Developer Mode enabled).
+
+### 🛠️ Updating Settings
+
+You can update your notification settings via the API by sending a `POST` request to `/users/users/notifications/settings`:
+
+**Request Body:**
+```json
+{
+    "notification_driver": "Discord", // or "Telegram"
+    "telegram_bot_token": "your_telegram_bot_token",
+    "telegram_chat_id": "your_telegram_chat_id",
+    "discord_bot_token": "your_discord_bot_token",
+    "discord_channel_id": "your_discord_channel_id"
+}
+```
+
+These settings are stored per-user, ensuring that team members receive alerts on their own preferred platforms and accounts.
 
 ## 🏗️ Dynamic Hub Architecture
 
