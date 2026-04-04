@@ -124,3 +124,22 @@ func GetSiteStatusReportHandler() gin.HandlerFunc {
 		c.JSON(http.StatusOK, gin.H{"report": report})
 	}
 }
+func UpdateSiteHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid site ID"})
+			return
+		}
+		var site models.Site
+		if err := c.ShouldBindJSON(&site); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if err := createNewSiteCrud().UpdateSite(site, uint(id)); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"message": "Site updated successfully"})
+	}
+}

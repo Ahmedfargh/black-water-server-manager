@@ -1,5 +1,8 @@
 # Blackwater
 
+> [!WARNING]
+> **FRONTEND STATUS:** The included Vue.js frontend is provided for **testing and demonstration purposes only**. It serves as a reference interface to interact with the Blackwater API and is not intended for production environments.
+
 A comprehensive server management and monitoring tool built with Go and Gin. Named after the iconic city in Red Dead Redemption (RDR1 & RDR2), Blackwater aims to provide a robust and organized way to manage your server infrastructure.
 
 This application allows you to monitor hardware performance (CPU, GPU, RAM, Disk), manage system processes, and handle user authentication with role-based access control.

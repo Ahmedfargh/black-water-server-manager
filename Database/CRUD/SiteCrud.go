@@ -35,3 +35,6 @@ func (c *SiteCrud) GetSiteHealthStatusByDate(site_id uint, start_date string, en
 	return c.Rep.GetSiteHealthStatusByDate(site_id, start_date, end_date)
 
 }
+func (c *SiteCrud) UpdateSite(site models.Site, id uint) error {
+	return c.Rep.UpdateSite(&site, id)
+}

@@ -29,22 +29,30 @@ func (s *SiteHealthService) CheckSite(site *Models.Site, wg *sync.WaitGroup, cha
 		Timeout: 10 * time.Second,
 	}
 
-	resp, err := client.Get(site.Health_Route)
+	method := site.Method
+	if method == "" {
+		method = "GET"
+	}
+	expectedStatus := site.Expected_Status
+	if expectedStatus == 0 {
+		expectedStatus = 200
+	}
 
 	status := "down"
+	req, err := http.NewRequest(method, site.Health_Route, nil)
+	if err != nil {
+		status = "error"
+	} else {
+		resp, err := client.Do(req)
 
-	if err == nil {
-		defer resp.Body.Close()
-		code := resp.StatusCode
-		switch {
-		case code >= 200 && code < 300:
-			status = "up"
-		case code >= 300 && code < 400:
-			status = "redirection"
-		case code >= 400 && code < 500:
-			status = "not_found"
-		case code >= 500:
-			status = "server_error"
+		if err == nil {
+			defer resp.Body.Close()
+			code := resp.StatusCode
+			if code == expectedStatus {
+				status = "up"
+			} else {
+				status = "down"
+			}
 		}
 	}
 

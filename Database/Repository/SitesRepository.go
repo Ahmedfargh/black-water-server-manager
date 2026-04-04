@@ -22,29 +22,39 @@ func (r *SiteRepository) CreateSite(user *models.Site) error {
 	return r.DB.Create(user).Error
 }
 
+func (r *SiteRepository) GetSites(page uint, limit uint) ([]models.Site, uint, error) {
+	var total int64
+	var sites []models.Site
+	if err := r.DB.Model(&models.Site{}).Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	offset := (page - 1) * limit
+	err := r.DB.Limit(int(limit)).Offset(int(offset)).Order("id desc").Find(&sites).Error
+	if err != nil {
+		return nil, 0, err
+	}
+	for i := range sites {
+		var lastStatus models.SiteHealthStatus
+		r.DB.Where("site_id = ?", sites[i].ID).Order("time desc").First(&lastStatus)
+		sites[i].Status = lastStatus.Status
+		sites[i].LastChecked = lastStatus.Time
+	}
+	return sites, uint(total), nil
+}
 func (r *SiteRepository) GetSiteByID(id uint) (*models.Site, error) {
 	var site models.Site
 	err := r.DB.First(&site, id).Error
 	if err != nil {
 		return nil, err
 	}
+	var lastStatus models.SiteHealthStatus
+	r.DB.Where("site_id = ?", site.ID).Order("time desc").First(&lastStatus)
+	site.Status = lastStatus.Status
+	site.LastChecked = lastStatus.Time
 	return &site, nil
 }
-func (r *SiteRepository) GetSites(page uint, limit uint) ([]models.Site, uint, error) {
-	var total int64
-	var sites []models.Site
-	if err := Config.DB.Model(&models.Site{}).Count(&total).Error; err != nil {
-		return nil, 0, err
-	}
-	offset := (page - 1) * limit
-	err := Config.DB.Limit(int(limit)).Offset(int(offset)).Order("id desc").Find(&sites).Error
-	if err != nil {
-		return nil, 0, err
-	}
-	return sites, uint(total), nil
-}
 func (r *SiteRepository) UpdateSite(site *models.Site, id uint) error {
-	return r.DB.Save(site).Error
+	return r.DB.Where("id = ?", id).Updates(site).Error
 }
 func (r *SiteRepository) DeleteSite(site *models.Site) error {
 	return r.DB.Delete(site).Error

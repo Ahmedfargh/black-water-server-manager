@@ -13,5 +13,6 @@ func CpuRoute(router *gin.Engine) {
 		router.Use(authentication.AuthMiddleware()).GET("/gpu", authentication.CheckRole("read_gpu"), info.GetGpuInfo())
 		router.Use(authentication.AuthMiddleware()).GET("/ram", authentication.CheckRole("read_ram"), info.GetRamInfo())
 		router.Use(authentication.AuthMiddleware()).GET("/disk", authentication.CheckRole("read_disk"), info.GetDiskInfo())
+		router.Use(authentication.AuthMiddleware()).GET("/report", authentication.CheckRole("read_cpu"), info.GetHardWareReport())
 	}
 }
