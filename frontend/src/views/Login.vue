@@ -8,7 +8,10 @@ import { Cpu, Lock, Mail, Loader2 } from 'lucide-vue-next'
 const authStore = useAuthStore()
 const toast = useToastStore()
 const router = useRouter()
-...
+let isLoading = ref(false)
+let error = ref('')
+let email = ref('')
+let password = ref('')
 const handleLogin = async () => {
   isLoading.value = true
   error.value = ''

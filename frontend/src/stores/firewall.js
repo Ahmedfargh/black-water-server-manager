@@ -30,6 +30,7 @@ export const useFirewallStore = defineStore('firewall', {
     async toggleFirewall(enable) {
       try {
         const endpoint = enable ? '/firewall/enable' : '/firewall/disable'
+        console.log(endpoint);
         await api.get(endpoint)
         await this.fetchStatus()
       } catch (error) {

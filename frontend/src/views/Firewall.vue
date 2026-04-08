@@ -1,11 +1,9 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, computed } from 'vue'
 import { 
-  Shield, 
   ShieldCheck, 
   ShieldAlert, 
   List, 
-  Plus, 
   RefreshCw,
   Power
 } from 'lucide-vue-next'
@@ -15,22 +13,34 @@ import { useToastStore } from '../stores/toast'
 const firewallStore = useFirewallStore()
 const toast = useToastStore()
 
+const isActive = computed(() => {
+  if (!firewallStore.status) return false
+  const status = firewallStore.status.toLowerCase()
+  // Must check 'not running' BEFORE 'running' because 'not running'.includes('running') is true
+  if (status.includes('not running') || status.includes('inactive')) return false
+  return status.includes('running') || status.includes('active')
+})
+
+const actionText = computed(() => isActive.value ? 'DEACTIVATE' : 'ACTIVATE')
+
 onMounted(() => {
   firewallStore.fetchStatus()
   firewallStore.fetchRules()
 })
 
 const handleToggle = async () => {
-  const isCurrentlyActive = firewallStore.status?.toLowerCase().includes('running') || firewallStore.status === 'active'
-  const action = isCurrentlyActive ? 'DEACTIVATE' : 'ACTIVATE'
-  if (confirm(`SECURITY PROTOCOL: Are you sure you want to ${action} the system firewall?`)) {
+  const action = actionText.value
+  const targetState = !isActive.value
+  
     try {
-      await firewallStore.toggleFirewall(!isCurrentlyActive)
+      toast.info(`INITIATING FIREWALL ${action} SEQUENCE...`)
+      await firewallStore.toggleFirewall(targetState)
       toast.success(`FIREWALL ${action}D SUCCESSFULLY`)
     } catch (err) {
+      console.error('Firewall toggle error:', err)
       toast.error(`PROTOCOL FAILED: Unable to ${action} firewall.`)
     }
-  }
+  
 }
 </script>
 
@@ -45,20 +55,20 @@ const handleToggle = async () => {
     </div>
 
     <!-- Status Card -->
-    <div class="tron-card status-card" :class="{ 'active': firewallStore.status?.toLowerCase().includes('running') || firewallStore.status === 'active', 'inactive': !(firewallStore.status?.toLowerCase().includes('running') || firewallStore.status === 'active') }">
+    <div class="tron-card status-card" :class="{ 'active': isActive, 'inactive': !isActive }">
       <div class="status-content">
         <div class="status-icon-wrap">
-          <ShieldCheck v-if="firewallStore.status?.toLowerCase().includes('running') || firewallStore.status === 'active'" :size="64" class="glow-cyan" />
+          <ShieldCheck v-if="isActive" :size="64" class="glow-cyan" />
           <ShieldAlert v-else :size="64" class="glow-orange" />
         </div>
         <div class="status-info">
           <h3>SYSTEM STATUS: <span class="status-text">{{ (firewallStore.status || 'UNKNOWN').toUpperCase() }}</span></h3>
-          <p v-if="firewallStore.status?.toLowerCase().includes('running') || firewallStore.status === 'active'">Defense grid is operational. All incoming traffic is being filtered.</p>
+          <p v-if="isActive">Defense grid is operational. All incoming traffic is being filtered.</p>
           <p v-else>Defense grid is OFFLINE. System is vulnerable to external signals.</p>
         </div>
-        <button @click="handleToggle" class="toggle-btn" :class="{ 'on': firewallStore.status?.toLowerCase().includes('running') || firewallStore.status === 'active' }">
+        <button @click.stop="handleToggle" class="toggle-btn" :class="{ 'on': isActive }">
           <Power :size="24" />
-          <span>{{ (firewallStore.status?.toLowerCase().includes('running') || firewallStore.status === 'active') ? 'DEACTIVATE' : 'ACTIVATE' }}</span>
+          <span>{{ actionText }}</span>
         </button>
       </div>
     </div>

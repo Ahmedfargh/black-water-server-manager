@@ -20,6 +20,7 @@ type User struct {
 	TelegramBotToken   string       `json:"telegram_bot_token" default:"null"`
 	DiscordChannelID   string       `json:"discord_channel_id" default:"null"`
 	DiscordBotToken    string       `json:"discord_bot_token" default:"null"`
+	WebHookURL         string       `json:"webhook_url" default:"null"`
 }
 
 func (User) TableName() string {

@@ -7,6 +7,7 @@ export const useAuditStore = defineStore('audit', {
     loading: false,
     page: 1,
     limit: 20,
+    total: 0,
     type: ''
   }),
   actions: {
@@ -20,7 +21,10 @@ export const useAuditStore = defineStore('audit', {
             type: this.type
           }
         })
-        this.logs = response.data.logs || []
+        this.logs = response.data.data || []
+        this.total = response.data.total || 0
+        this.page = response.data.page || this.page
+        this.limit = response.data.limit || this.limit
       } catch (error) {
         console.error('Failed to fetch audit logs:', error)
       } finally {

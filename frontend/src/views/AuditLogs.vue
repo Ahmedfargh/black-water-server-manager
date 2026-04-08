@@ -1,15 +1,14 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { 
-  History, 
-  Search, 
   Filter, 
   ChevronLeft, 
   ChevronRight,
   Shield,
   Box,
   Terminal,
-  Activity
+  Activity,
+  User as UserIcon
 } from 'lucide-vue-next'
 import { useAuditStore } from '../stores/audit'
 
@@ -26,22 +25,29 @@ const handleFilter = () => {
 
 const changePage = (offset) => {
   const newPage = auditStore.page + offset
-  if (newPage > 0) {
+  if (newPage > 0 && newPage <= totalPages.value) {
     auditStore.setFilters({ page: newPage })
   }
 }
 
+const totalPages = computed(() => {
+  if (auditStore.total === 0) return 1
+  return Math.ceil(auditStore.total / auditStore.limit)
+})
+
 const getLogIcon = (type) => {
-  if (type.includes('firewall')) return Shield
-  if (type.includes('docker')) return Box
-  if (type.includes('process')) return Terminal
+  if (!type) return Activity
+  const lowType = type.toLowerCase()
+  if (lowType.includes('firewall')) return Shield
+  if (lowType.includes('docker')) return Box
+  if (lowType.includes('process')) return Terminal
   return Activity
 }
 
 const formatDate = (dateStr) => {
+  if (!dateStr) return 'N/A'
   const date = new Date(dateStr)
   return date.toLocaleString('en-US', {
-    year: 'numeric',
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
@@ -67,37 +73,61 @@ const formatDate = (dateStr) => {
     </div>
 
     <div class="tron-card logs-container">
-      <div class="logs-list">
-        <div v-for="log in auditStore.logs" :key="log.id" class="log-entry">
-          <div class="log-icon-wrap">
-            <component :is="getLogIcon(log.type)" :size="20" />
-          </div>
-          <div class="log-content">
-            <div class="log-header">
-              <span class="log-type">{{ log.type?.toUpperCase() }}</span>
-              <span class="log-time font-data">{{ formatDate(log.created_at) }}</span>
-            </div>
-            <p class="log-message">{{ log.message }}</p>
-            <div class="log-meta">
-              <span class="user-tag">ACTOR: {{ log.user_id || 'SYSTEM' }}</span>
-              <span class="ip-tag" v-if="log.ip_address">IP: {{ log.ip_address }}</span>
-            </div>
-          </div>
-        </div>
-
-        <div v-if="auditStore.logs.length === 0" class="empty-msg">
-          NO AUDIT RECORDS FOUND IN THE CURRENT SECTOR.
-        </div>
+      <div class="table-wrapper">
+        <table class="tron-table">
+          <thead>
+            <tr>
+              <th class="w-icon"></th>
+              <th>TYPE</th>
+              <th>ACTION / MESSAGE</th>
+              <th>ACTOR</th>
+              <th class="text-right">TIMESTAMP</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="log in auditStore.logs" :key="log.ID">
+              <td class="w-icon">
+                <component :is="getLogIcon(log.service_type)" :size="18" class="neon-cyan" />
+              </td>
+              <td>
+                <span class="type-badge">{{ log.service_type?.toUpperCase() }}</span>
+              </td>
+              <td class="log-message-cell">
+                {{ log.action }}
+                <div class="service-id" v-if="log.service_id">ID: {{ log.service_id }}</div>
+              </td>
+              <td>
+                <div class="actor-info">
+                  <UserIcon :size="14" class="dim" />
+                  <span>{{ (log.user_id && log.User?.username) ? log.User.username : 'SYSTEM' }}</span>
+                </div>
+              </td>
+              <td class="text-right font-data dim">
+                {{ formatDate(log.CreatedAt) }}
+              </td>
+            </tr>
+            <tr v-if="auditStore.logs.length === 0">
+              <td colspan="5" class="empty-cell">
+                NO AUDIT RECORDS FOUND IN THE CURRENT SECTOR.
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <div class="pagination">
-        <button @click="changePage(-1)" :disabled="auditStore.page <= 1" class="page-btn">
-          <ChevronLeft :size="20" />
-        </button>
-        <span class="page-info">SECTOR {{ auditStore.page }}</span>
-        <button @click="changePage(1)" :disabled="auditStore.logs.length < auditStore.limit" class="page-btn">
-          <ChevronRight :size="20" />
-        </button>
+        <div class="page-stats dim">
+          SHOWING {{ auditStore.logs.length }} OF {{ auditStore.total }} ENTRIES
+        </div>
+        <div class="page-controls">
+          <button @click="changePage(-1)" :disabled="auditStore.page <= 1" class="page-btn">
+            <ChevronLeft :size="20" />
+          </button>
+          <span class="page-info">SECTOR {{ auditStore.page }} / {{ totalPages }}</span>
+          <button @click="changePage(1)" :disabled="auditStore.page >= totalPages" class="page-btn">
+            <ChevronRight :size="20" />
+          </button>
+        </div>
       </div>
 
       <div v-if="auditStore.loading" class="loading-overlay">
@@ -145,97 +175,122 @@ const formatDate = (dateStr) => {
   background: var(--bg-black);
 }
 
-/* Logs List */
+/* Table Styles */
 .logs-container {
   flex: 1;
   display: flex;
   flex-direction: column;
   position: relative;
-  min-height: 500px;
+  overflow: hidden;
 }
 
-.logs-list {
+.table-wrapper {
   flex: 1;
   overflow-y: auto;
+}
+
+.tron-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.tron-table th {
+  position: sticky;
+  top: 0;
+  background: var(--bg-card);
   padding: 1rem;
-}
-
-.log-entry {
-  display: flex;
-  gap: 1.5rem;
-  padding: 1.5rem;
-  border-bottom: 1px solid rgba(0, 242, 255, 0.05);
-  transition: all 0.2s ease;
-}
-
-.log-entry:hover {
-  background: rgba(0, 242, 255, 0.02);
-}
-
-.log-icon-wrap {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 242, 255, 0.05);
-  border: 1px solid rgba(0, 242, 255, 0.2);
-  color: var(--neon-cyan);
-  flex-shrink: 0;
-}
-
-.log-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.log-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.log-type {
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 2px;
   color: var(--neon-cyan);
+  border-bottom: 2px solid rgba(0, 242, 255, 0.2);
+  z-index: 10;
 }
 
-.log-time {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
+.tron-table td {
+  padding: 1rem;
+  border-bottom: 1px solid rgba(0, 242, 255, 0.05);
+  font-size: 0.9rem;
 }
 
-.log-message {
-  font-size: 0.95rem;
-  line-height: 1.4;
+.tron-table tr:hover td {
+  background: rgba(0, 242, 255, 0.02);
 }
 
-.log-meta {
-  display: flex;
-  gap: 1.5rem;
+.w-icon {
+  width: 50px;
+  text-align: center;
+}
+
+.type-badge {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--neon-cyan);
+  background: rgba(0, 242, 255, 0.05);
+  padding: 0.2rem 0.5rem;
+  border: 1px solid rgba(0, 242, 255, 0.2);
+}
+
+.log-message-cell {
+  max-width: 400px;
+}
+
+.service-id {
   font-size: 0.7rem;
   color: var(--text-secondary);
+  margin-top: 0.2rem;
   font-family: var(--font-data);
 }
 
-.pagination {
-  padding: 1.5rem;
+.actor-info {
   display: flex;
-  justify-content: center;
   align-items: center;
-  gap: 2rem;
+  gap: 0.5rem;
+}
+
+.dim {
+  opacity: 0.6;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.empty-cell {
+  text-align: center;
+  padding: 5rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  letter-spacing: 2px;
+}
+
+/* Pagination */
+.pagination {
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   border-top: 1px solid rgba(0, 242, 255, 0.1);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.page-stats {
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+}
+
+.page-controls {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
 }
 
 .page-btn {
   background: transparent;
   border: 1px solid rgba(0, 242, 255, 0.2);
   color: var(--text-secondary);
-  padding: 0.4rem;
+  padding: 0.3rem;
   cursor: pointer;
   display: flex;
 }
@@ -246,20 +301,12 @@ const formatDate = (dateStr) => {
 }
 
 .page-btn:disabled {
-  opacity: 0.3;
+  opacity: 0.2;
   cursor: not-allowed;
 }
 
 .page-info {
-  font-size: 0.9rem;
-  letter-spacing: 2px;
-}
-
-.empty-msg {
-  text-align: center;
-  padding: 5rem;
-  color: var(--text-secondary);
-  font-style: italic;
+  font-size: 0.85rem;
   letter-spacing: 2px;
 }
 
@@ -276,5 +323,16 @@ const formatDate = (dateStr) => {
   justify-content: center;
   gap: 1.5rem;
   z-index: 100;
+}
+
+.pulse {
+  animation: pulse 2s infinite;
+  color: var(--neon-cyan);
+}
+
+@keyframes pulse {
+  0% { transform: scale(0.95); opacity: 0.5; }
+  50% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.5; }
 }
 </style>

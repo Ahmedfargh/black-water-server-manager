@@ -223,7 +223,7 @@ func (dm *DockerManager) CheckAll() {
 		// Create a local copy to avoid pointer issues with goroutines
 		c := container
 
-		if c.MaxCpuConsumation > -1 {
+		if c.MaxCpuConsumation > 0 {
 			stats, err := doc.ContainerStatus(context.Background(), c.ContainerID)
 			if err != nil {
 				continue
