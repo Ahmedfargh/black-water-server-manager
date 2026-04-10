@@ -41,6 +41,16 @@ func (f *NotificationDriverFactory) GetDriver(name string, params map[string]any
 				dc.SetChannelID(channelID)
 			}
 		}
+	} else if name == "WebHook" {
+		if wh, ok := driver.(*NotificationDriver.WebHookDriver); ok {
+			fmt.Println("WebHook driver Is Iniated")
+			if url, ok := params["URL"].(string); ok {
+				wh.URL = url
+			}
+			if secret, ok := params["WebHookSecret"].(string); ok {
+				wh.WebHookSecret = secret
+			}
+		}
 	}
 	return driver
 }

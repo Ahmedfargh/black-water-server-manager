@@ -3,6 +3,8 @@ package Managers
 import (
 	"fmt"
 
+	time "time"
+
 	"github.com/ahmedfargh/server-manager/Database/Models"
 	"github.com/ahmedfargh/server-manager/Drivers/NotificationDrivers"
 	Factory "github.com/ahmedfargh/server-manager/Factory"
@@ -46,6 +48,13 @@ func (nm *NotificationManager) NotifyUsers(users []Models.User, message string, 
 				metadata["description"] = message
 				metadata["bot_token"] = user.DiscordBotToken
 				metadata["channel_id"] = user.DiscordChannelID
+				mgr := NewNotificationManager(drv)
+				mgr.Notify("", message, metadata)
+			} else if user.NotificationDriver == "WebHook" {
+				fmt.Println("Sending WebHook Notification")
+				metadata["event"] = "Server Alert"
+				metadata["timestamp"] = fmt.Sprintf("%d", time.Now().Unix())
+				metadata["payload"] = message
 				mgr := NewNotificationManager(drv)
 				mgr.Notify("", message, metadata)
 			}
