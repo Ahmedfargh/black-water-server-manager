@@ -20,6 +20,7 @@ This application allows you to monitor hardware performance (CPU, GPU, RAM, Disk
 - **Site Health Monitoring:** Monitor external sites' availability and performance, logging status history (UP, Redirection, Not Found, Server Error).
 - **Process Ownership Tracking:** Automatically record which user started each process for accountability and logging.
 - **System Audit Logging:** Track and persist administrative actions, such as Firewall state changes, for security and compliance.
+- **Interactive System Terminal (New):** Execute host machine shell commands securely via a deeply integrated, high-performance web terminal interface natively connected to the backend.
 - **Real-Time Monitoring (WebSockets):** Efficiently stream process updates, container metrics, and **live container logs** to multiple clients.
 - **Background Synchronization:** A background manager periodically (every 10s) synchronizes the state of all containers on the host with the database.
 - **User Authentication:** Secure JWT-based login and registration.
@@ -232,6 +233,7 @@ For developers on **Mac, Windows, or Linux**, Docker provides an isolated enviro
 - `WS /ws/cpu-temperature` - Live CPU temperature stream (Broadcasts every 1s)
 - `WS /ws/docker/:containerId` - Live container-specific metrics (CPU, Memory, Network, Block I/O)
 - **`WS /ws/docker/:containerId/logs`** - Live real-time container log streaming (Follow mode)
+- **`WS /ws/terminal`** - Interactive host system shell terminal allowing bidirectional secure command execution.
 
 ## 🔔 Notification System
 
