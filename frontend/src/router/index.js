@@ -24,6 +24,11 @@ const routes = [
         component: () => import('../views/Docker.vue'),
       },
       {
+        path: 'terminal',
+        name: 'Terminal',
+        component: () => import('../views/Terminal.vue'),
+      },
+      {
         path: 'processes',
         name: 'Processes',
         component: () => import('../views/Processes.vue'),
@@ -42,6 +47,16 @@ const routes = [
         path: 'audit',
         name: 'AuditLogs',
         component: () => import('../views/AuditLogs.vue'),
+      },
+      {
+        path: 'users',
+        name: 'Users',
+        component: () => import('../views/Users.vue'),
+      },
+      {
+        path: 'profile',
+        name: 'Profile',
+        component: () => import('../views/Profile.vue'),
       }
     ]
   }

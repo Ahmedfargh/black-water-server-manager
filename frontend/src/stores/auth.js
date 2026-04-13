@@ -38,6 +38,34 @@ export const useAuthStore = defineStore('auth', {
       localStorage.removeItem('token')
       localStorage.removeItem('user')
       window.location.href = '/login'
+    },
+    async fetchProfile() {
+      try {
+        const response = await api.get('/users/profile/me')
+        this.user = { ...this.user, ...response.data.user }
+        localStorage.setItem('user', JSON.stringify(this.user))
+        return response.data.user
+      } catch (error) {
+        throw error
+      }
+    },
+    async updateProfile(formData) {
+      try {
+        const response = await api.post('/users/users/acount/update', formData)
+        this.user = { ...this.user, ...response.data }
+        localStorage.setItem('user', JSON.stringify(this.user))
+        return response.data
+      } catch (error) {
+        throw error
+      }
+    },
+    async updateNotifications(data) {
+      try {
+        const response = await api.post('/users/users/notifications/settings', data)
+        return response.data
+      } catch (error) {
+        throw error
+      }
     }
   }
 })

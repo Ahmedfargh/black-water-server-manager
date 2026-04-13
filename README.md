@@ -13,7 +13,7 @@ This application allows you to monitor hardware performance (CPU, GPU, RAM, Disk
 - **Firewall Management:** Multi-distro support for Debian/Ubuntu (UFW), Arch Linux (UFW), and Red Hat-based distributions (Firewalld).
 - **Audit Logging:** Automatically record system actions (firewall changes, etc.) with user attribution for security and accountability.
 - **Docker Auto-Heal & Resource Monitoring:** Automatically monitor container resource usage (CPU/Memory) and health status (e.g., detecting stopped containers), triggering automated actions (Restart, Start, Stop, etc.) when thresholds are exceeded or abnormalities are detected.
-- **Docker Notifications (Telegram):** Receive instant alerts on Telegram when containers start, stop, or restart, or when resource thresholds are exceeded.
+- **Docker Notifications:** Receive instant alerts via Discord, Telegram, or Custom Webhooks when containers start, stop, or restart, or when resource thresholds are exceeded.
 - **Docker Management & Auto-Discovery:** Automatically discover and persist running containers on the host, monitor their metrics, and stream live logs.
 - **Resource Limits & Automated Actions:** Define CPU and Memory consumption thresholds for containers with automated response actions (Stop, Restart, etc.).
 - **Process Management:** View detailed information about running system processes, start new ones, and terminate existing ones.
@@ -246,7 +246,7 @@ Notifications are triggered by several events:
 
 ### ⚙️ Supported Drivers
 
-Blackwater supports both **Telegram** and **Discord** for real-time notifications. Each user can configure their own preferred notification driver and credentials:
+Blackwater supports **Telegram**, **Discord**, and **Custom Webhooks** for real-time notifications. Each user can configure their own preferred notification driver and credentials:
 
 #### 🔹 Telegram Configuration
 1. **Bot Token:** Obtain a bot token from [@BotFather](https://t.me/botfather).
@@ -256,18 +256,24 @@ Blackwater supports both **Telegram** and **Discord** for real-time notification
 1. **Bot Token:** Create a bot on the [Discord Developer Portal](https://discord.com/developers/applications) and obtain its token.
 2. **Channel ID:** Right-click the desired channel in Discord and select "Copy Channel ID" (requires Developer Mode enabled).
 
+#### 🔹 Webhook Configuration
+1. **Target URL:** Your external endpoint URL that will receive POST requests containing the event data.
+2. **Webhook Secret:** An optional secret key.
+
 ### 🛠️ Updating Settings
 
-You can update your notification settings via the API by sending a `POST` request to `/users/users/notifications/settings`:
+Settings can be seamlessly updated directly from the **Profile Configuration panel in the Vue.js Frontend** or via the API by sending a `POST` request to `/users/users/notifications/settings`:
 
 **Request Body:**
 ```json
 {
-    "notification_driver": "Discord", // or "Telegram"
+    "notification_driver": "Webhook", // or "Telegram", "Discord"
     "telegram_bot_token": "your_telegram_bot_token",
     "telegram_chat_id": "your_telegram_chat_id",
     "discord_bot_token": "your_discord_bot_token",
-    "discord_channel_id": "your_discord_channel_id"
+    "discord_channel_id": "your_discord_channel_id",
+    "webhook_url": "https://your.endpoint.com/webhook",
+    "webhook_secret": "your_optional_secret"
 }
 ```
 

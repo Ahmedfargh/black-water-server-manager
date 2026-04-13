@@ -3,7 +3,7 @@ package NotificationDrivers
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
+	"fmt"
 	"net/http"
 )
 
@@ -23,25 +23,28 @@ func (w *WebHookDriver) SetPayload(metadata map[string]string) map[string]any {
 	return webhook_payload
 }
 func (w *WebHookDriver) Send(recipient string, message string, metadata map[string]string) (any, error) {
-	if w.URL == "" {
-		return nil, errors.New("webhook URL is not set")
-	}
+	w.URL = metadata["URL"]
+	w.WebHookSecret = metadata["WebHookSecret"]
 	httpClient := &http.Client{}
 
 	payload := w.SetPayload(metadata)
 	jsonPayload, err := json.Marshal(payload)
 	if err != nil {
+		fmt.Println(err)
 		return nil, err
 	}
 	reader := bytes.NewBuffer(jsonPayload)
 	req, err := http.NewRequest("POST", w.URL, reader)
 	if err != nil {
+		fmt.Println(err)
 		return nil, err
 	}
 	_, err = httpClient.Do(req)
 	if err != nil {
+		fmt.Println(err)
 		return nil, err
 	}
+	fmt.Println("Webhook notification sent successfully")
 	return nil, nil
 }
 func (w *WebHookDriver) GetStatus(notificationID string) (any, error) {

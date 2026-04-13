@@ -21,6 +21,7 @@ type User struct {
 	DiscordChannelID   string       `json:"discord_channel_id" default:"null"`
 	DiscordBotToken    string       `json:"discord_bot_token" default:"null"`
 	WebHookURL         string       `json:"webhook_url" default:"null"`
+	WebHookSecret      string       `json:"webhook_secret" default:"null"`
 }
 
 func (User) TableName() string {
@@ -42,6 +43,8 @@ func (u User) ToMap() map[string]interface{} {
 		"telegram_bot_token":  u.TelegramBotToken,
 		"discord_channel_id":  u.DiscordChannelID,
 		"discord_bot_token":   u.DiscordBotToken,
+		"webhook_url":         u.WebHookURL,
+		"webhook_secret":      u.WebHookSecret,
 	}
 }
 func (u User) HasPermission(permission string) bool {

@@ -89,7 +89,7 @@ func (s *AuthService) Login(email, password string) (map[string]interface{}, err
 	return response, nil
 }
 
-func (s *AuthService) UpdateNotificationSettings(userID uint, driver, telegramToken, telegramChatID, discordToken, discordChannelID string) error {
+func (s *AuthService) UpdateNotificationSettings(userID uint, driver, telegramToken, telegramChatID, discordToken, discordChannelID, webhookURL, webhookSecret string) error {
 	user, err := s.UserCRUD.GetUserByID(userID)
 	if err != nil {
 		return err
@@ -100,6 +100,8 @@ func (s *AuthService) UpdateNotificationSettings(userID uint, driver, telegramTo
 	user.TelegramChatID = telegramChatID
 	user.DiscordBotToken = discordToken
 	user.DiscordChannelID = discordChannelID
+	user.WebHookURL = webhookURL
+	user.WebHookSecret = webhookSecret
 
 	return s.UserCRUD.UpdateUser(user, userID)
 }

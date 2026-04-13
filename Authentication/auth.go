@@ -140,7 +140,7 @@ func CreateUser(userCRUD *crud.UserCRUD) gin.HandlerFunc {
 			return
 		}
 
-		file, err := c.FormFile("image_path")
+		file, err := c.FormFile("avatar")
 		if err == nil {
 			filename := fmt.Sprintf("uploads/%s/%d_%s", user.Username, user.ID, file.Filename)
 			if err := c.SaveUploadedFile(file, filename); err != nil {
@@ -182,7 +182,7 @@ func UpdateUser(userCRUD *crud.UserCRUD) gin.HandlerFunc {
 				user.Password = string(hashedPassword)
 			}
 		}
-		file, err := c.FormFile("image_path")
+		file, err := c.FormFile("avatar")
 		if err == nil {
 			filename := fmt.Sprintf("uploads/%d_%s", user.ID, file.Filename)
 			if err := c.SaveUploadedFile(file, filename); err != nil {
@@ -286,7 +286,7 @@ func UpdateProfile(userCRUD *crud.UserCRUD) gin.HandlerFunc {
 			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
-		file, err := c.FormFile("image_path")
+		file, err := c.FormFile("avatar")
 		if err == nil {
 			filename := fmt.Sprintf("uploads/%d_%s", userIDUint, file.Filename)
 			if err := c.SaveUploadedFile(file, filename); err != nil {
@@ -324,6 +324,8 @@ func UpdateNotificationSettings(authService *service.AuthService) gin.HandlerFun
 			TelegramChatID     string `json:"telegram_chat_id"`
 			DiscordBotToken    string `json:"discord_bot_token"`
 			DiscordChannelID   string `json:"discord_channel_id"`
+			WebHookURL         string `json:"webhook_url"`
+			WebHookSecret      string `json:"webhook_secret"`
 		}
 
 		if err := c.ShouldBindJSON(&input); err != nil {
@@ -338,6 +340,8 @@ func UpdateNotificationSettings(authService *service.AuthService) gin.HandlerFun
 			input.TelegramChatID,
 			input.DiscordBotToken,
 			input.DiscordChannelID,
+			input.WebHookURL,
+			input.WebHookSecret,
 		)
 
 		if err != nil {

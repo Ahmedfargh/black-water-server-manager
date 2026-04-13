@@ -91,6 +91,7 @@ func initDatabase() {
 
 func setupRouter(u *crud.UserCRUD, a *service.AuthService, r *crud.RoleCRUD) *gin.Engine {
 	router := gin.Default()
+	router.Static("/uploads", "./uploads")
 
 	// Grouping routes visually
 	routes.AuthRoutes(router, u, a, r)
@@ -103,7 +104,6 @@ func setupRouter(u *crud.UserCRUD, a *service.AuthService, r *crud.RoleCRUD) *gi
 	routes.AuditRoutes(router)
 	routes.SiteRoutes(router)
 
-	router.Static("/uploads", "./uploads")
 	return router
 }
 

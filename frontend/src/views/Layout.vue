@@ -10,6 +10,7 @@ import {
   History, 
   LogOut,
   User,
+  Users,
   Settings,
   Cpu,
   Menu,
@@ -17,6 +18,7 @@ import {
 } from 'lucide-vue-next'
 import { useAuthStore } from '../stores/auth'
 import { useToastStore } from '../stores/toast'
+import InteractiveImage from '../components/InteractiveImage.vue'
 
 const authStore = useAuthStore()
 const toast = useToastStore()
@@ -53,9 +55,11 @@ const handleNavClick = () => {
 const menuItems = [
   { name: 'Dashboard', path: '/', icon: LayoutDashboard },
   { name: 'Docker', path: '/docker', icon: Box },
-  { name: 'Processes', path: '/processes', icon: Terminal },
+  { name: 'Terminal', path: '/terminal', icon: Terminal },
+  { name: 'Processes', path: '/processes', icon: Cpu },
   { name: 'Firewall', path: '/firewall', icon: ShieldCheck },
   { name: 'Sites', path: '/sites', icon: Globe },
+  { name: 'Users', path: '/users', icon: Users },
   { name: 'Audit Logs', path: '/audit', icon: History },
 ]
 
@@ -99,9 +103,14 @@ const handleLogout = () => {
       </nav>
 
       <div class="sidebar-footer">
-        <div class="user-profile">
-          <User :size="18" />
-          <span class="username">{{ authStore.user?.username || 'Admin' }}</span>
+        <div class="user-profile enhanced-link">
+          <div class="avatar-wrap" v-if="authStore.user?.image_path && authStore.user.image_path.includes('/uploads/')">
+            <InteractiveImage :src="authStore.user.image_path" customClass="user-avatar" alt="Avatar" />
+          </div>
+          <User v-else :size="18" />
+          <router-link to="/profile" class="username-link">
+            <span class="username">{{ authStore.user?.username || 'Admin' }}</span>
+          </router-link>
         </div>
         <button @click="handleLogout" class="logout-btn">
           <LogOut :size="18" />
@@ -271,6 +280,41 @@ const handleLogout = () => {
   align-items: center;
   gap: 0.8rem;
   color: var(--text-primary);
+  text-decoration: none;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.user-profile:hover {
+  background: rgba(0, 242, 255, 0.05);
+  color: var(--neon-cyan);
+}
+
+.username-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.username-link:hover {
+  text-shadow: 0 0 10px var(--neon-cyan-glow);
+}
+
+.avatar-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid rgba(0, 242, 255, 0.3);
+}
+
+.user-avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .logout-btn {

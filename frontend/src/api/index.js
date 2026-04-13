@@ -2,10 +2,7 @@ import axios from 'axios'
 import { useAuthStore } from '../stores/auth'
 
 const instance = axios.create({
-  baseURL: '/api',
-  headers: {
-    'Content-Type': 'application/json'
-  }
+  baseURL: '/api'
 })
 
 // Request interceptor for adding JWT token

@@ -9,6 +9,7 @@ import (
 var drivers = map[string]NotificationDriver.NotificationInterface{
 	"Telegram": &NotificationDriver.TelegramNotificationDriver{},
 	"Discord":  &NotificationDriver.DiscordDriver{},
+	"Webhook":  &NotificationDriver.WebHookDriver{},
 }
 
 type NotificationDriverFactory struct{}
@@ -19,6 +20,7 @@ func NewNotificationDriver() *NotificationDriverFactory {
 
 func (f *NotificationDriverFactory) GetDriver(name string, params map[string]any) NotificationDriver.NotificationInterface {
 	driver, ok := drivers[name]
+	fmt.Println(driver)
 	if !ok {
 		return nil
 	}
@@ -41,9 +43,10 @@ func (f *NotificationDriverFactory) GetDriver(name string, params map[string]any
 				dc.SetChannelID(channelID)
 			}
 		}
-	} else if name == "WebHook" {
+	} else if name == "Webhook" {
+		fmt.Println("Webhook driver Is Iniated")
 		if wh, ok := driver.(*NotificationDriver.WebHookDriver); ok {
-			fmt.Println("WebHook driver Is Iniated")
+			fmt.Println("Webhook driver Is Iniated")
 			if url, ok := params["URL"].(string); ok {
 				wh.URL = url
 			}

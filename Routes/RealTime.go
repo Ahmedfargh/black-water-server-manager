@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -15,6 +16,7 @@ func RegisterRealTimeRoutes(router *gin.Engine) {
 	router.GET("/ws/cpu-temperature", MiddleWare.AuthMiddleware(), gin.WrapH(http.HandlerFunc(CpuTemperatureRealTimeHandler)))
 	router.GET("/ws/docker/:containerId", MiddleWare.AuthMiddleware(), gin.WrapH(http.HandlerFunc(DockerRealTimeHandler)))
 	router.GET("/ws/docker/:containerId/logs", MiddleWare.AuthMiddleware(), gin.WrapH(http.HandlerFunc(DockerRealTimeLogsHandler)))
+	router.GET("/ws/terminal", MiddleWare.AuthMiddleware(), TerminalRealTimeHandler)
 }
 
 // ProcessRealTimeHandler handles process-specific WebSocket connections
@@ -79,4 +81,28 @@ func getContainerId(r *http.Request) string {
 		}
 	}
 	return containerId
+}
+func TerminalRealTimeHandler(c *gin.Context) {
+	fmt.Println("TerminalRealTimeHandler called")
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
+		return
+	}
+
+	user_id, ok := userID.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid User ID type"})
+		return
+	}
+
+	fmt.Println("User ID from middleware:", user_id)
+
+	conn, err := WebSockets.DockerUpgrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		// http.Error(w, "Failed to upgrade to WebSocket", http.StatusInternalServerError)
+		return
+	}
+	WebSockets.TerminalPool.ConnectSession(int32(user_id), conn)
+
 }

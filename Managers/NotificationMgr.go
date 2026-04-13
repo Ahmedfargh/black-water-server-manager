@@ -50,13 +50,19 @@ func (nm *NotificationManager) NotifyUsers(users []Models.User, message string, 
 				metadata["channel_id"] = user.DiscordChannelID
 				mgr := NewNotificationManager(drv)
 				mgr.Notify("", message, metadata)
-			} else if user.NotificationDriver == "WebHook" {
+			} else if user.NotificationDriver == "Webhook" {
 				fmt.Println("Sending WebHook Notification")
-				metadata["event"] = "Server Alert"
+				metadata["event"] = "server_resource_monitoring_report"
 				metadata["timestamp"] = fmt.Sprintf("%d", time.Now().Unix())
 				metadata["payload"] = message
 				mgr := NewNotificationManager(drv)
-				mgr.Notify("", message, metadata)
+				metadata["URL"] = user.WebHookURL
+				metadata["WebHookSecret"] = user.WebHookSecret
+				result, err := mgr.Notify("", message, metadata)
+				if err != nil {
+					fmt.Println(err)
+				}
+				fmt.Println(result)
 			}
 		}
 
