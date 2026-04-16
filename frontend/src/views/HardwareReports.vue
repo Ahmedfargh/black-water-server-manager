@@ -37,33 +37,71 @@ ChartJS.register(
 
 const systemStore = useSystemStore()
 const isLoading = ref(false)
-const timeRange = ref('1h') // 1h, 6h, 24h, 7d
+const timeRange = ref('1h') // 1h, 6h, 24h, 7d, custom
+const customStart = ref('')
+const customEnd = ref('')
+
+const isCustomRangeValid = computed(() => {
+  return customStart.value && customEnd.value
+})
 
 const ranges = [
   { label: '1H', value: '1h', duration: 3600 * 1000 },
   { label: '6H', value: '6h', duration: 6 * 3600 * 1000 },
   { label: '24H', value: '24h', duration: 24 * 3600 * 1000 },
   { label: '7D', value: '7d', duration: 7 * 24 * 3600 * 1000 },
+  { label: 'CUSTOM', value: 'custom', duration: 0 },
 ]
 
 const fetchData = async () => {
   isLoading.value = true
-  const range = ranges.find(r => r.value === timeRange.value)
-  const end = new Date().toISOString()
-  const start = new Date(Date.now() - range.duration).toISOString()
+  try {
+    let start, end
 
-  await Promise.all([
-    systemStore.fetchHistoryReports(start, end),
-    systemStore.fetchAverageReports(start, end)
-  ])
-  isLoading.value = false
+    if (timeRange.value === 'custom') {
+      if (!customStart.value || !customEnd.value) {
+        return
+      }
+      start = new Date(customStart.value).toISOString()
+      end = new Date(customEnd.value).toISOString()
+    } else {
+      const range = ranges.find(r => r.value === timeRange.value)
+      end = new Date().toISOString()
+      start = new Date(Date.now() - range.duration).toISOString()
+    }
+
+    await Promise.all([
+      systemStore.fetchHistoryReports(start, end),
+      systemStore.fetchAverageReports(start, end)
+    ])
+  } catch (error) {
+    console.error('Failed to sync with grid:', error)
+  } finally {
+    isLoading.value = false
+  }
 }
 
 onMounted(() => {
   fetchData()
 })
 
-watch(timeRange, () => {
+watch(timeRange, (newRange) => {
+  if (newRange === 'custom') {
+    // Default to last 24h if empty
+    if (!customStart.value || !customEnd.value) {
+      const now = new Date()
+      const yesterday = new Date(now.getTime() - 24 * 3600 * 1000)
+      
+      // Format as YYYY-MM-DDTHH:mm for datetime-local input
+      const formatLocal = (d) => {
+        const pad = (n) => n.toString().padStart(2, '0')
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+      }
+      
+      customStart.value = formatLocal(yesterday)
+      customEnd.value = formatLocal(now)
+    }
+  }
   fetchData()
 })
 
@@ -210,6 +248,25 @@ const chartOptions = {
             {{ r.label }}
           </button>
         </div>
+
+        <div v-if="timeRange === 'custom'" class="custom-inputs">
+          <div class="input-group">
+            <span class="input-label">FROM</span>
+            <input type="datetime-local" v-model="customStart" class="tron-input" />
+          </div>
+          <div class="input-group">
+            <span class="input-label">TO</span>
+            <input type="datetime-local" v-model="customEnd" class="tron-input" />
+          </div>
+          <button 
+            class="apply-btn" 
+            @click="fetchData" 
+            :disabled="!customStart || !customEnd || isLoading"
+          >
+            GO
+          </button>
+        </div>
+
         <button class="refresh-btn" @click="fetchData" :disabled="isLoading">
           <RefreshCw :size="18" :class="{ spinning: isLoading }" />
         </button>
@@ -409,6 +466,94 @@ h1 {
 .refresh-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Custom Inputs */
+.custom-inputs {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-left: 1rem;
+  border-left: 1px solid rgba(0, 242, 255, 0.1);
+  animation: fadeInRight 0.3s ease-out;
+}
+
+@keyframes fadeInRight {
+  from { opacity: 0; transform: translateX(10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.input-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 1px;
+}
+
+.tron-input {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 242, 255, 0.2);
+  color: var(--text-primary);
+  font-family: var(--font-data);
+  font-size: 0.8rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 4px;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.tron-input:focus {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 10px rgba(0, 242, 255, 0.1);
+}
+
+/* For browser support of dark mode in inputs */
+::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
+.apply-btn {
+  background: rgba(0, 242, 255, 0.1);
+  border: 1px solid rgba(0, 242, 255, 0.3);
+  color: var(--neon-cyan);
+  padding: 0.4rem 1rem;
+  border-radius: 4px;
+  font-weight: 800;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.apply-btn:hover:not(:disabled) {
+  background: var(--neon-cyan);
+  color: #000;
+  box-shadow: 0 0 15px var(--neon-cyan-glow);
+}
+
+.apply-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+@media (max-width: 1200px) {
+  .range-selector {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .custom-inputs {
+    border-left: none;
+    padding-left: 0;
+    margin-top: 0.5rem;
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 /* Averages Grid */
