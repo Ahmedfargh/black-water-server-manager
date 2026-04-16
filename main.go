@@ -86,6 +86,7 @@ func initDatabase() {
 		&models.User{}, &models.Role{}, &models.Permission{},
 		&models.Process{}, &models.AuditLog{}, &models.Site{},
 		&models.SiteHealthStatus{}, &models.Docker{},
+		&models.HardWareReport{},
 	)
 }
 
@@ -103,7 +104,7 @@ func setupRouter(u *crud.UserCRUD, a *service.AuthService, r *crud.RoleCRUD) *gi
 	routes.SetupDockerRoutes(router)
 	routes.AuditRoutes(router)
 	routes.SiteRoutes(router)
-
+	routes.RegisterHardwareReportRoutes(router)
 	return router
 }
 

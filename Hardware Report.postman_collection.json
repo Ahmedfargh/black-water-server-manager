@@ -1,0 +1,111 @@
+{
+	"info": {
+		"_postman_id": "d9e4a3b1-a2c3-4d5e-bf6f-7a8b9c0d1e2f",
+		"name": "Hardware Report",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Latest Hardware Report",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{authToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/hardware-report/latest",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"hardware-report",
+						"latest"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Hardware Report By Time Range",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{authToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"start\": \"2026-04-16 00:00:00.000\",\n    \"end\": \"2026-04-16 23:59:59.000\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/hardware-report/by-time-range",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"hardware-report",
+						"by-time-range"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Average Hardware Usage By Time Range",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{authToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"start\": \"2026-04-16 00:00:00.000\",\n    \"end\": \"2026-04-16 23:59:59.000\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/hardware-report/average-usage-by-time-range",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"hardware-report",
+						"average-usage-by-time-range"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

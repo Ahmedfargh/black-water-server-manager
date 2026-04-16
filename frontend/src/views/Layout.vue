@@ -14,7 +14,8 @@ import {
   Settings,
   Cpu,
   Menu,
-  X
+  X,
+  BarChart3
 } from 'lucide-vue-next'
 import { useAuthStore } from '../stores/auth'
 import { useToastStore } from '../stores/toast'
@@ -61,6 +62,7 @@ const menuItems = [
   { name: 'Sites', path: '/sites', icon: Globe },
   { name: 'Users', path: '/users', icon: Users },
   { name: 'Audit Logs', path: '/audit', icon: History },
+  { name: 'Reports', path: '/reports', icon: BarChart3 },
 ]
 
 const handleLogout = () => {

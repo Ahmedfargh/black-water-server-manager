@@ -10,6 +10,7 @@ This application allows you to monitor hardware performance (CPU, GPU, RAM, Disk
 ## 🚀 Features
 
 - **Hardware Monitoring:** Real-time information about CPU, GPU, RAM, Disk, and Network usage.
+- **Historical Hardware Reports:** Analyze detailed historical performance data for CPU, Memory, and Disk usage over time with average usage insights and interactive trends.
 - **Firewall Management:** Multi-distro support for Debian/Ubuntu (UFW), Arch Linux (UFW), and Red Hat-based distributions (Firewalld).
 - **Audit Logging:** Automatically record system actions (firewall changes, etc.) with user attribution for security and accountability.
 - **Docker Auto-Heal & Resource Monitoring:** Automatically monitor container resource usage (CPU/Memory) and health status (e.g., detecting stopped containers), triggering automated actions (Restart, Start, Stop, etc.) when thresholds are exceeded or abnormalities are detected.
@@ -188,6 +189,9 @@ For developers on **Mac, Windows, or Linux**, Docker provides an isolated enviro
 - `GET /info/disk` - Disk space information
 - `GET /network` - Network usage statistics
 - `GET /network/connections` - List of active network connections with process info
+- `POST /hardware-report/by-time-range` - Detailed historical usage reports for a specific range
+- `POST /hardware-report/average-usage-by-time-range` - Average usage metrics for a specific range
+- `GET /hardware-report/latest` - Get the most recent report entry
 
 ### Firewall Management (Requires Auth)
 

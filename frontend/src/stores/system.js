@@ -11,6 +11,12 @@ export const useSystemStore = defineStore('system', {
       cpu: [],
       ram: [],
       network: []
+    },
+    reports: [],
+    averages: {
+      cpu: 0,
+      memory: 0,
+      disk: 0
     }
   }),
   actions: {
@@ -89,6 +95,43 @@ export const useSystemStore = defineStore('system', {
     },
     updateCpuTemp(temp) {
       this.cpu.temp = temp
+    },
+    async fetchHistoryReports(startTime, endTime) {
+      try {
+        const res = await api.post('/hardware-report/by-time-range', {
+          start: this.formatDate(startTime),
+          end: this.formatDate(endTime)
+        })
+        this.reports = res.data.reports || []
+        return this.reports
+      } catch (error) {
+        console.error('Failed to fetch history reports:', error)
+        return []
+      }
+    },
+    async fetchAverageReports(startTime, endTime) {
+      try {
+        const res = await api.post('/hardware-report/average-usage-by-time-range', {
+          start: this.formatDate(startTime),
+          end: this.formatDate(endTime)
+        })
+        const data = res.data
+        this.averages = {
+          cpu: data.average_cpu_usage || 0,
+          memory: data.average_memory_usage || 0,
+          disk: data.average_disk_usage || 0
+        }
+        return this.averages
+      } catch (error) {
+        console.error('Failed to fetch average reports:', error)
+        return null
+      }
+    },
+    formatDate(dateStr) {
+      const date = new Date(dateStr)
+      const pad = (n) => n.toString().padStart(2, '0')
+      const ms = date.getMilliseconds().toString().padStart(3, '0')
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}.${ms}`
     }
   }
 })

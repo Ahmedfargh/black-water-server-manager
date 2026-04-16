@@ -90,8 +90,54 @@
 		{
 			"name": "HardDisk",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{authToken}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": []
+				"header": [],
+				"url": {
+					"raw": "{{host}}/disk",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"disk"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Real-time Report",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{authToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/report",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"report"
+					]
+				}
 			},
 			"response": []
 		}

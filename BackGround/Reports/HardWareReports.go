@@ -6,7 +6,9 @@ import (
 	fmt "fmt"
 
 	config "github.com/ahmedfargh/server-manager/Config"
+	crud "github.com/ahmedfargh/server-manager/Database/CRUD"
 	model "github.com/ahmedfargh/server-manager/Database/Models"
+	models "github.com/ahmedfargh/server-manager/Database/Models"
 	NotificationManager "github.com/ahmedfargh/server-manager/Managers"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/disk"
@@ -60,6 +62,19 @@ func (b *BackgroundHardwareReport) SendReport() {
 	if b.timer != nil {
 		b.timer.Reset(time.Duration(b.RunEachSeconds) * time.Second)
 	}
+	report_model := &models.HardWareReport{
+		CPUUsage:    b.Report.CPUUsage,
+		MemoryUsage: b.Report.MemoryUsage,
+		DiskUsage:   b.Report.DiskUsage,
+	}
+	go func() {
+		hwReportCRUD := crud.NewHardWareReportCRUD(config.DB)
+		err := hwReportCRUD.Create(report_model)
+		if err != nil {
+			fmt.Printf("Error saving hardware report: %v\n", err)
+			return
+		}
+	}()
 	var users []model.User
 	config.DB.Find(&users)
 	message := "Hardware Report:\n Cpu Usage: %.2f%%\n Memory Usage: %.2f%%\n Disk Usage: %.2f%%\n"
