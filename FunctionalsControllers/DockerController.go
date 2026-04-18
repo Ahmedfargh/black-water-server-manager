@@ -2,6 +2,7 @@ package functionalscontrollers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -9,6 +10,7 @@ import (
 	crud "github.com/ahmedfargh/server-manager/Database/CRUD"
 	models "github.com/ahmedfargh/server-manager/Database/Models"
 	repo "github.com/ahmedfargh/server-manager/Database/Repository"
+	DockerMgr "github.com/ahmedfargh/server-manager/Managers"
 	"github.com/ahmedfargh/server-manager/Services"
 	"github.com/gin-gonic/gin"
 )
@@ -208,5 +210,17 @@ func SetDockerLimitsHandler() gin.HandlerFunc {
 			c.JSON(http.StatusOK, gin.H{"message": "Docker limits updated"})
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "no update"})
+	}
+}
+func GetDockerContainerVolumns() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		idStr := c.Param("id")
+
+		volumes, err := DockerMgr.GetDockerManager().DockerContainerVolumns(c, idStr)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"message": err})
+		}
+		fmt.Println(volumes)
+		c.JSON(http.StatusOK, gin.H{"message": "got the docker container volumns", "volumns": volumes})
 	}
 }

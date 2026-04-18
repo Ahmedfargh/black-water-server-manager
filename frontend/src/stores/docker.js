@@ -6,7 +6,8 @@ export const useDockerStore = defineStore('docker', {
     containers: [],
     loading: false,
     selectedContainer: null,
-    logs: []
+    logs: [],
+    volumes: []
   }),
   actions: {
     async fetchContainers() {
@@ -16,6 +17,19 @@ export const useDockerStore = defineStore('docker', {
         this.containers = response.data
       } catch (error) {
         console.error('Failed to fetch containers:', error)
+      } finally {
+        this.loading = false
+      }
+    },
+    async fetchVolumes(id) {
+      this.loading = true
+      try {
+        const response = await api.get(`/docker/container/${id}/get/volums`)
+        this.volumes = response.data.volumns || []
+        return this.volumes
+      } catch (error) {
+        console.error('Failed to fetch volumes:', error)
+        throw error
       } finally {
         this.loading = false
       }

@@ -15,15 +15,20 @@ import (
 	Repository "github.com/ahmedfargh/server-manager/Database/Repository"
 	Docker "github.com/ahmedfargh/server-manager/Services"
 	"github.com/docker/docker/api/types"
+	DockerTypes "github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container" // Added for correct types
-	DockerTypes "github.com/docker/docker/api/types/container"
 	DockerClient "github.com/docker/docker/client"
 	Context "golang.org/x/net/context"
 )
 
+type DockerContainerVolums struct {
+	Type        string
+	Source      string
+	Destination string
+}
 type DockerManager struct {
 	mu                    sync.RWMutex
-	Containers            map[string]types.ContainerJSON
+	Containers            map[string]DockerTypes.ContainerJSON
 	Client                *DockerClient.Client
 	DockerContainerStates map[string]Docker.DockerContainerStats
 }
@@ -147,7 +152,7 @@ func (dm *DockerManager) Act(action string, docker *Models.Docker) (string, erro
 		go dm.NotifyDockerStatus(message, nil)
 		return "", nil
 	} else if action == "remove" {
-		err := dm.Client.ContainerRemove(Context.Background(), docker.ContainerID, DockerTypes.RemoveOptions{})
+		err := dm.Client.ContainerRemove(Context.Background(), docker.ContainerID, container.RemoveOptions{})
 		if err != nil {
 			return "", err
 		}
@@ -260,4 +265,26 @@ func (dm *DockerManager) NotifyDockerStatus(messsage string, metadata map[string
 	NotificationManager := NewNotificationManager(nil)
 	NotificationManager.NotifyUsers(users, messsage, metadata)
 	return "", nil
+}
+
+func (dm *DockerManager) DockerContainerVolumns(ctx context.Context, id string) ([]DockerContainerVolums, error) {
+
+	docker_inspect, err := dm.Client.ContainerInspect(ctx, id)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	var DockerContainerVolumns_slice []DockerContainerVolums
+	volumns := docker_inspect.Mounts
+
+	for i, volum := range volumns {
+		volumn_obj := DockerContainerVolums{
+			Type:        string(volum.Type),
+			Source:      volum.Source,
+			Destination: volum.Destination,
+		}
+		fmt.Println(i)
+		DockerContainerVolumns_slice = append(DockerContainerVolumns_slice, volumn_obj)
+	}
+	return DockerContainerVolumns_slice, nil
 }

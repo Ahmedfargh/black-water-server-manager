@@ -101,6 +101,43 @@
 			"response": []
 		},
 		{
+			"name": "get container volumes",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{authToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/docker/container/:id/get/volums",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"docker",
+						"container",
+						":id",
+						"get",
+						"volums"
+					],
+					"variable": [
+						{
+							"key": "id",
+							"value": ""
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Docker Action",
 			"request": {
 				"auth": {

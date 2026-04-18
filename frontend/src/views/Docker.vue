@@ -8,7 +8,8 @@ import {
   Terminal, 
   Activity, 
   Trash2,
-  X
+  X,
+  HardDrive
 } from 'lucide-vue-next'
 import { useDockerStore } from '../stores/docker'
 import { useAuthStore } from '../stores/auth'
@@ -17,6 +18,8 @@ const dockerStore = useDockerStore()
 const showLogs = ref(false)
 const selectedContainer = ref(null)
 const logsData = ref([])
+const showVolumes = ref(false)
+const selectedVolumesContainer = ref(null)
 let wsLogs
 
 const fetchContainers = () => dockerStore.fetchContainers()
@@ -44,6 +47,21 @@ const closeLogs = () => {
   showLogs.value = false
   if (wsLogs) wsLogs.close()
   selectedContainer.value = null
+}
+
+const openVolumes = async (container) => {
+  selectedVolumesContainer.value = container
+  try {
+    await dockerStore.fetchVolumes(container.id)
+    showVolumes.value = true
+  } catch (err) {
+    alert(`FETCH FAILED: Could not retrieve volumes for node ${container.id}.`)
+  }
+}
+
+const closeVolumes = () => {
+  showVolumes.value = false
+  selectedVolumesContainer.value = null
 }
 
 const connectLogs = (id) => {
@@ -131,6 +149,13 @@ const connectLogs = (id) => {
            >
              <Terminal :size="18" />
            </button>
+           <button 
+             @click="openVolumes(container)"
+             class="action-btn"
+             title="VIEW VOLUMES"
+           >
+             <HardDrive :size="18" />
+           </button>
         </div>
       </div>
     </div>
@@ -148,6 +173,39 @@ const connectLogs = (id) => {
               <span class="line-num">[{{ i + 1 }}]</span>
               <span class="line-text">{{ log }}</span>
             </div>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <!-- Volumes Modal -->
+    <transition name="modal">
+      <div v-if="showVolumes" class="modal-overlay">
+        <div class="tron-card modal-container volumes-modal">
+          <div class="modal-header">
+            <h3>VOLUME MAPPINGS: {{ selectedVolumesContainer?.names?.[0] || 'NODE' }}</h3>
+            <button @click="closeVolumes" class="close-btn"><X /></button>
+          </div>
+          <div class="volumes-content">
+            <div v-if="dockerStore.volumes.length === 0" class="no-data">
+              NO VOLUMES DETECTED ON THIS NODE
+            </div>
+            <table v-else class="tron-table">
+              <thead>
+                <tr>
+                  <th>TYPE</th>
+                  <th>SOURCE (HOST)</th>
+                  <th>DESTINATION (CONTAINER)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(vol, i) in dockerStore.volumes" :key="i">
+                  <td><span class="type-tag" :class="vol.Type.toLowerCase()">{{ vol.Type }}</span></td>
+                  <td class="path-cell" :title="vol.Source"><code>{{ vol.Source }}</code></td>
+                  <td class="path-cell" :title="vol.Destination"><code>{{ vol.Destination }}</code></td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -342,4 +400,70 @@ const connectLogs = (id) => {
 }
 
 .close-btn:hover { color: #fff; }
+
+/* Volumes Table Styling */
+.volumes-modal {
+  height: auto;
+  max-height: 80vh;
+}
+
+.volumes-content {
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.no-data {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-secondary);
+  font-family: var(--font-data);
+  letter-spacing: 2px;
+}
+
+.tron-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-data);
+}
+
+.tron-table th {
+  text-align: left;
+  padding: 1rem;
+  color: var(--neon-cyan);
+  border-bottom: 2px solid rgba(0, 242, 255, 0.2);
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+}
+
+.tron-table td {
+  padding: 1rem;
+  border-bottom: 1px solid rgba(0, 242, 255, 0.05);
+  font-size: 0.85rem;
+}
+
+.type-tag {
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  border: 1px solid currentColor;
+}
+
+.type-tag.bind { color: var(--neon-cyan); }
+.type-tag.volume { color: var(--neon-purple, #bc13fe); }
+
+.path-cell {
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.path-cell code {
+  color: var(--text-secondary);
+}
+
+.path-cell:hover code {
+  color: var(--text-primary);
+}
 </style>

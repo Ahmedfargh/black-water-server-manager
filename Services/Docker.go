@@ -10,6 +10,7 @@ import (
 	Config "github.com/ahmedfargh/server-manager/Config"
 	CRUD "github.com/ahmedfargh/server-manager/Database/CRUD"
 	Repository "github.com/ahmedfargh/server-manager/Database/Repository"
+
 	"github.com/docker/docker/api/types/container"
 	DockerClient "github.com/docker/docker/client"
 )
@@ -38,7 +39,6 @@ type DockerContainerStats struct {
 	BlockWrite       uint64  `json:"block_write"`
 	Pids             uint64  `json:"pids"`
 }
-
 type DockerService struct {
 }
 
