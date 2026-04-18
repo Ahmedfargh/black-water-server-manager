@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { 
   Users,
   UserPlus,
@@ -13,6 +14,7 @@ import { useUserStore } from '../stores/users'
 import { useToastStore } from '../stores/toast'
 import InteractiveImage from '../components/InteractiveImage.vue'
 
+const { t } = useI18n()
 const userStore = useUserStore()
 const toast = useToastStore()
 const showAddModal = ref(false)
@@ -35,7 +37,7 @@ onMounted(async () => {
 const handleAddUser = async () => {
   if (!newUsername.value || !newEmail.value || !newRoleId.value) return
   if (!isEditing.value && !newPassword.value) {
-    toast.error('PASSWORD REQUIRED FOR NEW USERS')
+    toast.error(t('users.password_required') || 'PASSWORD REQUIRED FOR NEW USERS')
     return
   }
 
@@ -55,15 +57,15 @@ const handleAddUser = async () => {
   try {
     if (isEditing.value) {
       await userStore.updateUser(editingUserId.value, payload)
-      toast.success(`USER [${payload.username}] UPDATED`)
+      toast.success(t('users.user_updated', { username: payload.username }))
     } else {
       await userStore.addUser(payload)
-      toast.success(`NEW USER [${payload.username}] REGISTERED`)
+      toast.success(t('users.user_registered', { username: payload.username }))
     }
     showAddModal.value = false
     resetForm()
   } catch (err) {
-    toast.error(`OPERATION FAILED: ${err.response?.data?.error || 'Unable to process request.'}`)
+    toast.error(`${t('common.action_failed')}: ${err.response?.data?.error || t('common.error_processing')}`)
   } finally {
     isSubmitting.value = false
   }
@@ -85,13 +87,13 @@ const openEditModal = (user) => {
 }
 
 const handleDeleteUser = async (user) => {
-  if (!confirm(`CONFIRM DELETION OF USER [${user.username}]? THIS ACTION IS IRREVERSIBLE.`)) return
+  if (!confirm(t('users.confirm_delete', { username: user.username }) || `CONFIRM DELETION OF USER [${user.username}]? THIS ACTION IS IRREVERSIBLE.`)) return
 
   try {
     await userStore.deleteUser(user.id || user.ID)
-    toast.success(`USER [${user.username}] TERMINATED`)
+    toast.success(t('users.user_terminated', { username: user.username }))
   } catch (err) {
-    toast.error(`TERMINATION FAILED: ${err.response?.data?.error || 'Unable to process request.'}`)
+    toast.error(`${t('users.termination_failed')}: ${err.response?.data?.error || t('common.error_processing')}`)
   }
 }
 
@@ -107,18 +109,18 @@ const resetForm = () => {
 
 const getRoleName = (roleId) => {
   const role = userStore.roles.find(r => r.id === roleId || r.ID === roleId)
-  return role ? role.name : 'Unknown Role'
+  return role ? role.name : t('users.unknown_role')
 }
 </script>
 
 <template>
   <div class="users-view">
     <div class="header-row">
-      <h2 class="glow-cyan">USER MANAGEMENT GRID</h2>
+      <h2 class="glow-cyan">{{ $t('users.mgmt_grid') }}</h2>
       <div class="actions">
         <button @click="resetForm(); showAddModal = true" class="tron-btn">
           <UserPlus :size="18" />
-          REGISTER USER
+          {{ $t('users.register_personnel') }}
         </button>
       </div>
     </div>
@@ -133,17 +135,17 @@ const getRoleName = (roleId) => {
       >
         <div class="card-header">
            <div class="icon-wrap avatar-icon-wrap" :class="{'has-avatar': user.image_path && user.image_path.includes('/uploads/')}">
-             <InteractiveImage v-if="user.image_path && user.image_path.includes('/uploads/')" :src="user.image_path" customClass="grid-avatar" alt="Avatar" />
+             <InteractiveImage v-if="user.image_path && user.image_path.includes('/uploads/')" :src="user.image_path" customClass="grid-avatar" :alt="$t('common.avatar')" />
              <Users v-else :size="24" :style="{ color: user.status ? 'var(--neon-cyan)' : 'var(--text-secondary)' }" />
            </div>
            <div class="user-info">
              <div class="title-row">
                <h3>{{ user.username }}</h3>
                <div class="action-buttons">
-                 <button @click="openEditModal(user)" class="icon-btn edit-btn" title="EDIT USER">
+                 <button @click="openEditModal(user)" class="icon-btn edit-btn" :title="$t('users.edit_user')">
                    <Settings :size="16" />
                  </button>
-                 <button @click="handleDeleteUser(user)" class="icon-btn delete-btn" title="TERMINATE USER">
+                 <button @click="handleDeleteUser(user)" class="icon-btn delete-btn" :title="$t('users.terminate_user')">
                    <Trash2 :size="16" />
                  </button>
                </div>
@@ -157,16 +159,16 @@ const getRoleName = (roleId) => {
 
         <div class="card-body">
            <div class="status-indicator">
-              <span class="status-label">STATUS:</span>
+              <span class="status-label">{{ $t('app.status') }}:</span>
               <span class="status-val" :style="{ color: user.status ? 'var(--neon-cyan)' : 'var(--neon-orange)' }">
-                {{ user.status ? 'ACTIVE' : 'SUSPENDED' }}
+                {{ user.status ? $t('common.active') : $t('users.suspended') }}
               </span>
            </div>
            
            <div class="metrics-row">
               <div class="metric">
                 <Shield :size="14" />
-                <span>ROLE: {{ user.Role ? user.Role.name : getRoleName(user.role_id) }}</span>
+                <span>{{ $t('users.assigned_role') }}: {{ user.Role ? user.Role.name : getRoleName(user.role_id) }}</span>
               </div>
            </div>
         </div>
@@ -174,8 +176,8 @@ const getRoleName = (roleId) => {
 
       <div v-if="userStore.users.length === 0 && !userStore.loading" class="empty-state">
          <ShieldAlert :size="48" class="pulse" />
-         <p>NO PERSONNEL DATA FOUND IN THE SYSTEM.</p>
-         <button @click="resetForm(); showAddModal = true" class="tron-btn">REGISTER NEW PERSONNEL</button>
+         <p>{{ $t('users.no_personnel') }}</p>
+         <button @click="resetForm(); showAddModal = true" class="tron-btn">{{ $t('users.register_personnel') }}</button>
       </div>
     </div>
 
@@ -184,29 +186,29 @@ const getRoleName = (roleId) => {
       <div v-if="showAddModal" class="modal-overlay">
         <div class="tron-card modal-container enhanced-modal">
           <div class="modal-header">
-            <h3>{{ isEditing ? 'MODIFY PERSONNEL RECORD' : 'REGISTER NEW PERSONNEL' }}</h3>
+            <h3>{{ isEditing ? $t('users.modify_record') : $t('users.register_personnel') }}</h3>
           </div>
           <form @submit.prevent="handleAddUser" class="add-form">
             <div class="grid-inputs">
               <div class="input-group">
-                <label>USERNAME</label>
-                <input v-model="newUsername" type="text" placeholder="e.g. jdoe" required />
+                <label>{{ $t('users.username') }}</label>
+                <input v-model="newUsername" type="text" :placeholder="$t('users.username_placeholder') || 'e.g. jdoe'" required />
               </div>
               <div class="input-group">
-                <label>EMAIL</label>
+                <label>{{ $t('users.email') }}</label>
                 <input v-model="newEmail" type="email" placeholder="jdoe@blackwater.sys" required />
               </div>
             </div>
 
             <div class="grid-inputs">
               <div class="input-group">
-                <label>PASSWORD <span v-if="isEditing" class="text-secondary">(Leave blank to keep unchanged)</span></label>
+                <label>{{ $t('users.password') }} <span v-if="isEditing" class="text-secondary">{{ $t('users.pwd_hint') }}</span></label>
                 <input v-model="newPassword" type="password" placeholder="********" />
               </div>
               <div class="input-group">
-                <label>ASSIGNED ROLE</label>
+                <label>{{ $t('users.assigned_role') }}</label>
                 <select v-model="newRoleId" required>
-                  <option value="" disabled selected>Select Clearance Level</option>
+                  <option value="" disabled selected>{{ $t('users.clearance') }}</option>
                   <option v-for="role in userStore.roles" :key="role.id || role.ID" :value="role.id || role.ID">
                     {{ role.name }}
                   </option>
@@ -218,15 +220,15 @@ const getRoleName = (roleId) => {
               <label class="custom-checkbox">
                 <input type="checkbox" v-model="newStatus" />
                 <span class="checkmark"></span>
-                ACCOUNT ACTIVE
+                {{ $t('users.account_active') }}
               </label>
             </div>
 
             <div class="modal-footer">
-              <button type="button" @click="showAddModal = false; resetForm()" class="tron-btn ghost">ABORT</button>
+              <button type="button" @click="showAddModal = false; resetForm()" class="tron-btn ghost">{{ $t('users.abort') }}</button>
               <button type="submit" :disabled="isSubmitting" class="tron-btn">
-                <span v-if="isSubmitting">{{ isEditing ? 'UPDATING...' : 'REGISTERING...' }}</span>
-                <span v-else>{{ isEditing ? 'SAVE RECORD' : 'REGISTER PERSONNEL' }}</span>
+                <span v-if="isSubmitting">{{ isEditing ? $t('common.updating') || 'UPDATING...' : $t('common.registering') || 'REGISTERING...' }}</span>
+                <span v-else>{{ isEditing ? $t('users.save_record') : $t('users.register_personnel') }}</span>
               </button>
             </div>
           </form>

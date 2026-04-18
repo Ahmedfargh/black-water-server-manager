@@ -1,9 +1,13 @@
 <script setup>
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Terminal as TerminalIcon, Power, Trash2, Clock } from 'lucide-vue-next'
 import { useAuthStore } from '../stores/auth'
 
-const output = ref([{ type: 'system', text: 'BLACKWATER TERMINAL SYSTEM v1.0.0 INITIALIZED.' }])
+const { t } = useI18n()
+const authStore = useAuthStore()
+
+const output = ref([{ type: 'system', text: t('terminal.init_msg') || 'BLACKWATER TERMINAL SYSTEM v1.0.0 INITIALIZED.' }])
 const commandInput = ref('')
 const terminalRef = ref(null)
 const inputRef = ref(null)
@@ -12,7 +16,6 @@ const history = ref([])
 const historyIndex = ref(-1)
 
 let ws = null
-const authStore = useAuthStore()
 
 const scrollToBottom = () => {
   nextTick(() => {
@@ -25,8 +28,8 @@ const scrollToBottom = () => {
 const connectWebSocket = () => {
   if (ws) ws.close()
   
-  wsStatus.value = 'CONNECTING...'
-  output.value.push({ type: 'system', text: 'INITIATING HANDSHAKE WITH SERVER...' })
+  wsStatus.value = 'CONNECTING'
+  output.value.push({ type: 'system', text: t('terminal.handshake') || 'INITIATING HANDSHAKE WITH SERVER...' })
   
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
   const wsUrl = `${protocol}//${window.location.host}/ws/terminal?token=${authStore.token}`
@@ -36,7 +39,7 @@ const connectWebSocket = () => {
     
     ws.onopen = () => {
       wsStatus.value = 'CONNECTED'
-      output.value.push({ type: 'success', text: 'SECURE CONNECTION ESTABLISHED. ACCESS GRANTED.' })
+      output.value.push({ type: 'success', text: t('terminal.access_granted') || 'SECURE CONNECTION ESTABLISHED. ACCESS GRANTED.' })
       scrollToBottom()
       focusInput()
     }
@@ -48,18 +51,18 @@ const connectWebSocket = () => {
     
     ws.onclose = () => {
       wsStatus.value = 'DISCONNECTED'
-      output.value.push({ type: 'error', text: 'CONNECTION TERMINATED BY REMOTE HOST.' })
+      output.value.push({ type: 'error', text: t('terminal.conn_terminated') || 'CONNECTION TERMINATED BY REMOTE HOST.' })
       scrollToBottom()
     }
 
     ws.onerror = (error) => {
       wsStatus.value = 'ERROR'
-      output.value.push({ type: 'error', text: 'SOCKET ERROR DETECTED.' })
+      output.value.push({ type: 'error', text: t('terminal.socket_error') || 'SOCKET ERROR DETECTED.' })
       console.error("WebSocket Error: ", error)
       scrollToBottom()
     }
   } catch (err) {
-    output.value.push({ type: 'error', text: `FAILED TO CONNECT: ${err.message}` })
+    output.value.push({ type: 'error', text: `${t('terminal.conn_failed') || 'FAILED TO CONNECT'}: ${err.message}` })
     wsStatus.value = 'ERROR'
   }
 }
@@ -99,7 +102,7 @@ const sendCommand = () => {
     const payload = JSON.stringify({ command: cmd })
     ws.send(payload)
   } else {
-    output.value.push({ type: 'error', text: 'NOT CONNECTED TO SERVER. COMMAND IGNORED.' })
+    output.value.push({ type: 'error', text: t('terminal.not_connected') || 'NOT CONNECTED TO SERVER. COMMAND IGNORED.' })
   }
   
   commandInput.value = ''
@@ -134,6 +137,15 @@ const focusInput = () => {
     inputRef.value.focus()
   }
 }
+
+// Localize status badge text
+const getStatusText = (status) => {
+  if (status === 'CONNECTED') return t('terminal.connected') || 'CONNECTED'
+  if (status === 'DISCONNECTED') return t('terminal.disconnected') || 'DISCONNECTED'
+  if (status === 'CONNECTING') return t('terminal.connecting') || 'CONNECTING...'
+  if (status === 'ERROR') return t('terminal.error') || 'ERROR'
+  return status
+}
 </script>
 
 <template>
@@ -141,28 +153,28 @@ const focusInput = () => {
     <div class="terminal-header">
       <div class="header-left">
         <TerminalIcon class="glow-cyan" :size="24" />
-        <h2 class="pulse-text font-header">SYSTEM TERMINAL</h2>
+        <h2 class="pulse-text font-header">{{ $t('terminal.sys_terminal') }}</h2>
         <span class="status-badge" :class="wsStatus.replace('...', '').toLowerCase()">
-          {{ wsStatus }}
+          {{ getStatusText(wsStatus) }}
         </span>
       </div>
       <div class="header-actions">
-        <button @click="clearTerminal" class="action-btn outline-cyan" title="CLEAR LOG">
+        <button @click="clearTerminal" class="action-btn outline-cyan" :title="$t('terminal.clear_log')">
           <Trash2 :size="16" />
-          <span>CLEAR</span>
+          <span>{{ $t('terminal.clear') }}</span>
         </button>
-        <button v-if="wsStatus !== 'CONNECTED'" @click="connectWebSocket" class="action-btn fill-cyan" title="RECONNECT">
+        <button v-if="wsStatus !== 'CONNECTED'" @click="connectWebSocket" class="action-btn fill-cyan" :title="$t('terminal.reconnect')">
           <Power :size="16" />
-          <span>CONNECT</span>
+          <span>{{ $t('terminal.connect') }}</span>
         </button>
-        <button v-else @click="disconnectWebSocket" class="action-btn border-orange" title="DISCONNECT">
+        <button v-else @click="disconnectWebSocket" class="action-btn border-orange" :title="$t('terminal.disconnect_btn')">
           <Power :size="16" />
-          <span>DISCONNECT</span>
+          <span>{{ $t('terminal.disconnect') }}</span>
         </button>
       </div>
     </div>
 
-    <div class="terminal-container tron-card" @click="focusInput">
+    <div class="terminal-container tron-card" @click="focusInput" dir="ltr">
       <div class="terminal-output" ref="terminalRef">
         <div 
           v-for="(line, index) in output" 
@@ -188,7 +200,7 @@ const focusInput = () => {
         />
       </div>
       <div class="terminal-input-row disabled" v-else>
-         <span class="prompt font-data neon-orange">SYSTEM OFFLINE. RECONNECT TO ENGAGE.</span>
+         <span class="prompt font-data neon-orange">{{ $t('terminal.offline_msg') }}</span>
       </div>
     </div>
   </div>
@@ -314,6 +326,7 @@ h2 {
   overflow: hidden;
   position: relative;
   min-height: 500px;
+  text-align: left;
 }
 
 .terminal-container::before {

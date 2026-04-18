@@ -1,9 +1,11 @@
 <script setup>
 import { onMounted, onUnmounted, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useSystemStore } from '../stores/system'
 import { useAuthStore } from '../stores/auth'
 import { Cpu, Zap, HardDrive, Share2, Thermometer } from 'lucide-vue-next'
 
+const { t } = useI18n()
 const systemStore = useSystemStore()
 const authStore = useAuthStore()
 
@@ -64,7 +66,7 @@ const getStrokeDash = (percentage) => {
       <div class="tron-card hud-item cpu-section">
         <div class="hud-header">
           <Cpu class="glow-cyan" />
-          <h3>CPU CONTROL UNIT</h3>
+          <h3>{{ $t('dashboard.cpu_unit') }}</h3>
         </div>
         <div class="hud-content">
           <div class="gauge-container">
@@ -75,16 +77,16 @@ const getStrokeDash = (percentage) => {
             </svg>
             <div class="gauge-value">
               <span class="number glow-cyan">{{ systemStore.cpu.usage }}%</span>
-              <span class="label">LOAD</span>
+              <span class="label">{{ $t('dashboard.load') }}</span>
             </div>
           </div>
           <div class="stats-list">
             <div class="stat-item">
-              <span class="label">CORES</span>
+              <span class="label">{{ $t('dashboard.cores') }}</span>
               <span class="value">{{ systemStore.cpu.cores }}</span>
             </div>
             <div class="stat-item">
-              <span class="label">TEMP</span>
+              <span class="label">{{ $t('dashboard.temp') }}</span>
               <span class="value glow-orange">{{ systemStore.cpu.temp }}°C</span>
             </div>
           </div>
@@ -105,12 +107,12 @@ const getStrokeDash = (percentage) => {
       <div class="tron-card hud-item ram-section">
         <div class="hud-header">
           <Zap class="glow-cyan" />
-          <h3>MEMORY BANK</h3>
+          <h3>{{ $t('dashboard.memory_bank') }}</h3>
         </div>
         <div class="hud-content">
           <div class="bar-container">
             <div class="bar-header">
-              <span>USAGE</span>
+              <span>{{ $t('dashboard.usage') }}</span>
               <span class="glow-cyan">{{ systemStore.ram.usage }}%</span>
             </div>
             <div class="bar-outer">
@@ -119,11 +121,11 @@ const getStrokeDash = (percentage) => {
           </div>
           <div class="info-grid">
             <div class="info-box">
-              <span class="label">TOTAL</span>
+              <span class="label">{{ $t('dashboard.total') }}</span>
               <span class="value">{{ (systemStore.ram.total / 1024 / 1024 / 1024).toFixed(1) }} GB</span>
             </div>
             <div class="info-box">
-              <span class="label">USED</span>
+              <span class="label">{{ $t('dashboard.used') }}</span>
               <span class="value">{{ (systemStore.ram.used / 1024 / 1024 / 1024).toFixed(1) }} GB</span>
             </div>
           </div>
@@ -134,7 +136,7 @@ const getStrokeDash = (percentage) => {
       <div class="tron-card hud-item storage-section">
         <div class="hud-header">
           <HardDrive class="glow-cyan" />
-          <h3>STORAGE ARRAY</h3>
+          <h3>{{ $t('dashboard.storage_array') }}</h3>
         </div>
         <div class="hud-content">
           <div class="storage-details">
@@ -142,7 +144,7 @@ const getStrokeDash = (percentage) => {
                {{ systemStore.disk.usage }}%
              </div>
              <div class="storage-text">
-               <span>DISK LOADED</span>
+               <span>{{ $t('dashboard.disk_loaded') }}</span>
                <small>{{ (systemStore.disk.used / 1024 / 1024 / 1024).toFixed(1) }}GB / {{ (systemStore.disk.total / 1024 / 1024 / 1024).toFixed(1) }}GB</small>
              </div>
           </div>
@@ -153,16 +155,16 @@ const getStrokeDash = (percentage) => {
       <div class="tron-card hud-item network-section">
         <div class="hud-header">
           <Share2 class="glow-cyan" />
-          <h3>SIGNAL FLOW</h3>
+          <h3>{{ $t('dashboard.signal_flow') }}</h3>
         </div>
         <div class="hud-content">
            <div class="net-stats">
               <div class="net-item">
-                 <span class="label">UPLOAD</span>
+                 <span class="label">{{ $t('dashboard.upload') }}</span>
                  <span class="value glow-cyan">{{ (systemStore.network.bytesSent / 1024 / 1024).toFixed(2) }} MB/s</span>
               </div>
               <div class="net-item">
-                 <span class="label">DOWNLOAD</span>
+                 <span class="label">{{ $t('dashboard.download') }}</span>
                  <span class="value glow-orange">{{ (systemStore.network.bytesRecv / 1024 / 1024).toFixed(2) }} MB/s</span>
               </div>
            </div>

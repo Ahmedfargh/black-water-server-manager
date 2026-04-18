@@ -1,6 +1,7 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { 
   LayoutDashboard, 
   Box, 
@@ -15,13 +16,17 @@ import {
   Cpu,
   Menu,
   X,
-  BarChart3
+  BarChart3,
+  Languages
 } from 'lucide-vue-next'
 import { useAuthStore } from '../stores/auth'
 import { useToastStore } from '../stores/toast'
+import { useSettingsStore } from '../stores/settings'
 import InteractiveImage from '../components/InteractiveImage.vue'
 
+const { t, locale } = useI18n()
 const authStore = useAuthStore()
+const settingsStore = useSettingsStore()
 const toast = useToastStore()
 const router = useRouter()
 const route = useRoute()
@@ -53,20 +58,51 @@ const handleNavClick = () => {
   }
 }
 
-const menuItems = [
-  { name: 'Dashboard', path: '/', icon: LayoutDashboard },
-  { name: 'Docker', path: '/docker', icon: Box },
-  { name: 'Terminal', path: '/terminal', icon: Terminal },
-  { name: 'Processes', path: '/processes', icon: Cpu },
-  { name: 'Firewall', path: '/firewall', icon: ShieldCheck },
-  { name: 'Sites', path: '/sites', icon: Globe },
-  { name: 'Users', path: '/users', icon: Users },
-  { name: 'Audit Logs', path: '/audit', icon: History },
-  { name: 'Reports', path: '/reports', icon: BarChart3 },
-]
+const localizedRouteName = computed(() => {
+  const name = route.name?.toLowerCase()
+  if (!name) return t('common.system')
+  
+  // Map route names to translation keys
+  const routeMap = {
+    'dashboard': 'nav.dashboard',
+    'docker': 'nav.docker',
+    'terminal': 'nav.terminal',
+    'processes': 'nav.processes',
+    'firewall': 'nav.firewall',
+    'sites': 'nav.sites',
+    'users': 'nav.users',
+    'auditlogs': 'nav.audit_logs',
+    'profile': 'nav.profile',
+    'reports': 'nav.reports',
+    'login': 'nav.login'
+  }
+  
+  const key = routeMap[name] || `nav.${name}`
+  const translated = t(key)
+  return translated !== key ? translated.toUpperCase() : name.toUpperCase()
+})
+
+const menuItems = computed(() => [
+  { name: t('nav.dashboard'), path: '/', icon: LayoutDashboard },
+  { name: t('nav.docker'), path: '/docker', icon: Box },
+  { name: t('nav.terminal'), path: '/terminal', icon: Terminal },
+  { name: t('nav.processes'), path: '/processes', icon: Cpu },
+  { name: t('nav.firewall'), path: '/firewall', icon: ShieldCheck },
+  { name: t('nav.sites'), path: '/sites', icon: Globe },
+  { name: t('nav.users'), path: '/users', icon: Users },
+  { name: t('nav.audit_logs'), path: '/audit', icon: History },
+  { name: t('nav.reports'), path: '/reports', icon: BarChart3 },
+])
+
+const toggleLanguage = () => {
+  const newLang = locale.value === 'en' ? 'ar' : 'en'
+  locale.value = newLang
+  settingsStore.setLanguage(newLang)
+  toast.info(newLang === 'ar' ? 'تم تغيير اللغة إلى العربية' : 'Language switched to English')
+}
 
 const handleLogout = () => {
-  toast.info('CONNECTION TERMINATED')
+  toast.info(t('common.connection_terminated'))
   authStore.logout()
 }
 </script>
@@ -84,7 +120,7 @@ const handleLogout = () => {
     <aside :class="['sidebar', { 'closed': !isSidebarOpen }]">
       <div class="logo-container">
         <Cpu class="glow-cyan" :size="32" />
-        <span class="logo-text">BLACKWATER</span>
+        <span class="logo-text">{{ $t('app.logo_text') }}</span>
         <button class="close-sidebar-btn" @click="isSidebarOpen = false">
           <X :size="24" />
         </button>
@@ -107,16 +143,16 @@ const handleLogout = () => {
       <div class="sidebar-footer">
         <div class="user-profile enhanced-link">
           <div class="avatar-wrap" v-if="authStore.user?.image_path && authStore.user.image_path.includes('/uploads/')">
-            <InteractiveImage :src="authStore.user.image_path" customClass="user-avatar" alt="Avatar" />
+            <InteractiveImage :src="authStore.user.image_path" customClass="user-avatar" :alt="$t('common.avatar')" />
           </div>
           <User v-else :size="18" />
           <router-link to="/profile" class="username-link">
-            <span class="username">{{ authStore.user?.username || 'Admin' }}</span>
+            <span class="username">{{ authStore.user?.username || $t('common.admin') }}</span>
           </router-link>
         </div>
         <button @click="handleLogout" class="logout-btn">
           <LogOut :size="18" />
-          <span>LOGOUT</span>
+          <span>{{ $t('nav.logout') }}</span>
         </button>
       </div>
     </aside>
@@ -129,14 +165,20 @@ const handleLogout = () => {
              <Menu :size="24" />
           </button>
           <div class="breadcrumb">
-            <span class="text-secondary">SYSTEM</span>
+            <span class="text-secondary">{{ $t('common.system') }}</span>
             <span class="separator">/</span>
-            <span class="glow-cyan">{{ route.name?.toUpperCase() || 'GRID' }}</span>
+            <span class="glow-cyan">{{ localizedRouteName }}</span>
           </div>
         </div>
-        <div class="status-indicator">
-          <span class="pulse-dot"></span>
-          <span class="status-text glow-cyan">GRID ONLINE</span>
+        <div class="top-bar-right">
+          <button @click="toggleLanguage" class="lang-switcher-btn" :title="locale === 'en' ? 'العربية' : 'English'">
+            <Languages :size="20" />
+            <span class="lang-text">{{ locale === 'en' ? 'AR' : 'EN' }}</span>
+          </button>
+          <div class="status-indicator">
+            <span class="pulse-dot"></span>
+            <span class="status-text glow-cyan">{{ $t('common.grid_online') }}</span>
+          </div>
         </div>
       </header>
 
@@ -171,6 +213,11 @@ const handleLogout = () => {
   height: 100vh;
 }
 
+[dir="rtl"] .sidebar {
+  border-right: none;
+  border-left: 1px solid var(--neon-cyan-glow);
+}
+
 @media (max-width: 1024px) {
   .sidebar {
     position: fixed;
@@ -179,9 +226,18 @@ const handleLogout = () => {
     transform: translateX(0);
   }
   
+  [dir="rtl"] .sidebar {
+    left: auto;
+    right: 0;
+  }
+  
   .sidebar.closed {
     transform: translateX(-100%);
     pointer-events: none;
+  }
+  
+  [dir="rtl"] .sidebar.closed {
+    transform: translateX(100%);
   }
   
   .layout-wrapper {
@@ -368,6 +424,37 @@ const handleLogout = () => {
   display: flex;
   align-items: center;
   gap: 1.5rem;
+}
+
+.top-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.lang-switcher-btn {
+  background: transparent;
+  border: 1px solid rgba(0, 242, 255, 0.2);
+  color: var(--text-secondary);
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-data);
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+}
+
+.lang-switcher-btn:hover {
+  border-color: var(--neon-cyan);
+  color: var(--neon-cyan);
+  background: rgba(0, 242, 255, 0.05);
+}
+
+.lang-text {
+  font-weight: 700;
 }
 
 .menu-toggle-btn {

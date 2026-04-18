@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { 
   Box, 
   Play, 
@@ -14,6 +15,7 @@ import {
 import { useDockerStore } from '../stores/docker'
 import { useAuthStore } from '../stores/auth'
 
+const { t } = useI18n()
 const dockerStore = useDockerStore()
 const showLogs = ref(false)
 const selectedContainer = ref(null)
@@ -32,16 +34,16 @@ const handleAction = async (id, action) => {
   try {
     await dockerStore.performAction(id, action)
   } catch (err) {
-    alert(`ACTION FAILED: ${action.toUpperCase()} operation failed on node ${id}.`)
+    alert(`${t('docker.action_failed')}: ${action.toUpperCase()} operation failed on node ${id}.`)
   }
 }
 
 const handlePrune = async (id) => {
-  if (confirm(`SYSTEM OVERRIDE: Are you sure you want to PRUNE container ${id}? All volumes and data will be PERMANENTLY DELETED.`)) {
+  if (confirm(t('docker.confirm_prune', { id }))) {
     try {
       await dockerStore.pruneContainer(id)
     } catch (err) {
-      alert(`PRUNE FAILED: Critical error while attempting to purge node ${id}.`)
+      alert(`${t('docker.prune_failed')}: Critical error while attempting to purge node ${id}.`)
     }
   }
 }
@@ -91,10 +93,10 @@ const connectLogs = (id) => {
 <template>
   <div class="docker-view">
     <div class="header-actions">
-      <h2 class="glow-cyan">CONTAINER GRID</h2>
+      <h2 class="glow-cyan">{{ $t('docker.container_grid') }}</h2>
       <button @click="fetchContainers" class="refresh-btn tron-btn">
         <RotateCw :size="18" />
-        RESCAN NODES
+        {{ $t('docker.rescan_nodes') }}
       </button>
     </div>
 
@@ -113,17 +115,17 @@ const connectLogs = (id) => {
              <span class="node-id">{{ container.id.substring(0, 12) }}</span>
            </div>
            <div class="status-badge" :class="{ 'pulse': container.status?.includes('Up') }">
-             {{ container.status?.includes('Up') ? 'ACTIVE' : 'OFFLINE' }}
+             {{ container.status?.includes('Up') ? $t('common.active') : $t('common.offline') }}
            </div>
         </div>
 
         <div class="card-body">
            <div class="detail-row">
-             <span class="label">IMAGE</span>
+             <span class="label">{{ $t('docker.image') }}</span>
              <span class="value">{{ container.image }}</span>
            </div>
            <div class="detail-row">
-             <span class="label">UPTIME</span>
+             <span class="label">{{ $t('docker.uptime') }}</span>
              <span class="value">{{ container.status }}</span>
            </div>
         </div>
@@ -133,7 +135,7 @@ const connectLogs = (id) => {
              v-if="!container.status?.includes('Up')" 
              @click="handleAction(container.id, 'start')"
              class="action-btn glow-cyan"
-             title="START"
+             :title="$t('docker.start')"
            >
              <Play :size="18" />
            </button>
@@ -141,35 +143,35 @@ const connectLogs = (id) => {
              v-if="container.status?.includes('Up')" 
              @click="handleAction(container.id, 'stop')"
              class="action-btn glow-orange"
-             title="STOP"
+             :title="$t('docker.stop')"
            >
              <Square :size="18" />
            </button>
            <button 
              @click="handleAction(container.id, 'restart')"
              class="action-btn"
-             title="RESTART"
+             :title="$t('docker.restart')"
            >
              <RotateCw :size="18" />
            </button>
            <button 
              @click="openLogs(container)"
              class="action-btn"
-             title="VIEW LOGS"
+             :title="$t('docker.view_logs')"
            >
              <Terminal :size="18" />
            </button>
            <button 
              @click="openVolumes(container)"
              class="action-btn"
-             title="VIEW VOLUMES"
+             :title="$t('docker.view_volumes')"
            >
              <HardDrive :size="18" />
            </button>
            <button 
              @click="handlePrune(container.id)"
              class="action-btn glow-red"
-             title="PRUNE"
+             :title="$t('docker.prune')"
            >
              <Trash2 :size="18" />
            </button>
@@ -182,7 +184,7 @@ const connectLogs = (id) => {
       <div v-if="showLogs" class="modal-overlay">
         <div class="tron-card modal-container">
           <div class="modal-header">
-            <h3>LOG STREAM: {{ selectedContainer?.name }}</h3>
+            <h3>{{ $t('docker.log_stream') }}: {{ selectedContainer?.names?.[0] || selectedContainer?.name }}</h3>
             <button @click="closeLogs" class="close-btn"><X /></button>
           </div>
           <div class="log-viewport">
@@ -200,19 +202,19 @@ const connectLogs = (id) => {
       <div v-if="showVolumes" class="modal-overlay">
         <div class="tron-card modal-container volumes-modal">
           <div class="modal-header">
-            <h3>VOLUME MAPPINGS: {{ selectedVolumesContainer?.names?.[0] || 'NODE' }}</h3>
+            <h3>{{ $t('docker.volume_mappings') }}: {{ selectedVolumesContainer?.names?.[0] || 'NODE' }}</h3>
             <button @click="closeVolumes" class="close-btn"><X /></button>
           </div>
           <div class="volumes-content">
             <div v-if="dockerStore.volumes.length === 0" class="no-data">
-              NO VOLUMES DETECTED ON THIS NODE
+              {{ $t('docker.no_volumes') }}
             </div>
             <table v-else class="tron-table">
               <thead>
                 <tr>
-                  <th>TYPE</th>
-                  <th>SOURCE (HOST)</th>
-                  <th>DESTINATION (CONTAINER)</th>
+                  <th>{{ $t('docker.type') }}</th>
+                  <th>{{ $t('docker.source') }}</th>
+                  <th>{{ $t('docker.destination') }}</th>
                 </tr>
               </thead>
               <tbody>

@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, onUnmounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { 
   Terminal, 
   Search, 
@@ -13,6 +14,7 @@ import {
 import { useProcessStore } from '../stores/processes'
 import { useAuthStore } from '../stores/auth'
 
+const { t } = useI18n()
 const processStore = useProcessStore()
 const isAutoRefresh = ref(true)
 let wsProcesses
@@ -45,11 +47,11 @@ onUnmounted(() => {
 })
 
 const handleKill = async (pid) => {
-  if (confirm(`INITIATE DISCONNECT: Are you sure you want to terminate process ${pid}?`)) {
+  if (confirm(t('proc.confirm_kill', { pid }) || `INITIATE DISCONNECT: Are you sure you want to terminate process ${pid}?`)) {
     try {
       await processStore.killProcess(pid)
     } catch (err) {
-      alert(`DISCONNECT FAILED: Unable to terminate process ${pid}.`)
+      alert(t('proc.kill_failed') || `DISCONNECT FAILED: Unable to terminate process ${pid}.`)
     }
   }
 }
@@ -71,7 +73,7 @@ const formatMemory = (bytes) => {
         <input 
           v-model="processStore.searchTerm" 
           type="text" 
-          placeholder="SEARCH PROCESS... (PID, NAME, USER)"
+          :placeholder="t('proc.search_placeholder') || 'SEARCH PROCESS... (PID, NAME, USER)'"
         />
       </div>
       
@@ -79,7 +81,7 @@ const formatMemory = (bytes) => {
         <label class="tron-switch">
           <input type="checkbox" v-model="isAutoRefresh">
           <span class="slider"></span>
-          <span class="label">LIVE STREAM</span>
+          <span class="label">{{ $t('proc.live_stream') }}</span>
         </label>
         <button @click="processStore.fetchProcesses" class="refresh-btn">
           <RefreshCcw :size="18" />
@@ -91,13 +93,13 @@ const formatMemory = (bytes) => {
       <table class="process-table">
         <thead>
           <tr>
-            <th>PID</th>
-            <th>PROCESS NAME</th>
-            <th>USER</th>
-            <th>CPU %</th>
-            <th>MEMORY</th>
-            <th>THREADS</th>
-            <th class="actions-col">ACTIONS</th>
+            <th>{{ $t('proc.pid') }}</th>
+            <th>{{ $t('proc.name') }}</th>
+            <th>{{ $t('proc.user') }}</th>
+            <th>{{ $t('proc.cpu') || 'CPU %' }}</th>
+            <th>{{ $t('proc.mem') }}</th>
+            <th>{{ $t('proc.threads') }}</th>
+            <th class="actions-col">{{ $t('common.actions') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -106,7 +108,7 @@ const formatMemory = (bytes) => {
             <td class="name-cell">
               <div class="process-name-wrap">
                 <Terminal :size="14" class="icon" />
-                <span class="truncate-name" :title="p.name">{{ p.name || '[SYSTEM KERNEL]' }}</span>
+                <span class="truncate-name" :title="p.name">{{ p.name || ($t('proc.kernel') || '[SYSTEM KERNEL]') }}</span>
               </div>
             </td>
             <td class="user-cell">
@@ -130,7 +132,7 @@ const formatMemory = (bytes) => {
               <button 
                 @click="handleKill(p.pid)" 
                 class="kill-btn" 
-                title="TERMINATE PROCESS"
+                :title="t('proc.terminate') || 'TERMINATE PROCESS'"
               >
                 <XOctagon :size="18" />
               </button>
@@ -141,7 +143,7 @@ const formatMemory = (bytes) => {
       
       <div v-if="processStore.loading" class="loading-overlay">
          <Activity class="pulse" :size="48" />
-         <span>SYNCHRONIZING WITH GRID...</span>
+         <span>{{ $t('proc.syncing') || 'SYNCHRONIZING WITH GRID...' }}</span>
       </div>
     </div>
   </div>

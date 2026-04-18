@@ -1,10 +1,12 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth'
 import { useToastStore } from '../stores/toast'
 import { Cpu, Lock, Mail, Loader2 } from 'lucide-vue-next'
 
+const { t } = useI18n()
 const authStore = useAuthStore()
 const toast = useToastStore()
 const router = useRouter()
@@ -17,10 +19,10 @@ const handleLogin = async () => {
   error.value = ''
   try {
     await authStore.login(email.value, password.value)
-    toast.success('UPLINK ESTABLISHED: Welcome back, Commander.')
+    toast.success(t('common.uplink_established'))
     router.push('/')
   } catch (err) {
-    const msg = err.response?.data?.error || 'ACCESS DENIED: Authentication failed.'
+    const msg = err.response?.data?.error || t('common.access_denied')
     error.value = msg
     toast.error(msg)
   } finally {
@@ -39,13 +41,13 @@ const handleLogin = async () => {
           <div class="logo-glow">
             <Cpu class="glow-cyan" :size="48" />
           </div>
-          <h1>BLACKWATER</h1>
-          <p class="subtitle">SECURE GRID ACCESS</p>
+          <h1>{{ $t('app.logo_text') }}</h1>
+          <p class="subtitle">{{ $t('app.secure_access') }}</p>
         </div>
 
         <form @submit.prevent="handleLogin" class="login-form">
           <div class="input-group">
-            <label>IDENTIFIER</label>
+            <label>{{ $t('common.identifier') }}</label>
             <div class="input-wrapper">
               <Mail :size="18" />
               <input 
@@ -58,13 +60,13 @@ const handleLogin = async () => {
           </div>
 
           <div class="input-group">
-            <label>ACCESS KEY</label>
+            <label>{{ $t('common.access_key') }}</label>
             <div class="input-wrapper">
               <Lock :size="18" />
               <input 
                 v-model="password" 
                 type="password" 
-                placeholder="********" 
+                :placeholder="'********'" 
                 required
               />
             </div>
@@ -76,13 +78,13 @@ const handleLogin = async () => {
 
           <button :disabled="isLoading" type="submit" class="login-btn">
             <Loader2 v-if="isLoading" class="spinner" :size="18" />
-            <span v-else>INITIATE UPLINK</span>
+            <span v-else>{{ $t('common.initiate_uplink') }}</span>
           </button>
         </form>
 
         <div class="login-footer">
-          <span class="system-tag">SYSTEM v1.24.03</span>
-          <span class="status-tag">STATUS: SECURE</span>
+          <span class="system-tag">{{ $t('app.system_v') }}</span>
+          <span class="status-tag">{{ $t('app.status') }}: {{ $t('app.secure') }}</span>
         </div>
       </div>
     </div>

@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { 
   Globe, 
   Activity, 
@@ -15,6 +16,7 @@ import {
 import { useSiteStore } from '../stores/sites'
 import { useToastStore } from '../stores/toast'
 
+const { t } = useI18n()
 const siteStore = useSiteStore()
 const toast = useToastStore()
 const showAddModal = ref(false)
@@ -48,15 +50,15 @@ const handleAddSite = async () => {
   try {
     if (isEditing.value) {
       await siteStore.updateSite(editingSiteId.value, payload)
-      toast.success(`NODE [${payload.name}] CONFIGURATION UPDATED`)
+      toast.success(t('sites.node_updated', { name: payload.name }))
     } else {
       await siteStore.addSite(payload)
-      toast.success(`NEW NODE [${payload.name}] ESTABLISHED`)
+      toast.success(t('sites.node_established', { name: payload.name }))
     }
     showAddModal.value = false
     resetForm()
   } catch (err) {
-    toast.error(`UPLINK FAILED: ${err.response?.data?.error || 'Unable to process request.'}`)
+    toast.error(`${t('sites.uplink_failed')}: ${err.response?.data?.error || t('common.error_processing')}`)
   } finally {
     isSubmitting.value = false
   }
@@ -88,9 +90,9 @@ const resetForm = () => {
 const triggerCheckup = async () => {
   try {
     await siteStore.triggerCheckup()
-    toast.success('GLOBAL GRID SYNC COMPLETE')
+    toast.success(t('sites.sync_complete'))
   } catch (err) {
-    toast.error('SYNC FAILED: Immediate health checkup protocol failed.')
+    toast.error(t('sites.sync_failed'))
   }
 }
 
@@ -105,15 +107,15 @@ const getStatusColor = (status) => {
 <template>
   <div class="sites-view">
     <div class="header-row">
-      <h2 class="glow-cyan">GLOBAL NODE MONITOR</h2>
+      <h2 class="glow-cyan">{{ $t('sites.node_monitor') }}</h2>
       <div class="actions">
         <button @click="triggerCheckup" class="tron-btn secondary">
           <Activity :size="18" />
-          FULL SYNC
+          {{ $t('sites.full_sync') }}
         </button>
         <button @click="resetForm(); showAddModal = true" class="tron-btn">
           <Plus :size="18" />
-          ADD NODE
+          {{ $t('sites.add_node') }}
         </button>
       </div>
     </div>
@@ -132,8 +134,8 @@ const getStatusColor = (status) => {
            </div>
            <div class="node-info">
              <div class="title-row">
-               <h3>{{ site.name || 'EXTERNAL NODE' }}</h3>
-               <button @click="openEditModal(site)" class="edit-btn" title="EDIT NODE">
+               <h3>{{ site.name || ($t('sites.external_node') || 'EXTERNAL NODE') }}</h3>
+               <button @click="openEditModal(site)" class="edit-btn" :title="$t('sites.edit_node')">
                  <Settings :size="16" />
                </button>
              </div>
@@ -146,16 +148,16 @@ const getStatusColor = (status) => {
 
         <div class="card-body">
            <div class="status-indicator">
-              <span class="status-label">CURRENT STATUS:</span>
+              <span class="status-label">{{ $t('sites.current_status') }}:</span>
               <span class="status-val" :style="{ color: getStatusColor(site.status) }">
-                {{ site.status?.toUpperCase() || 'UNKNOWN' }}
+                {{ site.status?.toUpperCase() || $t('common.unknown') }}
               </span>
            </div>
            
            <div class="metrics-row">
               <div class="metric">
                 <Clock :size="14" />
-                <span>LAST SCAN: {{ site.last_checked ? new Date(site.last_checked).toLocaleTimeString() : '--:--' }}</span>
+                <span>{{ $t('sites.last_scan') }}: {{ site.last_checked ? new Date(site.last_checked).toLocaleTimeString() : '--:--' }}</span>
               </div>
            </div>
         </div>
@@ -170,8 +172,8 @@ const getStatusColor = (status) => {
 
       <div v-if="siteStore.sites.length === 0" class="empty-state">
          <Globe :size="48" class="pulse" />
-         <p>NO EXTERNAL NODES CONNECTED TO THE GRID.</p>
-         <button @click="resetForm(); showAddModal = true" class="tron-btn">INITIATE UPLINK</button>
+         <p>{{ $t('sites.no_nodes') }}</p>
+         <button @click="resetForm(); showAddModal = true" class="tron-btn">{{ $t('sites.initiate_uplink') }}</button>
       </div>
     </div>
 
@@ -180,28 +182,28 @@ const getStatusColor = (status) => {
       <div v-if="showAddModal" class="modal-overlay">
         <div class="tron-card modal-container enhanced-modal">
           <div class="modal-header">
-            <h3>{{ isEditing ? 'MODIFY NODE CONFIGURATION' : 'INITIALIZE NEW NODE' }}</h3>
+            <h3>{{ isEditing ? $t('sites.modify_config') : $t('sites.init_node') }}</h3>
           </div>
           <form @submit.prevent="handleAddSite" class="add-form">
             <div class="grid-inputs">
               <div class="input-group">
-                <label>NODE DESIGNATION (NAME)</label>
-                <input v-model="newSiteName" type="text" placeholder="e.g. PRIMARY GRID" required />
+                <label>{{ $t('sites.designation') }}</label>
+                <input v-model="newSiteName" type="text" :placeholder="$t('sites.name_placeholder') || 'e.g. PRIMARY GRID'" required />
               </div>
               <div class="input-group">
-                <label>NODE COORDINATES (URL)</label>
+                <label>{{ $t('sites.coordinates') }}</label>
                 <input v-model="newSiteUrl" type="url" placeholder="https://example.com" required />
               </div>
             </div>
 
             <div class="input-group">
-              <label>HEALTH CHECK ROUTE (PING URL)</label>
-              <input v-model="newHealthRoute" type="text" placeholder="e.g. https://example.com/health (defaults to URL)" />
+              <label>{{ $t('sites.health_route') }}</label>
+              <input v-model="newHealthRoute" type="text" :placeholder="$t('sites.health_placeholder') || 'e.g. https://example.com/health (defaults to URL)'" />
             </div>
 
             <div class="grid-inputs">
               <div class="input-group">
-                <label>METHOD</label>
+                <label>{{ $t('sites.method') }}</label>
                 <select v-model="newMethod">
                   <option value="GET">GET</option>
                   <option value="HEAD">HEAD</option>
@@ -209,21 +211,21 @@ const getStatusColor = (status) => {
                 </select>
               </div>
               <div class="input-group">
-                <label>EXPECTED STATUS</label>
+                <label>{{ $t('sites.expected_status') }}</label>
                 <input v-model="newExpectedStatus" type="number" placeholder="200" />
               </div>
             </div>
 
             <div class="input-group">
-              <label>DESCRIPTION</label>
-              <textarea v-model="newDescription" rows="2" placeholder="Describe this node..."></textarea>
+              <label>{{ $t('common.description') }}</label>
+              <textarea v-model="newDescription" rows="2" :placeholder="$t('sites.desc_placeholder') || 'Describe this node...'"></textarea>
             </div>
 
             <div class="modal-footer">
-              <button type="button" @click="showAddModal = false; resetForm()" class="tron-btn ghost">ABORT</button>
+              <button type="button" @click="showAddModal = false; resetForm()" class="tron-btn ghost">{{ $t('common.abort') }}</button>
               <button type="submit" :disabled="isSubmitting" class="tron-btn">
-                <span v-if="isSubmitting">{{ isEditing ? 'UPDATING...' : 'CONNECTING...' }}</span>
-                <span v-else>{{ isEditing ? 'SAVE CONFIGURATION' : 'ESTABLISH UPLINK' }}</span>
+                <span v-if="isSubmitting">{{ isEditing ? $t('common.updating') : $t('common.connecting') }}</span>
+                <span v-else>{{ isEditing ? $t('sites.save_config') : $t('sites.establish_uplink') }}</span>
               </button>
             </div>
           </form>

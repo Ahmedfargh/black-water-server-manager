@@ -2,14 +2,16 @@
 import { onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from './stores/auth'
+import { useSettingsStore } from './stores/settings'
 import ToastContainer from './components/ToastContainer.vue'
 
 const authStore = useAuthStore()
+const settingsStore = useSettingsStore()
 const router = useRouter()
 const route = useRoute()
 
 onMounted(() => {
-  // Check auth if needed
+  settingsStore.initSettings()
 })
 </script>
 

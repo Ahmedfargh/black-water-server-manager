@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useSystemStore } from '../stores/system'
 import { 
   BarChart3, 
@@ -35,6 +36,7 @@ ChartJS.register(
   Filler
 )
 
+const { t } = useI18n()
 const systemStore = useSystemStore()
 const isLoading = ref(false)
 const timeRange = ref('1h') // 1h, 6h, 24h, 7d, custom
@@ -50,7 +52,7 @@ const ranges = [
   { label: '6H', value: '6h', duration: 6 * 3600 * 1000 },
   { label: '24H', value: '24h', duration: 24 * 3600 * 1000 },
   { label: '7D', value: '7d', duration: 7 * 24 * 3600 * 1000 },
-  { label: 'CUSTOM', value: 'custom', duration: 0 },
+  { label: t('reports.custom') || 'CUSTOM', value: 'custom', duration: 0 },
 ]
 
 const fetchData = async () => {
@@ -118,7 +120,7 @@ const chartData = computed(() => {
     labels,
     datasets: [
       {
-        label: 'CPU Usage (%)',
+        label: `${t('reports.cpu_usage_p') || 'CPU Usage (%)'}`,
         data: reports.map(r => r.cpu_usage),
         borderColor: '#00f2ff',
         backgroundColor: 'rgba(0, 242, 255, 0.1)',
@@ -129,7 +131,7 @@ const chartData = computed(() => {
         borderWidth: 2
       },
       {
-        label: 'RAM Usage (%)',
+        label: `${t('reports.ram_usage_p') || 'RAM Usage (%)'}`,
         data: reports.map(r => r.memory_usage),
         borderColor: '#ff8c00',
         backgroundColor: 'rgba(255, 140, 0, 0.1)',
@@ -140,7 +142,7 @@ const chartData = computed(() => {
         borderWidth: 2
       },
       {
-        label: 'Disk Usage (%)',
+        label: `${t('reports.disk_usage_p') || 'Disk Usage (%)'}`,
         data: reports.map(r => r.disk_usage),
         borderColor: '#7000ff',
         backgroundColor: 'rgba(112, 0, 255, 0.1)',
@@ -227,15 +229,15 @@ const chartOptions = {
           <BarChart3 class="glow-cyan" />
         </div>
         <div>
-          <h1>HARDWARE ANALYSIS GRID</h1>
-          <p class="subtitle"> HISTORICAL PERFORMANCE DATA ARCHIVE </p>
+          <h1>{{ $t('reports.analysis_grid') }}</h1>
+          <p class="subtitle">{{ $t('reports.archive') }}</p>
         </div>
       </div>
 
       <div class="range-selector">
         <div class="selector-label">
           <Clock :size="14" />
-          <span>TEMPORAL SCOPE:</span>
+          <span>{{ $t('reports.temporal_scope') || 'TEMPORAL SCOPE' }}:</span>
         </div>
         <div class="range-buttons">
           <button 
@@ -251,11 +253,11 @@ const chartOptions = {
 
         <div v-if="timeRange === 'custom'" class="custom-inputs">
           <div class="input-group">
-            <span class="input-label">FROM</span>
+            <span class="input-label">{{ $t('reports.from') }}</span>
             <input type="datetime-local" v-model="customStart" class="tron-input" />
           </div>
           <div class="input-group">
-            <span class="input-label">TO</span>
+            <span class="input-label">{{ $t('reports.to') }}</span>
             <input type="datetime-local" v-model="customEnd" class="tron-input" />
           </div>
           <button 
@@ -263,7 +265,7 @@ const chartOptions = {
             @click="fetchData" 
             :disabled="!customStart || !customEnd || isLoading"
           >
-            GO
+            {{ $t('reports.go') || 'GO' }}
           </button>
         </div>
 
@@ -278,44 +280,44 @@ const chartOptions = {
         <div class="card-glow"></div>
         <div class="avg-header">
           <Cpu :size="20" class="glow-cyan" />
-          <span>AVG CPU LOAD</span>
+          <span>{{ $t('reports.avg_cpu') }}</span>
         </div>
         <div class="avg-value glow-cyan">
           {{ systemStore.averages.cpu.toFixed(2) }}%
         </div>
-        <div class="avg-footer">OPTIMIZED THROUGHPUT</div>
+        <div class="avg-footer">{{ $t('reports.throughput') }}</div>
       </div>
 
       <div class="avg-card memory">
         <div class="card-glow"></div>
         <div class="avg-header">
           <Zap :size="20" class="glow-orange" />
-          <span>AVG MEMORY BANK</span>
+          <span>{{ $t('reports.avg_mem') }}</span>
         </div>
         <div class="avg-value glow-orange">
           {{ systemStore.averages.memory.toFixed(2) }}%
         </div>
-        <div class="avg-footer">RESOURCE ALLOCATION</div>
+        <div class="avg-footer">{{ $t('reports.allocation') }}</div>
       </div>
 
       <div class="avg-card disk">
         <div class="card-glow"></div>
         <div class="avg-header">
           <HardDrive :size="20" class="glow-purple" />
-          <span>AVG STORAGE LOAD</span>
+          <span>{{ $t('reports.avg_storage') }}</span>
         </div>
         <div class="avg-value glow-purple">
           {{ systemStore.averages.disk.toFixed(2) }}%
         </div>
-        <div class="avg-footer">DATA DENSITY SCORE</div>
+        <div class="avg-footer">{{ $t('reports.density') }}</div>
       </div>
     </div>
 
     <div class="chart-container-wrapper tron-card">
       <div class="card-header">
-        <h3> <ArrowBigRightDash :size="16" class="glow-cyan" /> PERFORMANCE TRENDLINES</h3>
+        <h3> <ArrowBigRightDash :size="16" class="glow-cyan" /> {{ $t('reports.trendlines') }}</h3>
         <div class="status-pill">
-          <span class="dot"></span> REAL-TIME ARCHIVE
+          <span class="dot"></span> {{ $t('reports.realtime_archive') || 'REAL-TIME ARCHIVE' }}
         </div>
       </div>
       <div class="chart-area">
@@ -326,11 +328,11 @@ const chartOptions = {
         />
         <div v-else-if="isLoading" class="chart-loading">
           <RefreshCw class="spinning" :size="48" />
-          <span>SYNCING WITH GRID...</span>
+          <span>{{ $t('reports.syncing') || 'SYNCING WITH GRID...' }}</span>
         </div>
         <div v-else class="no-data">
            <Calendar :size="48" />
-           <span>NO DATA LOGGED FOR THIS CYCLE</span>
+           <span>{{ $t('reports.no_data') }}</span>
         </div>
       </div>
     </div>

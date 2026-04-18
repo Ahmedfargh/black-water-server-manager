@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { 
   Filter, 
   ChevronLeft, 
@@ -12,6 +13,7 @@ import {
 } from 'lucide-vue-next'
 import { useAuditStore } from '../stores/audit'
 
+const { t, locale } = useI18n()
 const auditStore = useAuditStore()
 const filterType = ref('')
 
@@ -47,7 +49,7 @@ const getLogIcon = (type) => {
 const formatDate = (dateStr) => {
   if (!dateStr) return 'N/A'
   const date = new Date(dateStr)
-  return date.toLocaleString('en-US', {
+  return date.toLocaleString(locale.value === 'ar' ? 'ar-EG' : 'en-US', {
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
@@ -60,14 +62,14 @@ const formatDate = (dateStr) => {
 <template>
   <div class="audit-view">
     <div class="header-row">
-      <h2 class="glow-cyan">SYSTEM AUDIT LOGS</h2>
+      <h2 class="glow-cyan">{{ $t('audit.logs_grid') }}</h2>
       <div class="filter-bar">
         <Filter :size="18" class="icon" />
         <select v-model="filterType" @change="handleFilter" class="filter-select">
-          <option value="">ALL EVENTS</option>
-          <option value="firewall">FIREWALL</option>
-          <option value="docker">DOCKER</option>
-          <option value="process">PROCESS</option>
+          <option value="">{{ $t('audit.all_events') }}</option>
+          <option value="firewall">{{ $t('audit.firewall') }}</option>
+          <option value="docker">{{ $t('audit.docker') }}</option>
+          <option value="process">{{ $t('audit.process') }}</option>
         </select>
       </div>
     </div>
@@ -78,10 +80,10 @@ const formatDate = (dateStr) => {
           <thead>
             <tr>
               <th class="w-icon"></th>
-              <th>TYPE</th>
-              <th>ACTION / MESSAGE</th>
-              <th>ACTOR</th>
-              <th class="text-right">TIMESTAMP</th>
+              <th>{{ $t('audit.type') }}</th>
+              <th>{{ $t('audit.action_msg') || 'ACTION / MESSAGE' }}</th>
+              <th>{{ $t('audit.actor') }}</th>
+              <th class="text-right">{{ $t('audit.timestamp') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -99,7 +101,7 @@ const formatDate = (dateStr) => {
               <td>
                 <div class="actor-info">
                   <UserIcon :size="14" class="dim" />
-                  <span>{{ (log.user_id && log.User?.username) ? log.User.username : 'SYSTEM' }}</span>
+                  <span>{{ (log.user_id && log.User?.username) ? log.User.username : ($t('common.system') || 'SYSTEM') }}</span>
                 </div>
               </td>
               <td class="text-right font-data dim">
@@ -108,7 +110,7 @@ const formatDate = (dateStr) => {
             </tr>
             <tr v-if="auditStore.logs.length === 0">
               <td colspan="5" class="empty-cell">
-                NO AUDIT RECORDS FOUND IN THE CURRENT SECTOR.
+                {{ $t('audit.no_records') || 'NO AUDIT RECORDS FOUND' }}
               </td>
             </tr>
           </tbody>
@@ -117,13 +119,13 @@ const formatDate = (dateStr) => {
 
       <div class="pagination">
         <div class="page-stats dim">
-          SHOWING {{ auditStore.logs.length }} OF {{ auditStore.total }} ENTRIES
+          {{ $t('audit.showing_of', { count: auditStore.logs.length, total: auditStore.total }) || `SHOWING ${auditStore.logs.length} OF ${auditStore.total} ENTRIES` }}
         </div>
         <div class="page-controls">
           <button @click="changePage(-1)" :disabled="auditStore.page <= 1" class="page-btn">
             <ChevronLeft :size="20" />
           </button>
-          <span class="page-info">SECTOR {{ auditStore.page }} / {{ totalPages }}</span>
+          <span class="page-info">{{ $t('audit.sector') || 'SECTOR' }} {{ auditStore.page }} / {{ totalPages }}</span>
           <button @click="changePage(1)" :disabled="auditStore.page >= totalPages" class="page-btn">
             <ChevronRight :size="20" />
           </button>
@@ -132,7 +134,7 @@ const formatDate = (dateStr) => {
 
       <div v-if="auditStore.loading" class="loading-overlay">
         <Activity class="pulse" :size="48" />
-        <span>RETRIVING SECURE ARCHIVES...</span>
+        <span>{{ $t('audit.retrieving') || 'RETRIVING SECURE ARCHIVES...' }}</span>
       </div>
     </div>
   </div>
