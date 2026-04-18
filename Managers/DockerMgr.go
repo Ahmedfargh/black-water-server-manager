@@ -288,3 +288,18 @@ func (dm *DockerManager) DockerContainerVolumns(ctx context.Context, id string) 
 	}
 	return DockerContainerVolumns_slice, nil
 }
+func (dm *DockerManager) PruneDockerImage(ctx context.Context, id string) (bool, error) {
+	option := container.RemoveOptions{
+		Force:         true,
+		RemoveVolumes: true,
+	}
+
+	err := dm.Client.ContainerRemove(ctx, id, option)
+	if err != nil {
+		return false, err
+	}
+
+	repo := Repository.NewDockerRepository(Config.DB)
+	repo.DeleteByContainerId(id)
+	return true, nil
+}

@@ -292,6 +292,42 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Prune Image",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{authToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/docker/image/:id/prune",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"docker",
+						"image",
+						":id",
+						"prune"
+					],
+					"variable": [
+						{
+							"key": "id",
+							"value": ""
+						}
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }

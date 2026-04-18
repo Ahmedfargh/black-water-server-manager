@@ -42,6 +42,18 @@ export const useDockerStore = defineStore('docker', {
         console.error(`Failed to ${action} container:`, error)
         throw error
       }
+    },
+    async pruneContainer(id) {
+      this.loading = true
+      try {
+        await api.get(`/docker/image/${id}/prune`)
+        await this.fetchContainers() // Refresh list
+      } catch (error) {
+        console.error('Failed to prune container:', error)
+        throw error
+      } finally {
+        this.loading = false
+      }
     }
   }
 })

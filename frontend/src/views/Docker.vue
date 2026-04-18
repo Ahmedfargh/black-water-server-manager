@@ -36,6 +36,16 @@ const handleAction = async (id, action) => {
   }
 }
 
+const handlePrune = async (id) => {
+  if (confirm(`SYSTEM OVERRIDE: Are you sure you want to PRUNE container ${id}? All volumes and data will be PERMANENTLY DELETED.`)) {
+    try {
+      await dockerStore.pruneContainer(id)
+    } catch (err) {
+      alert(`PRUNE FAILED: Critical error while attempting to purge node ${id}.`)
+    }
+  }
+}
+
 const openLogs = (container) => {
   selectedContainer.value = container
   showLogs.value = true
@@ -155,6 +165,13 @@ const connectLogs = (id) => {
              title="VIEW VOLUMES"
            >
              <HardDrive :size="18" />
+           </button>
+           <button 
+             @click="handlePrune(container.id)"
+             class="action-btn glow-red"
+             title="PRUNE"
+           >
+             <Trash2 :size="18" />
            </button>
         </div>
       </div>

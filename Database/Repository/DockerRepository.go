@@ -56,3 +56,10 @@ func (r *DockerRepository) UpdateDocker(docker *models.Docker) error {
 func (r *DockerRepository) DeleteDocker(docker *models.Docker) error {
 	return r.DB.Delete(docker).Error
 }
+func (r *DockerRepository) DeleteByContainerId(id string) (bool, error) {
+	err := r.DB.Where("container_id", "=", id).Model(&models.Docker{}).Error
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}

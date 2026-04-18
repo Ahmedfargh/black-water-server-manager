@@ -224,3 +224,18 @@ func GetDockerContainerVolumns() gin.HandlerFunc {
 		c.JSON(http.StatusOK, gin.H{"message": "got the docker container volumns", "volumns": volumes})
 	}
 }
+func GetDockerPruneHandle() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		idStr := c.Param("id")
+		result, err := DockerMgr.GetDockerManager().PruneDockerImage(c, idStr)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"message": err})
+			return
+		}
+		if result {
+			c.JSON(http.StatusOK, gin.H{"message": "Docker Container Pruned"})
+			return
+		}
+
+	}
+}

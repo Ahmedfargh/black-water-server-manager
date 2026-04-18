@@ -18,5 +18,6 @@ func SetupDockerRoutes(router *gin.Engine) {
 		dockerGroup.GET("/container/:id/status", Authentication.AuthMiddleware(), Authentication.CheckRole("read_containers"), functionalscontrollers.ContainerStatusHandler())
 		dockerGroup.POST("/container/:id/:action", Authentication.AuthMiddleware(), Authentication.CheckRole("manage_containers"), functionalscontrollers.ActionContainerHandler())
 		dockerGroup.GET("/container/:id/get/volums", Authentication.AuthMiddleware(), Authentication.CheckRole("read_containers"), functionalscontrollers.GetDockerContainerVolumns())
+		dockerGroup.GET("/image/:id/prune", Authentication.AuthMiddleware(), Authentication.CheckRole("manage_containers"), functionalscontrollers.GetDockerPruneHandle())
 	}
 }

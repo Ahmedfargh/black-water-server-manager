@@ -5,6 +5,8 @@
   --neon-cyan-glow: rgba(0, 242, 255, 0.5);
   --neon-orange: #ff8c00;
   --neon-orange-glow: rgba(255, 140, 0, 0.5);
+  --neon-red: #ff3131;
+  --neon-red-glow: rgba(255, 49, 49, 0.5);
   --grid-line: rgba(0, 242, 255, 0.05);
   --text-primary: #e0faff;
   --text-secondary: rgba(224, 250, 255, 0.6);
@@ -88,6 +90,11 @@ h1, h2, h3, h4, h5, h6 {
 .glow-orange {
   color: var(--neon-orange);
   text-shadow: 0 0 8px var(--neon-orange-glow);
+}
+
+.glow-red {
+  color: var(--neon-red);
+  text-shadow: 0 0 8px var(--neon-red-glow);
 }
 
 @keyframes pulse-cyan {
