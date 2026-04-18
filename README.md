@@ -23,6 +23,7 @@ This application allows you to monitor hardware performance (CPU, GPU, RAM, Disk
 - **Site Health Monitoring:** Monitor external sites' availability and performance, logging status history (UP, Redirection, Not Found, Server Error).
 - **Process Ownership Tracking:** Automatically record which user started each process for accountability and logging.
 - **System Audit Logging:** Track and persist administrative actions, such as Firewall state changes, for security and compliance.
+- **Internationalization (i18n) & RTL Support (New):** Full UI localization into English and Arabic with native RTL/LTR layout support. Language and direction preferences are persisted per session.
 - **Interactive System Terminal (New):** Execute host machine shell commands securely via a deeply integrated, high-performance web terminal interface natively connected to the backend.
 - **Real-Time Monitoring (WebSockets):** Efficiently stream process updates, container metrics, and **live container logs** to multiple clients.
 - **Background Synchronization:** A background manager periodically (every 10s) synchronizes the state of all containers on the host with the database.
