@@ -17,6 +17,7 @@ This application allows you to monitor hardware performance (CPU, GPU, RAM, Disk
 - **Docker Notifications:** Receive instant alerts via Discord, Telegram, or Custom Webhooks when containers start, stop, or restart, or when resource thresholds are exceeded.
 - **Docker Management & Auto-Discovery:** Automatically discover and persist running containers on the host, monitor their metrics, and stream live logs.
 - **Docker Volume Inspection (New):** Inspect detailed host-to-container volume and bind mount mappings for any running container.
+- **Docker Prune (New):** Forcefully remove containers and their associated volumes to reclaim system space.
 - **Resource Limits & Automated Actions:** Define CPU and Memory consumption thresholds for containers with automated response actions (Stop, Restart, etc.).
 - **Process Management:** View detailed information about running system processes, start new ones, and terminate existing ones.
 - **Site Health Monitoring:** Monitor external sites' availability and performance, logging status history (UP, Redirection, Not Found, Server Error).
@@ -213,6 +214,7 @@ For developers on **Mac, Windows, or Linux**, Docker provides an isolated enviro
 - `GET /docker/container/:id/status` - Get real-time container metrics (CPU %, Memory Usage/Limit, Network I/O, Block I/O, Pids)
 - `POST /docker/container/:id/:action` - Perform an action on a container (`start`, `stop`, `restart`)
 - `GET /docker/container/:id/get/volums` - (New) Inspect host-to-container volume mappings
+- `GET /docker/image/:id/prune` - (New) Forcefully remove a container and its volumes (Destructive)
 - `POST /docker/container` - Register/Create a new container management record
 - `PUT /docker/container/:id` - Update an existing container management record (e.g., update limits/policies)
 - `DELETE /docker/container/:id` - Remove a container management record
