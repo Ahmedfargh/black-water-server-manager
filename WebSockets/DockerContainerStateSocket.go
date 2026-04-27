@@ -3,7 +3,6 @@ package WebSockets
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"sync"
 	"time"
@@ -23,7 +22,15 @@ type DockerContainerStateSocket struct {
 	Register chan DockerContainerStateSocketClient
 }
 
-var DockerStateSocket DockerContainerStateSocket = DockerContainerStateSocket{}
+var DockerStateSocket = DockerContainerStateSocket{
+	Clients:  make(map[string][]*DockerContainerStateSocketClient),
+	Register: make(chan DockerContainerStateSocketClient, 10),
+}
+
+func init() {
+	go DockerStateSocket.RegisterClient()
+	go DockerStateSocket.WritePump()
+}
 
 func GetDocketContainerState() DockerContainerStateSocket {
 	return DockerStateSocket
@@ -50,14 +57,14 @@ func (dss *DockerContainerStateSocket) RegisterClient() {
 	for {
 		select {
 		case client := <-dss.Register:
-			dss.mu.RLock()
-			_, err := dss.Clients[client.ContainerId]
-			dss.mu.RUnlock()
-			if err {
-				dss.Clients[client.ContainerId] = make([]*DockerContainerStateSocketClient, 5)
-			} else {
-				dss.Clients[client.ContainerId] = append(dss.Clients[client.ContainerId], &client)
+			dss.mu.Lock()
+			if _, exists := dss.Clients[client.ContainerId]; !exists {
+				dss.Clients[client.ContainerId] = make([]*DockerContainerStateSocketClient, 0)
 			}
+			client.Send = make(chan []byte, 256)
+			dss.Clients[client.ContainerId] = append(dss.Clients[client.ContainerId], &client)
+			go client.SendToClient()
+			dss.mu.Unlock()
 		}
 	}
 }
@@ -74,28 +81,41 @@ func (dss *DockerContainerStateSocket) Connect(w http.ResponseWriter, r *http.Re
 	return nil
 }
 func (dss *DockerContainerStateSocket) WritePump() {
-	timer := time.NewTimer(time.Duration(5) * time.Second)
-	dockerServices, err := DockerService.NewDockerService()
-	fmt.Println(err)
+	ticker := time.NewTicker(5 * time.Second)
+	defer ticker.Stop()
+	
+	dockerServices, _ := DockerService.NewDockerService()
+	
 	for {
 		select {
-		case <-timer.C:
+		case <-ticker.C:
+			dss.mu.RLock()
 			for container_id, conns := range dss.Clients {
-				ctx := context.Background()
-				fmt.Println(len(conns))
+				if len(conns) == 0 {
+					continue
+				}
+				ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
 				container_status, err := dockerServices.ContainerStatus(ctx, container_id)
+				cancel()
+				
 				if err != nil {
 					continue
 				}
-				for k, client := range dss.Clients[container_id] {
-					data, err := json.Marshal(container_status)
-					if err != nil {
-						continue
+				
+				data, err := json.Marshal(container_status)
+				if err != nil {
+					continue
+				}
+				
+				for _, client := range conns {
+					select {
+					case client.Send <- data:
+					default:
+						// Client buffer full or disconnected
 					}
-					client.Send <- data
-					fmt.Println(k)
 				}
 			}
+			dss.mu.RUnlock()
 		}
 	}
 }

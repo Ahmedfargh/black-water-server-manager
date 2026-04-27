@@ -17,7 +17,7 @@ func RegisterRealTimeRoutes(router *gin.Engine) {
 	router.GET("/ws/docker/:containerId", MiddleWare.AuthMiddleware(), gin.WrapH(http.HandlerFunc(DockerRealTimeHandler)))
 	router.GET("/ws/docker/:containerId/logs", MiddleWare.AuthMiddleware(), gin.WrapH(http.HandlerFunc(DockerRealTimeLogsHandler)))
 	router.GET("/ws/terminal", MiddleWare.AuthMiddleware(), TerminalRealTimeHandler)
-	// router.GET("/ws/:container_id/status", MiddleWare.AuthMiddleware(), gin.WrapH(http.HandlerFunc(DockerStatusHandler)))
+	router.GET("/ws/:container_id/status", MiddleWare.AuthMiddleware(), gin.WrapH(http.HandlerFunc(DockerStatusHandler)))
 }
 
 // ProcessRealTimeHandler handles process-specific WebSocket connections

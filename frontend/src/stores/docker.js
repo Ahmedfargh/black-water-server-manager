@@ -7,7 +7,8 @@ export const useDockerStore = defineStore('docker', {
     loading: false,
     selectedContainer: null,
     logs: [],
-    volumes: []
+    volumes: [],
+    containerStats: {} // Store real-time stats by container ID
   }),
   actions: {
     async fetchContainers() {
@@ -53,6 +54,19 @@ export const useDockerStore = defineStore('docker', {
         throw error
       } finally {
         this.loading = false
+      }
+    },
+    updateContainerStats(id, stats) {
+      this.containerStats[id] = stats
+      
+      // Also update status in containers list if possible
+      // Note: ContainerStatus might only return stats, but we can infer 'Up' if we get stats
+      const container = this.containers.find(c => c.id === id)
+      if (container) {
+        // If we're getting stats, the container is likely running
+        if (!container.status.includes('Up')) {
+          container.status = 'Up (Live)'
+        }
       }
     }
   }

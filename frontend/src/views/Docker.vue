@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { 
   Box, 
@@ -23,11 +23,24 @@ const logsData = ref([])
 const showVolumes = ref(false)
 const selectedVolumesContainer = ref(null)
 let wsLogs
+const statusWebSockets = new Map()
 
-const fetchContainers = () => dockerStore.fetchContainers()
+const fetchContainers = async () => {
+  await dockerStore.fetchContainers()
+  // Connect status for each container
+  dockerStore.containers.forEach(container => {
+    connectStatus(container.id)
+  })
+}
 
 onMounted(() => {
   fetchContainers()
+})
+
+onUnmounted(() => {
+  if (wsLogs) wsLogs.close()
+  statusWebSockets.forEach(ws => ws.close())
+  statusWebSockets.clear()
 })
 
 const handleAction = async (id, action) => {
@@ -88,6 +101,44 @@ const connectLogs = (id) => {
     if (logsData.value.length > 100) logsData.value.shift()
   }
 }
+
+const connectStatus = (id) => {
+  if (statusWebSockets.has(id)) return // Already connected
+  
+  const authStore = useAuthStore()
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+  // Using query param as fallback for getContainerId backend logic
+  const wsUrl = `${protocol}//${window.location.host}/ws/${id}/status?containerId=${id}&token=${authStore.token}`
+  
+  const ws = new WebSocket(wsUrl)
+  ws.onmessage = (event) => {
+    try {
+      const stats = JSON.parse(event.data)
+      dockerStore.updateContainerStats(id, stats)
+    } catch (err) {
+      console.warn(`Failed to parse status for ${id}:`, err)
+    }
+  }
+  
+  ws.onerror = () => {
+    console.error(`Status WS error for ${id}`)
+    statusWebSockets.delete(id)
+  }
+  
+  ws.onclose = () => {
+    statusWebSockets.delete(id)
+  }
+  
+  statusWebSockets.set(id, ws)
+}
+
+const formatBytes = (bytes) => {
+  if (!bytes) return '0 B'
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+}
 </script>
 
 <template>
@@ -127,6 +178,24 @@ const connectLogs = (id) => {
            <div class="detail-row">
              <span class="label">{{ $t('docker.uptime') }}</span>
              <span class="value">{{ container.status }}</span>
+           </div>
+           
+           <!-- Real-time Stats -->
+           <div v-if="dockerStore.containerStats[container.id]" class="stats-grid">
+             <div class="stat-item">
+               <span class="stat-label">CPU</span>
+               <div class="stat-bar-container">
+                 <div class="stat-bar cpu" :style="{ width: dockerStore.containerStats[container.id].cpu_percentage + '%' }"></div>
+               </div>
+               <span class="stat-value">{{ dockerStore.containerStats[container.id].cpu_percentage.toFixed(1) }}%</span>
+             </div>
+             <div class="stat-item">
+               <span class="stat-label">MEM</span>
+               <div class="stat-bar-container">
+                 <div class="stat-bar mem" :style="{ width: dockerStore.containerStats[container.id].memory_percentage + '%' }"></div>
+               </div>
+               <span class="stat-value">{{ formatBytes(dockerStore.containerStats[container.id].memory_usage) }}</span>
+             </div>
            </div>
         </div>
 
@@ -325,6 +394,50 @@ const connectLogs = (id) => {
 
 .detail-row .value {
   font-family: var(--font-data);
+}
+
+.stats-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.8rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.stat-item {
+  display: grid;
+  grid-template-columns: 40px 1fr 60px;
+  align-items: center;
+  gap: 0.8rem;
+  font-size: 0.75rem;
+  font-family: var(--font-data);
+}
+
+.stat-label {
+  color: var(--text-secondary);
+}
+
+.stat-bar-container {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.stat-bar {
+  height: 100%;
+  transition: width 0.5s ease;
+}
+
+.stat-bar.cpu { background: var(--neon-cyan); box-shadow: 0 0 5px var(--neon-cyan); }
+.stat-bar.mem { background: var(--neon-purple, #bc13fe); box-shadow: 0 0 5px var(--neon-purple, #bc13fe); }
+
+.stat-value {
+  text-align: right;
+  color: var(--text-primary);
+  font-size: 0.7rem;
 }
 
 .card-actions {
