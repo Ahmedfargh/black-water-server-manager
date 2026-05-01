@@ -17,7 +17,8 @@ import {
   Menu,
   X,
   BarChart3,
-  Languages
+  Languages,
+  FolderClosed
 } from 'lucide-vue-next'
 import { useAuthStore } from '../stores/auth'
 import { useToastStore } from '../stores/toast'
@@ -92,6 +93,7 @@ const menuItems = computed(() => [
   { name: t('nav.users'), path: '/users', icon: Users },
   { name: t('nav.audit_logs'), path: '/audit', icon: History },
   { name: t('nav.reports'), path: '/reports', icon: BarChart3 },
+  { name: t('nav.files'), path: '/files', icon: FolderClosed },
 ])
 
 const toggleLanguage = () => {

@@ -105,6 +105,7 @@ func setupRouter(u *crud.UserCRUD, a *service.AuthService, r *crud.RoleCRUD) *gi
 	routes.AuditRoutes(router)
 	routes.SiteRoutes(router)
 	routes.RegisterHardwareReportRoutes(router)
+	routes.RegisterFileSystemRoutes(router)
 	return router
 }
 

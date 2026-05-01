@@ -62,6 +62,11 @@ const routes = [
         path: 'reports',
         name: 'Reports',
         component: () => import('../views/HardwareReports.vue'),
+      },
+      {
+        path: 'files',
+        name: 'Files',
+        component: () => import('../views/FileManager.vue'),
       }
     ]
   }

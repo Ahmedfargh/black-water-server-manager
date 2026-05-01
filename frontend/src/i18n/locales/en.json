@@ -18,6 +18,7 @@
     "users": "Users",
     "audit_logs": "Audit Logs",
     "reports": "Reports",
+    "files": "File Manager",
     "profile": "Profile",
     "logout": "LOGOUT",
     "login": "Login"
@@ -210,5 +211,17 @@
     "disk_loaded": "DISK LOADED",
     "upload": "UPLOAD",
     "download": "DOWNLOAD"
+  },
+  "files": {
+    "title": "SECURE FILE SYSTEM",
+    "path": "PATH",
+    "name": "NAME",
+    "size": "SIZE",
+    "type": "TYPE",
+    "back": "BACK",
+    "empty": "NO FILES DETECTED IN THIS SECTOR",
+    "dir": "DIRECTORY",
+    "file": "FILE",
+    "loading": "RETRIVING FILE SYSTEM DATA..."
   }
 }

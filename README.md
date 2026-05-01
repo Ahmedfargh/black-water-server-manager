@@ -25,6 +25,7 @@ This application allows you to monitor hardware performance (CPU, GPU, RAM, Disk
 - **System Audit Logging:** Track and persist administrative actions, such as Firewall state changes, for security and compliance.
 - **Internationalization (i18n) & RTL Support (New):** Full UI localization into English and Arabic with native RTL/LTR layout support. Language and direction preferences are persisted per session.
 - **Interactive System Terminal (New):** Execute host machine shell commands securely via a deeply integrated, high-performance web terminal interface natively connected to the backend.
+- **Advanced File Management (New):** Browse the server's filesystem through a secure, high-performance glassmorphism interface. Supports directory navigation, hidden file toggling, and permission (mode) inspection.
 - **Real-Time Monitoring (WebSockets):** Efficiently stream process updates, container metrics, and **live container logs** to multiple clients.
 - **Background Synchronization:** A background manager periodically (every 10s) synchronizes the state of all containers on the host with the database.
 - **User Authentication:** Secure JWT-based login and registration.
@@ -208,6 +209,10 @@ For developers on **Mac, Windows, or Linux**, Docker provides an isolated enviro
 
 - `GET /audit/list` - List system audit logs (supports `page`, `limit`, and `type` filters)
 
+### File System Management (Requires Auth)
+
+- `GET /filesystem/browse` - Browse directories and list files (supports `path` query parameter)
+
 ### Docker Management (Requires Auth)
 
 - `GET /docker/containers` - List all containers running on the host
@@ -321,6 +326,7 @@ To support large-scale monitoring without overwhelming the host, Blackwater impl
 | `view_audit_logs`      | Access and filter system audit logs        |
 | `site_create`          | Create new sites for health monitoring     |
 | `site_read`            | View monitored sites and health checkups   |
+| `browse_filesystem`    | Browse the server's filesystem and directories |
 
 ---
 
