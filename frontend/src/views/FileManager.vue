@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { 
   Folder, 
@@ -8,10 +8,14 @@ import {
   RefreshCw, 
   Search, 
   ArrowUp,
-  HardDrive
+  HardDrive,
+  Copy,
+  ClipboardPaste,
+  X
 } from 'lucide-vue-next'
 import api from '../api'
 import { useToastStore } from '../stores/toast'
+import { useAuthStore } from '../stores/auth'
 
 const { t } = useI18n()
 const toast = useToastStore()
@@ -21,6 +25,87 @@ const files = ref([])
 const isLoading = ref(false)
 const searchQuery = ref('')
 const showHidden = ref(false)
+const authStore = useAuthStore()
+
+// WebSocket & Copy logic
+const ws = ref(null)
+const copySource = ref(null) // { name, path, is_dir }
+const isCopying = ref(false)
+const copyProgress = ref('')
+
+const connectWS = () => {
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+  const wsUrl = `${protocol}//${window.location.host}/ws/file-system?token=${authStore.token}`
+  
+  ws.value = new WebSocket(wsUrl)
+  
+  ws.value.onmessage = (event) => {
+    if (event.data === 'no signal from copying routine') {
+      isCopying.value = false
+      copySource.value = null
+      fetchFiles()
+      toast.success(t('files.copy_success'))
+      return
+    }
+
+    try {
+      const data = JSON.parse(event.data)
+      if (data.event_type === 'copying_file') {
+        copyProgress.value = `${t('files.copying')}: ${data.path}`
+      } else if (data.message) {
+        copyProgress.value = data.message
+      }
+    } catch (e) {
+      // If it's not JSON and not the specific "no signal" message, just log it
+      if (typeof event.data === 'string') {
+        copyProgress.value = event.data
+      }
+    }
+  }
+  
+  ws.value.onclose = () => {
+    console.log('File system WS closed, reconnecting...')
+    setTimeout(connectWS, 3000)
+  }
+  
+  ws.value.onerror = (err) => {
+    console.error('File system WS error:', err)
+  }
+}
+
+const initiateCopy = (file) => {
+  const separator = currentPath.value.endsWith('/') ? '' : '/'
+  copySource.value = {
+    name: file.name,
+    path: `${currentPath.value}${separator}${file.name}`,
+    is_dir: file.is_dir
+  }
+}
+
+const cancelCopy = () => {
+  copySource.value = null
+}
+
+const paste = () => {
+  if (!copySource.value || !ws.value || ws.value.readyState !== WebSocket.OPEN) {
+    if (!ws.value || ws.value.readyState !== WebSocket.OPEN) {
+        toast.error(t('terminal.socket_error'))
+    }
+    return
+  }
+  
+  const separator = currentPath.value.endsWith('/') ? '' : '/'
+  const dst = `${currentPath.value}${separator}${copySource.value.name}`
+  
+  isCopying.value = true
+  copyProgress.value = t('files.copying')
+  
+  ws.value.send(JSON.stringify({
+    action: 'copy',
+    src: copySource.value.path,
+    dst: dst
+  }))
+}
 
 const fetchFiles = async (path = currentPath.value) => {
   isLoading.value = true
@@ -92,6 +177,13 @@ const sortedFiles = computed(() => {
 
 onMounted(() => {
   fetchFiles()
+  connectWS()
+})
+
+onUnmounted(() => {
+  if (ws.value) {
+    ws.value.close()
+  }
 })
 
 const breadcrumbs = computed(() => {
@@ -139,6 +231,24 @@ const navigateToPath = (path) => {
       </div>
     </div>
 
+    <!-- Copy Status Bar -->
+    <div v-if="copySource" class="copy-bar glass-card">
+      <div class="copy-info">
+        <Copy :size="16" class="glow-cyan" />
+        <span class="copy-label">{{ $t('files.copy') }}:</span>
+        <span class="copy-path">{{ copySource.name }}</span>
+      </div>
+      <div class="copy-actions">
+        <button @click="paste" class="paste-btn">
+          <ClipboardPaste :size="16" />
+          <span>{{ $t('files.paste') }}</span>
+        </button>
+        <button @click="cancelCopy" class="cancel-btn">
+          <X :size="16" />
+        </button>
+      </div>
+    </div>
+
     <div class="breadcrumb-container glass-card">
       <button @click="goBack" class="back-btn" :disabled="currentPath === '/'">
         <ChevronLeft :size="20" />
@@ -161,6 +271,14 @@ const navigateToPath = (path) => {
     <div class="files-container glass-card">
       <div v-if="isLoading" class="loading-overlay">
         <div class="glitch-text">{{ $t('files.loading') }}</div>
+      </div>
+
+      <div v-if="isCopying" class="loading-overlay copying-overlay">
+        <div class="copy-progress-container">
+           <div class="glitch-text">{{ $t('files.copying') }}</div>
+           <div class="progress-msg">{{ copyProgress }}</div>
+           <div class="loader-line"></div>
+        </div>
       </div>
 
       <div class="table-scroll">
@@ -203,8 +321,15 @@ const navigateToPath = (path) => {
               </td>
               <td class="actions-cell">
                 <button 
+                  class="action-btn copy-btn"
+                  @click.stop="initiateCopy(file)"
+                  :title="$t('files.copy')"
+                >
+                  <Copy :size="16" />
+                </button>
+                <button 
                   v-if="file.is_dir" 
-                  @click="navigateTo(file)" 
+                  @click.stop="navigateTo(file)" 
                   class="action-btn view-btn"
                   :title="$t('common.view')"
                 >
@@ -544,7 +669,130 @@ const navigateToPath = (path) => {
   transform: rotate(-90deg);
 }
 
-/* Glass Card Utility - copied from common styles if needed, but defined here for safety */
+/* Copy Bar Styling */
+.copy-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 1.5rem;
+  background: rgba(0, 242, 255, 0.05);
+  border-left: 4px solid var(--neon-cyan);
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.copy-info {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.copy-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+.copy-path {
+  font-family: var(--font-data);
+  color: var(--neon-cyan);
+  font-size: 0.9rem;
+}
+
+.copy-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.paste-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--neon-cyan);
+  color: #000;
+  border: none;
+  padding: 0.4rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+}
+
+.paste-btn:hover {
+  box-shadow: 0 0 15px var(--neon-cyan);
+  transform: translateY(-1px);
+}
+
+.cancel-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+  padding: 0.4rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.cancel-btn:hover {
+  color: var(--neon-red, #ff3131);
+  border-color: var(--neon-red, #ff3131);
+}
+
+/* Copying Overlay */
+.copy-progress-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  width: 80%;
+  max-width: 400px;
+}
+
+.progress-msg {
+  font-family: var(--font-data);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  text-align: center;
+  word-break: break-all;
+}
+
+.loader-line {
+  width: 100%;
+  height: 2px;
+  background: rgba(0, 242, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.loader-line::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 30%;
+  background: var(--neon-cyan);
+  box-shadow: 0 0 10px var(--neon-cyan);
+  animation: loadingLine 1.5s infinite linear;
+}
+
+@keyframes loadingLine {
+  from { left: -30%; }
+  to { left: 100%; }
+}
+
+.copy-btn:hover {
+  color: var(--neon-cyan);
+  border-color: var(--neon-cyan);
+}
+
+/* Glass Card Utility */
 .glass-card {
   background: var(--bg-card);
   backdrop-filter: blur(20px);

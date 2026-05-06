@@ -18,6 +18,7 @@ func RegisterRealTimeRoutes(router *gin.Engine) {
 	router.GET("/ws/docker/:containerId/logs", MiddleWare.AuthMiddleware(), gin.WrapH(http.HandlerFunc(DockerRealTimeLogsHandler)))
 	router.GET("/ws/terminal", MiddleWare.AuthMiddleware(), TerminalRealTimeHandler)
 	router.GET("/ws/:container_id/status", MiddleWare.AuthMiddleware(), gin.WrapH(http.HandlerFunc(DockerStatusHandler)))
+	router.GET("/ws/file-system", MiddleWare.AuthMiddleware(), gin.WrapH(http.HandlerFunc(FileSystemRealTimeHandler)))
 }
 
 // ProcessRealTimeHandler handles process-specific WebSocket connections
@@ -111,4 +112,13 @@ func TerminalRealTimeHandler(c *gin.Context) {
 func DockerStatusHandler(w http.ResponseWriter, r *http.Request) {
 	container_id := getContainerId(r)
 	WebSockets.DockerStateSocket.Connect(w, r, container_id)
+}
+func FileSystemRealTimeHandler(w http.ResponseWriter, r *http.Request) {
+	channel := WebSockets.NewFileChannel()
+	err := channel.Connect(w, r)
+	if err != nil {
+		// Connection failed, send an error response if it hasn't been hijacked yet
+		http.Error(w, "Failed to connect to WebSocket", http.StatusInternalServerError)
+		return
+	}
 }

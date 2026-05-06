@@ -222,6 +222,11 @@
     "empty": "NO FILES DETECTED IN THIS SECTOR",
     "dir": "DIRECTORY",
     "file": "FILE",
-    "loading": "RETRIVING FILE SYSTEM DATA..."
+    "loading": "RETRIVING FILE SYSTEM DATA...",
+    "copy": "COPY",
+    "paste": "PASTE",
+    "copying": "COPYING...",
+    "copy_success": "FILE SYSTEM OPERATION SUCCESSFUL",
+    "copy_failed": "FILE SYSTEM OPERATION FAILED"
   }
 }
