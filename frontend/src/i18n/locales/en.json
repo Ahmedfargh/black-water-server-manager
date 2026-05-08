@@ -132,6 +132,19 @@
     "account_active": "ACCOUNT ACTIVE",
     "save_record": "SAVE RECORD"
   },
+  "auth": {
+    "verify_email": "EMAIL VERIFICATION",
+    "verify_otp": "SECURITY VERIFICATION",
+    "verification_code": "VERIFICATION CODE",
+    "code_sent": "A secure code has been dispatched to your registered email.",
+    "enter_code": "ENTER 6-DIGIT CODE",
+    "verify": "VERIFY",
+    "resend_code": "RESEND CODE",
+    "code_resent": "NEW CODE DISPATCHED",
+    "email_verified": "EMAIL VERIFIED: Access pending.",
+    "verification_failed": "VERIFICATION FAILED: Invalid code.",
+    "otp_required": "OTP REQUIRED: Secure access enabled."
+  },
   "audit": {
     "logs_grid": "SYSTEM AUDIT LOGS",
     "all_events": "ALL EVENTS",

@@ -1,6 +1,8 @@
 package Models
 
 import (
+	"time"
+
 	config "github.com/ahmedfargh/server-manager/Config"
 	"gorm.io/gorm"
 )
@@ -22,6 +24,10 @@ type User struct {
 	DiscordBotToken    string       `json:"discord_bot_token" default:"null"`
 	WebHookURL         string       `json:"webhook_url" default:"null"`
 	WebHookSecret      string       `json:"webhook_secret" default:"null"`
+	OTPSecret          string       `json:"otp_secret" default:"null"`
+	OTPEnabled         bool         `gorm:"default:false" json:"otp_enabled" form:"otp_enabled"`
+	EmailVerified      bool         `gorm:"default:false" json:"email_verified" form:"email_verified"`
+	EmailVerifiedAt    *time.Time   `json:"email_verified_at"`
 }
 
 func (User) TableName() string {
@@ -45,8 +51,11 @@ func (u User) ToMap() map[string]interface{} {
 		"discord_bot_token":   u.DiscordBotToken,
 		"webhook_url":         u.WebHookURL,
 		"webhook_secret":      u.WebHookSecret,
+		"otp_enabled":         u.OTPEnabled,
+		"email_verified":      u.EmailVerified,
 	}
 }
+
 func (u User) HasPermission(permission string) bool {
 	for _, p := range u.Permissions {
 		if p.Name == permission {

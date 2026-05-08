@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackwater Server Manager - OTP Code</title>
+    <style>
+        body, table, td, p, a, li, blockquote {
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+        }
+        table, td {
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt;
+        }
+        img {
+            -ms-interpolation-mode: bicubic;
+        }
+
+        body {
+            margin: 0 !important;
+            padding: 0 !important;
+            background-color: #05070a;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .email-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #05070a;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #00f2ff 0%, #0080ff 100%);
+            padding: 30px 20px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .logo-text {
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: bold;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            color: #ffffff;
+            font-size: 14px;
+            margin: 8px 0 0 0;
+            opacity: 0.9;
+        }
+
+        .content {
+            background-color: rgba(10, 18, 25, 0.95);
+            border: 1px solid rgba(0, 242, 255, 0.3);
+            border-radius: 0 0 8px 8px;
+            padding: 40px 30px;
+            margin: 0 20px 20px 20px;
+        }
+
+        .greeting {
+            color: #00f2ff;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .otp-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .otp-title {
+            color: #00f2ff;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0 0 20px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .otp-code {
+            background: linear-gradient(135deg, rgba(0, 242, 255, 0.1) 0%, rgba(0, 242, 255, 0.05) 100%);
+            border: 2px solid #00f2ff;
+            border-radius: 8px;
+            padding: 25px 20px;
+            margin: 20px 0;
+            display: inline-block;
+            min-width: 200px;
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
+        }
+
+        .otp-digits {
+            font-family: 'Courier New', monospace;
+            font-size: 32px;
+            font-weight: bold;
+            color: #00f2ff;
+            letter-spacing: 8px;
+            margin: 0;
+            text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+        }
+
+        .otp-note {
+            color: rgba(224, 250, 255, 0.7);
+            font-size: 12px;
+            margin: 15px 0 0 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-section {
+            background-color: rgba(0, 242, 255, 0.05);
+            border: 1px solid rgba(0, 242, 255, 0.2);
+            border-radius: 6px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+
+        .status-grid {
+            display: table;
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .status-item {
+            display: table-cell;
+            text-align: center;
+            padding: 0 10px;
+        }
+
+        .status-label {
+            color: rgba(224, 250, 255, 0.6);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .status-value {
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            font-weight: bold;
+            color: #00f2ff;
+            text-shadow: 0 0 8px rgba(0, 242, 255, 0.3);
+        }
+
+        .instructions {
+            background-color: rgba(255, 140, 0, 0.05);
+            border: 1px solid rgba(255, 140, 0, 0.2);
+            border-radius: 6px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+
+        .instructions-title {
+            color: #ff8c00;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 0 0 15px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .instruction-item {
+            color: rgba(224, 250, 255, 0.8);
+            font-size: 13px;
+            margin: 8px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .instruction-item:before {
+            content: "→";
+            color: #ff8c00;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        .security-notice {
+            background-color: rgba(255, 49, 49, 0.05);
+            border: 1px solid rgba(255, 49, 49, 0.2);
+            border-radius: 6px;
+            padding: 15px;
+            margin: 25px 0;
+            text-align: center;
+        }
+
+        .security-text {
+            color: rgba(224, 250, 255, 0.8);
+            font-size: 12px;
+            margin: 5px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .security-highlight {
+            color: #ff3131;
+            font-weight: bold;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: rgba(224, 250, 255, 0.5);
+            font-size: 11px;
+        }
+
+        .footer a {
+            color: #00f2ff;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media only screen and (max-width: 600px) {
+            .email-container {
+                width: 100% !important;
+            }
+
+            .content {
+                margin: 0 10px 10px 10px !important;
+                padding: 30px 20px !important;
+            }
+
+            .header {
+                padding: 20px 15px !important;
+            }
+
+            .logo-text {
+                font-size: 24px !important;
+            }
+
+            .otp-digits {
+                font-size: 28px !important;
+                letter-spacing: 6px !important;
+            }
+
+            .status-grid {
+                display: block !important;
+            }
+
+            .status-item {
+                display: block !important;
+                margin-bottom: 15px !important;
+                padding: 0 !important;
+            }
+
+            .status-item:last-child {
+                margin-bottom: 0 !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1 class="logo-text">BLACKWATER</h1>
+            <p class="subtitle">Server Manager - Security Verification</p>
+        </div>
+
+        <div class="content">
+            <div class="greeting">Hello {{.Username}},</div>
+
+            <div class="otp-section">
+                <h2 class="otp-title">Your One-Time Password</h2>
+
+                <div class="otp-code">
+                    <div class="otp-digits">{{.OTPCode}}</div>
+                </div>
+
+                <p class="otp-note">Valid for {{.ValidityMinutes}} minutes • Do not share this code</p>
+            </div>
+
+            <div class="status-section">
+                <div class="status-grid">
+                    <div class="status-item">
+                        <span class="status-label">Status</span>
+                        <span class="status-value">ACTIVE</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Expires</span>
+                        <span class="status-value">{{.ExpiresAt}}</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Generated</span>
+                        <span class="status-value">{{.GeneratedAt}}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="instructions">
+                <h3 class="instructions-title">How to Use</h3>
+                <div class="instruction-item">Enter this code in your login form</div>
+                <div class="instruction-item">The code is valid for {{.ValidityMinutes}} minutes only</div>
+                <div class="instruction-item">Each code can only be used once</div>
+                <div class="instruction-item">Contact support if you didn't request this code</div>
+            </div>
+
+            <div class="security-notice">
+                <p class="security-text"><span class="security-highlight">⚠️ Security Alert:</span> Never share this code with anyone</p>
+                <p class="security-text">If you didn't request this verification, please ignore this email</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>This is an automated message from Blackwater Server Manager</p>
+            <p>For support: <a href="mailto:support@blackwater.sys">support@blackwater.sys</a></p>
+            <p>&copy; {{.CurrentYear}} Blackwater Systems. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

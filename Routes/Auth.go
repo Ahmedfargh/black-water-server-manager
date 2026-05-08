@@ -12,6 +12,10 @@ import (
 func AuthRoutes(router *gin.Engine, userCRUD *crud.UserCRUD, authService *service.AuthService, roleCRUD *crud.RoleCRUD) {
 	router.POST("/login", authentication.Login(authService))
 	router.POST("/register", authentication.Register(authService))
+	router.POST("/verify-email", authentication.VerifyEmail(authService))
+	router.POST("/resend-verification", authentication.ResendVerification(authService))
+	router.POST("/verify-otp", authentication.VerifyOTP(authService))
+	router.POST("/resend-otp", authentication.ResendOTP(authService))
 
 	authenticated := router.Group("/users").Use(authentication.AuthMiddleware())
 	{

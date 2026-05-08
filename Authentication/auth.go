@@ -27,6 +27,29 @@ func Login(authService *service.AuthService) gin.HandlerFunc {
 			c.JSON(401, gin.H{"error": "invalid credentials"})
 			return
 		}
+
+		// Check if email verification is required
+		if requiresVerification, ok := userResponse["requires_verification"].(bool); ok && requiresVerification {
+			c.JSON(200, gin.H{
+				"requires_verification": true,
+				"user_id":               userResponse["user_id"],
+				"email":                 userResponse["email"],
+				"username":              userResponse["username"],
+			})
+			return
+		}
+
+		// Check if OTP is enabled
+		if requiresOTP, ok := userResponse["requires_otp"].(bool); ok && requiresOTP {
+			c.JSON(200, gin.H{
+				"requires_otp": true,
+				"user_id":      userResponse["user_id"],
+				"email":        userResponse["email"],
+				"username":     userResponse["username"],
+			})
+			return
+		}
+
 		c.JSON(200, userResponse)
 	}
 }
@@ -42,7 +65,90 @@ func Register(authService *service.AuthService) gin.HandlerFunc {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(201, user)
+		c.JSON(201, gin.H{
+			"message": "User registered successfully. Please check your email for verification code.",
+			"user":    user,
+		})
+	}
+}
+
+func VerifyEmail(authService *service.AuthService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var request struct {
+			UserID uint   `json:"user_id" binding:"required"`
+			Code   string `json:"code" binding:"required"`
+		}
+		if err := c.ShouldBindJSON(&request); err != nil {
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+
+		if err := authService.VerifyEmail(request.UserID, request.Code); err != nil {
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(200, gin.H{"message": "Email verified successfully"})
+	}
+}
+
+func ResendVerification(authService *service.AuthService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var request struct {
+			UserID uint `json:"user_id" binding:"required"`
+		}
+		if err := c.ShouldBindJSON(&request); err != nil {
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+
+		if err := authService.ResendVerificationCode(request.UserID); err != nil {
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(200, gin.H{"message": "Verification code sent successfully"})
+	}
+}
+
+func VerifyOTP(authService *service.AuthService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var request struct {
+			UserID uint   `json:"user_id" binding:"required"`
+			Code   string `json:"code" binding:"required"`
+		}
+		if err := c.ShouldBindJSON(&request); err != nil {
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+
+		userResponse, err := authService.VerifyOTP(request.UserID, request.Code)
+		if err != nil {
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(200, userResponse)
+	}
+}
+
+func ResendOTP(authService *service.AuthService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var request struct {
+			UserID uint `json:"user_id" binding:"required"`
+		}
+		if err := c.ShouldBindJSON(&request); err != nil {
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+
+		success, err := authService.GenerateVerificationCode(request.UserID)
+		if err != nil || !success {
+			c.JSON(400, gin.H{"error": "failed to resend OTP"})
+			return
+		}
+
+		c.JSON(200, gin.H{"message": "OTP sent successfully"})
 	}
 }
 

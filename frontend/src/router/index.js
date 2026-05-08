@@ -9,6 +9,18 @@ const routes = [
     meta: { requiresAuth: false }
   },
   {
+    path: '/verify-email',
+    name: 'VerifyEmail',
+    component: () => import('../views/VerifyEmail.vue'),
+    meta: { requiresAuth: false }
+  },
+  {
+    path: '/verify-otp',
+    name: 'VerifyOTP',
+    component: () => import('../views/VerifyOTP.vue'),
+    meta: { requiresAuth: false }
+  },
+  {
     path: '/',
     component: () => import('../views/Layout.vue'),
     meta: { requiresAuth: true },

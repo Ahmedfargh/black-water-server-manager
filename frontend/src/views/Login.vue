@@ -18,7 +18,23 @@ const handleLogin = async () => {
   isLoading.value = true
   error.value = ''
   try {
-    await authStore.login(email.value, password.value)
+    const data = await authStore.login(email.value, password.value)
+    if (data.requires_verification) {
+      toast.info(t('auth.code_sent'))
+      router.push({ 
+        name: 'VerifyEmail', 
+        query: { user_id: data.user_id, email: data.email } 
+      })
+      return
+    }
+    if (data.requires_otp) {
+      toast.info(t('auth.otp_required'))
+      router.push({ 
+        name: 'VerifyOTP', 
+        query: { user_id: data.user_id, email: data.email } 
+      })
+      return
+    }
     toast.success(t('common.uplink_established'))
     router.push('/')
   } catch (err) {

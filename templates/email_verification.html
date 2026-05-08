@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackwater Server Manager - Email Verification</title>
+    <style>
+        body, table, td, p, a, li, blockquote {
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+        }
+        table, td {
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt;
+        }
+        img {
+            -ms-interpolation-mode: bicubic;
+        }
+
+        body {
+            margin: 0 !important;
+            padding: 0 !important;
+            background-color: #05070a;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .email-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #05070a;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #00f2ff 0%, #0080ff 100%);
+            padding: 30px 20px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .logo-text {
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: bold;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            color: #ffffff;
+            font-size: 14px;
+            margin: 8px 0 0 0;
+            opacity: 0.9;
+        }
+
+        .content {
+            background-color: rgba(10, 18, 25, 0.95);
+            border: 1px solid rgba(0, 242, 255, 0.3);
+            border-radius: 0 0 8px 8px;
+            padding: 40px 30px;
+            margin: 0 20px 20px 20px;
+        }
+
+        .greeting {
+            color: #00f2ff;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .message {
+            color: rgba(224, 250, 255, 0.9);
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .otp-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .otp-title {
+            color: #00f2ff;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0 0 20px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .otp-code {
+            background: linear-gradient(135deg, rgba(0, 242, 255, 0.1) 0%, rgba(0, 242, 255, 0.05) 100%);
+            border: 2px solid #00f2ff;
+            border-radius: 8px;
+            padding: 25px 20px;
+            margin: 20px 0;
+            display: inline-block;
+            min-width: 200px;
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
+        }
+
+        .otp-digits {
+            font-family: 'Courier New', monospace;
+            font-size: 32px;
+            font-weight: bold;
+            color: #00f2ff;
+            letter-spacing: 8px;
+            margin: 0;
+            text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+        }
+
+        .otp-note {
+            color: rgba(224, 250, 255, 0.7);
+            font-size: 12px;
+            margin: 15px 0 0 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .action-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #00f2ff, #0080ff);
+            color: #ffffff;
+            text-decoration: none;
+            padding: 15px 30px;
+            border-radius: 6px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(0, 242, 255, 0.3);
+        }
+
+        .action-button:hover {
+            background: linear-gradient(135deg, #0080ff, #00f2ff);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: rgba(224, 250, 255, 0.5);
+            font-size: 11px;
+        }
+
+        .footer a {
+            color: #00f2ff;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media only screen and (max-width: 600px) {
+            .email-container {
+                width: 100% !important;
+            }
+
+            .content {
+                margin: 0 10px 10px 10px !important;
+                padding: 30px 20px !important;
+            }
+
+            .header {
+                padding: 20px 15px !important;
+            }
+
+            .logo-text {
+                font-size: 24px !important;
+            }
+
+            .otp-digits {
+                font-size: 28px !important;
+                letter-spacing: 6px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1 class="logo-text">BLACKWATER</h1>
+            <p class="subtitle">Server Manager - Email Verification</p>
+        </div>
+
+        <div class="content">
+            <div class="greeting">Hello {{.Username}},</div>
+
+            <div class="message">
+                Welcome to Blackwater Server Manager! To complete your account setup and secure access to the system, please verify your email address using the code below.
+            </div>
+
+            <div class="otp-section">
+                <h2 class="otp-title">Your Verification Code</h2>
+
+                <div class="otp-code">
+                    <div class="otp-digits">{{.OTPCode}}</div>
+                </div>
+
+                <p class="otp-note">Valid for {{.ValidityMinutes}} minutes • Do not share this code</p>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="#" class="action-button">Verify Email Address</a>
+            </div>
+
+            <div style="background-color: rgba(255, 49, 49, 0.05); border: 1px solid rgba(255, 49, 49, 0.2); border-radius: 6px; padding: 15px; margin: 25px 0; text-align: center;">
+                <p style="color: rgba(224, 250, 255, 0.8); font-size: 12px; margin: 5px 0; text-transform: uppercase; letter-spacing: 0.5px;">
+                    <span style="color: #ff3131; font-weight: bold;">⚠️ Security Alert:</span> Never share this code with anyone
+                </p>
+                <p style="color: rgba(224, 250, 255, 0.8); font-size: 12px; margin: 5px 0; text-transform: uppercase; letter-spacing: 0.5px;">
+                    If you didn't create this account, please ignore this email
+                </p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>This is an automated message from Blackwater Server Manager</p>
+            <p>For support: <a href="mailto:support@blackwater.sys">support@blackwater.sys</a></p>
+            <p>&copy; {{.CurrentYear}} Blackwater Systems. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

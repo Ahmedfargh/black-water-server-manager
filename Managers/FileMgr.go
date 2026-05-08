@@ -48,6 +48,7 @@ func (fm *FileManager) ListDirectory(dirPath string) ([]FileInfo, error) {
 }
 func (fm *FileManager) CopyDirectory(srcPath string, dstPath string, progress chan FileSystemEvent) error {
 	state, err := os.Stat(srcPath)
+
 	fmt.Println("src", srcPath, "\n dst:-", dstPath)
 	if err != nil {
 		fmt.Println(err)

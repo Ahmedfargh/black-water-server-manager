@@ -21,11 +21,52 @@ export const useAuthStore = defineStore('auth', {
     async login(email, password) {
       try {
         const response = await api.post('/login', { email, password })
-        this.token = response.data.token
-        this.user = response.data.user
-        this.isAuthenticated = true
-        localStorage.setItem('token', this.token)
-        localStorage.setItem('user', JSON.stringify(this.user))
+        if (response.data.token) {
+          this.token = response.data.token
+          this.user = response.data.user
+          this.isAuthenticated = true
+          localStorage.setItem('token', this.token)
+          localStorage.setItem('user', JSON.stringify(this.user))
+        }
+        return response.data
+      } catch (error) {
+        throw error
+      }
+    },
+    async verifyOTP(userId, code) {
+      try {
+        const response = await api.post('/verify-otp', { user_id: Number(userId), code })
+        if (response.data.token) {
+          this.token = response.data.token
+          this.user = response.data.user
+          this.isAuthenticated = true
+          localStorage.setItem('token', this.token)
+          localStorage.setItem('user', JSON.stringify(this.user))
+        }
+        return response.data
+      } catch (error) {
+        throw error
+      }
+    },
+    async resendOTP(userId) {
+      try {
+        const response = await api.post('/resend-otp', { user_id: Number(userId) })
+        return response.data
+      } catch (error) {
+        throw error
+      }
+    },
+    async verifyEmail(userId, code) {
+      try {
+        const response = await api.post('/verify-email', { user_id: Number(userId), code })
+        return response.data
+      } catch (error) {
+        throw error
+      }
+    },
+    async resendEmail(userId) {
+      try {
+        const response = await api.post('/resend-verification', { user_id: Number(userId) })
         return response.data
       } catch (error) {
         throw error
