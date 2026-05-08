@@ -28,9 +28,8 @@ This application allows you to monitor hardware performance (CPU, GPU, RAM, Disk
 - **Advanced File Management (New):** Browse the server's filesystem through a secure, high-performance glassmorphism interface. Supports directory navigation, hidden file toggling, and permission (mode) inspection.
 - **Real-Time Monitoring (WebSockets):** Efficiently stream process updates, container metrics, and **live container logs** to multiple clients.
 - **Background Synchronization:** A background manager periodically (every 10s) synchronizes the state of all containers on the host with the database.
-- **User Authentication:** Secure JWT-based login and registration.
-- **Role-Based Access Control (RBAC):** Granular control over system features using roles and permissions.
 - **Database Seeding:** Quick setup with initial roles, permissions, and default admin user.
+- **Two-Factor Authentication (OTP) & Email Verification (New):** Enhanced security with mandatory email verification upon registration and optional OTP for secure login, including a 5-minute security grace period.
 - **Static File Serving:** Built-in support for handling file uploads.
 
 ## 🌐 Microservice Integration
@@ -174,8 +173,12 @@ For developers on **Mac, Windows, or Linux**, Docker provides an isolated enviro
 
 ### Authentication
 
-- `POST /login` - User login
-- `POST /register` - User registration
+- `POST /login` - User login (detects OTP requirement)
+- `POST /register` - User registration (triggers initial email verification)
+- `POST /verify-email` - (New) Verify registration identity via email code
+- `POST /resend-verification` - (New) Request a new email verification code
+- `POST /verify-otp` - (New) Complete 2FA login verification
+- `POST /resend-otp` - (New) Request a new OTP code
 
 ### User Management (Requires Auth)
 
