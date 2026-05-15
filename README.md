@@ -12,7 +12,9 @@ This application allows you to monitor hardware performance (CPU, GPU, RAM, Disk
 - **Hardware Monitoring:** Real-time information about CPU, GPU, RAM, Disk, and Network usage.
 - **Historical Hardware Reports:** Analyze detailed historical performance data for CPU, Memory, and Disk usage over time with average usage insights and interactive trends.
 - **Firewall Management:** Multi-distro support for Debian/Ubuntu (UFW), Arch Linux (UFW), and Red Hat-based distributions (Firewalld).
-- **Audit Logging:** Automatically record system actions (firewall changes, etc.) with user attribution for security and accountability.
+- **Audit Logging:** Automatically record system actions (firewall changes, terminal commands, etc.) with user attribution for security and accountability.
+- **Audit Detail View (New):** High-fidelity glassmorphism modal that automatically detects, parses, and pretty-prints JSON payloads from actions and results for clear observability.
+- **Automated Audit Cleanup (New):** Intelligent background cron job that periodically prunes audit archives based on configurable retention periods (Minutes to Years), ensuring optimal database performance.
 - **Docker Auto-Heal & Resource Monitoring:** Automatically monitor container resource usage (CPU/Memory) and health status (e.g., detecting stopped containers), triggering automated actions (Restart, Start, Stop, etc.) when thresholds are exceeded or abnormalities are detected.
 - **Docker Notifications:** Receive instant alerts via Discord, Telegram, or Custom Webhooks when containers start, stop, or restart, or when resource thresholds are exceeded.
 - **Docker Management & Auto-Discovery:** Automatically discover and persist running containers on the host, monitor their metrics, and stream live logs.
@@ -22,12 +24,12 @@ This application allows you to monitor hardware performance (CPU, GPU, RAM, Disk
 - **Process Management:** View detailed information about running system processes, start new ones, and terminate existing ones.
 - **Site Health Monitoring:** Monitor external sites' availability and performance, logging status history (UP, Redirection, Not Found, Server Error).
 - **Process Ownership Tracking:** Automatically record which user started each process for accountability and logging.
-- **System Audit Logging:** Track and persist administrative actions, such as Firewall state changes, for security and compliance.
+- **System Audit Logging:** Track and persist administrative actions, such as Firewall state changes and interactive terminal sessions, for security and compliance.
 - **Internationalization (i18n) & RTL Support (New):** Full UI localization into English and Arabic with native RTL/LTR layout support. Language and direction preferences are persisted per session.
 - **Interactive System Terminal (New):** Execute host machine shell commands securely via a deeply integrated, high-performance web terminal interface natively connected to the backend.
 - **Advanced File Management (New):** Browse the server's filesystem through a secure, high-performance glassmorphism interface. Supports directory navigation, hidden file toggling, and permission (mode) inspection.
 - **Real-Time Monitoring (WebSockets):** Efficiently stream process updates, container metrics, and **live container logs** to multiple clients.
-- **Background Synchronization:** A background manager periodically (every 10s) synchronizes the state of all containers on the host with the database.
+- **Background Synchronization & Maintenance:** Holistic background management including 10s Docker state syncing and automated audit log pruning.
 - **Database Seeding:** Quick setup with initial roles, permissions, and default admin user.
 - **Two-Factor Authentication (OTP) & Email Verification (New):** Enhanced security with mandatory email verification upon registration and optional OTP for secure login, including a 5-minute security grace period.
 - **Static File Serving:** Built-in support for handling file uploads.
@@ -211,6 +213,7 @@ For developers on **Mac, Windows, or Linux**, Docker provides an isolated enviro
 ### Audit Logs (Requires Auth)
 
 - `GET /audit/list` - List system audit logs (supports `page`, `limit`, and `type` filters)
+- *Note: Logs are automatically pruned based on the `AUDIT_PERIOD` settings in your `.env`.*
 
 ### File System Management (Requires Auth)
 

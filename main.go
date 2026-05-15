@@ -8,6 +8,7 @@ import (
 	"time"
 
 	service "github.com/ahmedfargh/server-manager/Authentication/Service"
+	CronJobs "github.com/ahmedfargh/server-manager/BackGround/CronJobs"
 	reports "github.com/ahmedfargh/server-manager/BackGround/Reports"
 	config "github.com/ahmedfargh/server-manager/Config"
 	crud "github.com/ahmedfargh/server-manager/Database/CRUD"
@@ -26,7 +27,10 @@ func InitBackgroundTasks(mgr *Mgrs.BackgroundTaskManager) {
 		RunEachSeconds: 35, // Run every 60 seconds
 	}
 	fmt.Println("Init Background Task")
+	AuditLogCleaner := &CronJobs.ClearAuditLog{}
+
 	mgr.AddTask(hardwareReport)
+	mgr.AddTask(AuditLogCleaner)
 }
 func StartBackgroundTasks(mgr *Mgrs.BackgroundTaskManager) {
 	fmt.Println("Start Background Task")
