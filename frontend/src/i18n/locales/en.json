@@ -45,7 +45,8 @@
     "abort": "ABORT",
     "connecting": "CONNECTING...",
     "action_failed": "OPERATION FAILED",
-    "error_processing": "Unable to process request."
+    "error_processing": "Unable to process request.",
+    "close": "CLOSE"
   },
   "docker": {
     "container_grid": "CONTAINER GRID",
@@ -158,7 +159,12 @@
     "no_records": "NO AUDIT RECORDS FOUND IN THE CURRENT SECTOR.",
     "showing_of": "SHOWING {count} OF {total} ENTRIES",
     "sector": "SECTOR",
-    "retrieving": "RETRIVING SECURE ARCHIVES..."
+    "retrieving": "RETRIVING SECURE ARCHIVES...",
+    "view_details": "VIEW DETAILS",
+    "action_details": "ACTION DETAILS",
+    "execution_results": "EXECUTION RESULTS",
+    "record_details": "RECORD DETAILS",
+    "service": "SERVICE"
   },
   "sites": {
     "node_monitor": "GLOBAL NODE MONITOR",

@@ -45,7 +45,8 @@
     "abort": "إلغاء",
     "connecting": "جاري الاتصال...",
     "action_failed": "فشلت العملية",
-    "error_processing": "تعذر معالجة الطلب."
+    "error_processing": "تعذر معالجة الطلب.",
+    "close": "إغلاق"
   },
   "docker": {
     "container_grid": "شبكة الحاويات",
@@ -158,7 +159,12 @@
     "no_records": "لم يتم العثور على سجلات تدقيق في القطاع الحالي.",
     "showing_of": "عرض {count} من {total} مدخلات",
     "sector": "القطاع",
-    "retrieving": "جاري استرداد الأرشيفات الآمنة..."
+    "retrieving": "جاري استرجاع الأرشيفات الآمنة...",
+    "view_details": "عرض التفاصيل",
+    "action_details": "تفاصيل الإجراء",
+    "execution_results": "نتائج التنفيذ",
+    "record_details": "تفاصيل السجل",
+    "service": "الخدمة"
   },
   "sites": {
     "node_monitor": "مراقب العقد العالمي",

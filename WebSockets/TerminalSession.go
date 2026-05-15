@@ -1,6 +1,7 @@
 package WebSockets
 
 import (
+	"fmt"
 	"os/exec"
 
 	Config "github.com/ahmedfargh/server-manager/Config"
@@ -52,6 +53,7 @@ func (ts *terminalPool) ConnectSession(sessionID int32, conn *websocket.Conn) {
 		Conn:           conn,
 		ExecuteCommand: make(chan string),
 		SendResult:     make(chan string),
+		audit_service:  crud_service.AuditLogCRUD{Repo: Repository.NewAuditRepository(Config.DB)},
 	}
 	ts.Sessions[sessionID] = newSession
 
@@ -114,7 +116,10 @@ func (ts *TerminalSession) RunCommands() {
 			Action:      string(cmd),
 			Results:     result,
 		}
-		go ts.audit_service.CreateAudit(&audit_log)
+		err_in_create_audit := ts.audit_service.CreateAudit(&audit_log)
+		if err_in_create_audit != nil {
+			fmt.Println(err_in_create_audit)
+		}
 		if err != nil {
 			result += "\nError: " + err.Error()
 		}

@@ -9,7 +9,7 @@ type AuditLog struct {
 	ServiceID   string `json:"service_id"`
 	Action      string `json:"action"`
 	User        User   `gorm:"foreignKey:UserID"`
-	Results     string `json:"results" gorm:"default:null"`
+	Results     string `json:"results" gorm:"type:longtext""default:null"`
 }
 
 func (AuditLog) TableName() string {
