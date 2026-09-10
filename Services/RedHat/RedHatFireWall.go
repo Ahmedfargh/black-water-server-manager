@@ -12,13 +12,22 @@ func NewRedHatFireWall() *RedHatFireWall {
 }
 
 func (f *RedHatFireWall) Command(args ...string) (string, error) {
-	sudoArgs := append([]string{"firewall-cmd"}, args...)
-	cmd := exec.Command("sudo", sudoArgs...)
+	// 1. Try directly without sudo (firewall-cmd state & rules reading does not need sudo)
+	cmd := exec.Command("firewall-cmd", args...)
 	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return string(output), err
+	if err == nil {
+		return string(output), nil
 	}
-	return string(output), nil
+
+	// 2. Fallback to sudo if needed
+	sudoArgs := append([]string{"firewall-cmd"}, args...)
+	cmdSudo := exec.Command("sudo", sudoArgs...)
+	outSudo, errSudo := cmdSudo.CombinedOutput()
+	if errSudo == nil {
+		return string(outSudo), nil
+	}
+
+	return string(output), err
 }
 
 func (f *RedHatFireWall) Enable() (string, error) {
@@ -26,7 +35,12 @@ func (f *RedHatFireWall) Enable() (string, error) {
 	cmd := exec.Command("systemctl", "start", "firewalld")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return string(output), err
+		cmdSudo := exec.Command("sudo", "systemctl", "start", "firewalld")
+		outputSudo, errSudo := cmdSudo.CombinedOutput()
+		if errSudo != nil {
+			return string(output), err
+		}
+		output = outputSudo
 	}
 	exec.Command("systemctl", "enable", "firewalld").Run()
 	return "Firewalld started and enabled successfully", nil
@@ -34,12 +48,17 @@ func (f *RedHatFireWall) Enable() (string, error) {
 
 func (f *RedHatFireWall) Disable() (string, error) {
 	// Stop and disable the service via systemctl
-	cmd := exec.Command("sudo", "systemctl", "stop", "firewalld")
+	cmd := exec.Command("systemctl", "stop", "firewalld")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return string(output), err
+		cmdSudo := exec.Command("sudo", "systemctl", "stop", "firewalld")
+		outputSudo, errSudo := cmdSudo.CombinedOutput()
+		if errSudo != nil {
+			return string(output), err
+		}
+		output = outputSudo
 	}
-	exec.Command("sudo", "systemctl", "disable", "firewalld").Run()
+	exec.Command("systemctl", "disable", "firewalld").Run()
 	return "Firewalld stopped and disabled successfully", nil
 }
 

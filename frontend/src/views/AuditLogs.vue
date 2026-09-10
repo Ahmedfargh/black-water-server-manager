@@ -243,24 +243,27 @@ const closeModal = () => {
 .filter-bar {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  background: var(--bg-card);
-  padding: 0.5rem 1rem;
-  border: 1px solid rgba(0, 242, 255, 0.2);
+  gap: 0.75rem;
+  background: #11131a;
+  padding: 0.45rem 0.85rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: 3px;
 }
 
 .filter-select {
   background: transparent;
   border: none;
   color: var(--text-primary);
-  font-family: var(--font-header);
+  font-family: var(--font-data);
+  font-size: 0.82rem;
   font-weight: 600;
   outline: none;
   cursor: pointer;
 }
 
 .filter-select option {
-  background: var(--bg-black);
+  background: #11131a;
+  color: #fff;
 }
 
 /* Table Styles */
@@ -283,27 +286,33 @@ const closeModal = () => {
   text-align: left;
 }
 
+[dir="rtl"] .tron-table {
+  text-align: right;
+}
+
 .tron-table th {
   position: sticky;
   top: 0;
-  background: var(--bg-card);
-  padding: 1rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 2px;
-  color: var(--neon-cyan);
-  border-bottom: 2px solid rgba(0, 242, 255, 0.2);
+  background: #101218;
+  padding: 0.75rem 1rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: var(--font-data);
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-subtle);
   z-index: 10;
 }
 
 .tron-table td {
-  padding: 1rem;
-  border-bottom: 1px solid rgba(0, 242, 255, 0.05);
-  font-size: 0.9rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 0.86rem;
+  color: var(--text-secondary);
 }
 
 .tron-table tr:hover td {
-  background: rgba(0, 242, 255, 0.02);
+  background: rgba(220, 38, 38, 0.03);
 }
 
 .w-icon {
@@ -313,11 +322,13 @@ const closeModal = () => {
 
 .type-badge {
   font-size: 0.7rem;
-  font-weight: 800;
-  color: var(--neon-cyan);
-  background: rgba(0, 242, 255, 0.05);
-  padding: 0.2rem 0.5rem;
-  border: 1px solid rgba(0, 242, 255, 0.2);
+  font-weight: 700;
+  color: var(--rdr-crimson);
+  background: rgba(220, 38, 38, 0.12);
+  padding: 0.15rem 0.45rem;
+  border: 1px solid var(--border-crimson);
+  border-radius: 2px;
+  font-family: var(--font-data);
 }
 
 .log-message-cell {
@@ -326,7 +337,7 @@ const closeModal = () => {
 
 .service-id {
   font-size: 0.7rem;
-  color: var(--text-secondary);
+  color: var(--text-muted);
   margin-top: 0.2rem;
   font-family: var(--font-data);
 }
@@ -344,40 +355,47 @@ const closeModal = () => {
 .text-right {
   text-align: right;
 }
+[dir="rtl"] .text-right {
+  text-align: left;
+}
 
 /* Pagination */
 .pagination {
-  padding: 1rem 1.5rem;
+  padding: 0.75rem 1.25rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-top: 1px solid rgba(0, 242, 255, 0.1);
-  background: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid var(--border-subtle);
+  background: #101218;
 }
 
 .page-stats {
-  font-size: 0.75rem;
-  letter-spacing: 1px;
+  font-size: 0.74rem;
+  letter-spacing: 0.5px;
+  font-family: var(--font-data);
+  color: var(--text-muted);
 }
 
 .page-controls {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1.2rem;
 }
 
 .page-btn {
-  background: transparent;
-  border: 1px solid rgba(0, 242, 255, 0.2);
+  background: #161822;
+  border: 1px solid var(--border-subtle);
   color: var(--text-secondary);
-  padding: 0.3rem;
+  padding: 0.35rem;
+  border-radius: 3px;
   cursor: pointer;
   display: flex;
+  transition: all 0.15s ease;
 }
 
 .page-btn:hover:not(:disabled) {
-  color: var(--neon-cyan);
-  border-color: var(--neon-cyan);
+  color: var(--rdr-crimson);
+  border-color: var(--rdr-crimson);
 }
 
 .page-btn:disabled {

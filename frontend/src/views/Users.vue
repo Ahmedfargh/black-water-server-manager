@@ -262,26 +262,26 @@ const getRoleName = (roleId) => {
 }
 
 .user-card {
-  padding: 1.5rem;
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  border-top: 3px solid transparent;
+  gap: 1.25rem;
+  border-inline-start: 4px solid transparent;
 }
 
-.active-user { border-top-color: var(--neon-cyan); }
-.inactive-user { border-top-color: var(--neon-orange); }
+.active-user { border-inline-start-color: var(--linux-green); }
+.inactive-user { border-inline-start-color: var(--rdr-crimson); }
 
 .card-header {
   display: flex;
   align-items: center;
-  gap: 1.2rem;
+  gap: 1rem;
 }
 
 .icon-wrap {
-  background: rgba(255, 255, 255, 0.03);
-  padding: 0.8rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.75rem;
+  border: 1px solid var(--border-subtle);
   border-radius: 4px;
   display: flex;
   align-items: center;
@@ -290,11 +290,11 @@ const getRoleName = (roleId) => {
 
 .icon-wrap.has-avatar {
   padding: 0;
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   overflow: hidden;
-  border: 1px solid var(--neon-cyan);
+  border: 1px solid var(--border-crimson);
 }
 
 .grid-avatar {
@@ -308,9 +308,10 @@ const getRoleName = (roleId) => {
 }
 
 .user-info h3 {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   margin-bottom: 0.2rem;
   text-transform: uppercase;
+  color: #ffffff;
 }
 
 .title-row {
@@ -328,28 +329,25 @@ const getRoleName = (roleId) => {
 .icon-btn {
   background: transparent;
   border: none;
-  color: var(--text-secondary);
+  color: var(--text-muted);
   cursor: pointer;
   padding: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
-  opacity: 0.6;
+  transition: all 0.15s ease;
 }
 
 .icon-btn:hover {
-  opacity: 1;
+  color: var(--rdr-crimson);
 }
 
 .edit-btn:hover {
-  color: var(--neon-cyan);
-  text-shadow: 0 0 8px var(--neon-cyan-glow);
+  color: var(--rdr-crimson);
 }
 
 .delete-btn:hover {
-  color: var(--neon-orange);
-  text-shadow: 0 0 8px var(--neon-orange-glow);
+  color: #ef4444;
 }
 
 .email-link {

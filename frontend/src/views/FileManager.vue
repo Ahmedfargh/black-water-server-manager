@@ -206,8 +206,8 @@ const navigateToPath = (path) => {
   <div class="file-manager">
     <div class="glass-header">
       <div class="header-left">
-        <HardDrive class="glow-cyan" :size="24" />
-        <h1 class="glow-text uppercase letter-spacing-2">{{ $t('files.title') }}</h1>
+        <HardDrive :size="22" />
+        <h1 class="glow-text uppercase">{{ $t('files.title') }}</h1>
       </div>
       <div class="header-right">
         <div class="toggle-hidden">
@@ -217,7 +217,7 @@ const navigateToPath = (path) => {
           </label>
         </div>
         <div class="search-box">
-          <Search :size="18" class="search-icon" />
+          <Search :size="16" class="search-icon" />
           <input 
             type="text" 
             v-model="searchQuery" 
@@ -226,15 +226,15 @@ const navigateToPath = (path) => {
           />
         </div>
         <button @click="fetchFiles()" class="refresh-btn" :class="{ 'spinning': isLoading }">
-          <RefreshCw :size="18" />
+          <RefreshCw :size="16" />
         </button>
       </div>
     </div>
 
     <!-- Copy Status Bar -->
-    <div v-if="copySource" class="copy-bar glass-card">
+    <div v-if="copySource" class="copy-bar">
       <div class="copy-info">
-        <Copy :size="16" class="glow-cyan" />
+        <Copy :size="16" />
         <span class="copy-label">{{ $t('files.copy') }}:</span>
         <span class="copy-path">{{ copySource.name }}</span>
       </div>
@@ -249,7 +249,7 @@ const navigateToPath = (path) => {
       </div>
     </div>
 
-    <div class="breadcrumb-container glass-card">
+    <div class="breadcrumb-container">
       <button @click="goBack" class="back-btn" :disabled="currentPath === '/'">
         <ChevronLeft :size="20" />
         <span>{{ $t('files.back') }}</span>
@@ -268,7 +268,7 @@ const navigateToPath = (path) => {
       </div>
     </div>
 
-    <div class="files-container glass-card">
+    <div class="files-container">
       <div v-if="isLoading" class="loading-overlay">
         <div class="glitch-text">{{ $t('files.loading') }}</div>
       </div>
@@ -353,11 +353,50 @@ const navigateToPath = (path) => {
 </template>
 
 <style scoped>
-/* Existing styles ... Adding new styles for improvements */
+.file-manager {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  height: 100%;
+}
 
-.table-scroll {
-  flex: 1;
-  overflow-y: auto;
+.glass-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-inline-start: 4px solid var(--theme-crimson);
+  border-radius: var(--radius-sm);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header-left :deep(svg) {
+  color: var(--theme-crimson);
+}
+
+.glow-text {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text-primary);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.toggle-hidden {
+  display: flex;
+  align-items: center;
 }
 
 .switch-container {
@@ -373,51 +412,7 @@ const navigateToPath = (path) => {
 
 .switch-container input {
   cursor: pointer;
-  accent-color: var(--neon-cyan);
-}
-
-.mode-cell code {
-  background: rgba(255, 255, 255, 0.05);
-  padding: 0.1rem 0.3rem;
-  border-radius: 3px;
-  color: var(--neon-cyan);
-  font-size: 0.8rem;
-}
-
-.file-manager {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  height: 100%;
-}
-
-.glass-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.5rem;
-  background: rgba(0, 242, 255, 0.03);
-  border-left: 4px solid var(--neon-cyan);
-  backdrop-filter: blur(10px);
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.glow-text {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+  accent-color: var(--theme-crimson);
 }
 
 .search-box {
@@ -428,40 +423,45 @@ const navigateToPath = (path) => {
 
 .search-icon {
   position: absolute;
-  left: 12px;
-  color: var(--text-secondary);
+  inset-inline-start: 10px;
+  color: var(--text-muted);
+  pointer-events: none;
 }
 
 .glass-input {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(0, 242, 255, 0.2);
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
   color: var(--text-primary);
-  padding: 0.5rem 1rem 0.5rem 2.5rem;
-  border-radius: 4px;
-  width: 250px;
-  transition: all 0.3s ease;
+  padding: 0.45rem 0.85rem;
+  padding-inline-start: 2.2rem;
+  border-radius: var(--radius-sm);
+  width: 240px;
   font-family: var(--font-data);
+  font-size: 0.85rem;
+  transition: border-color var(--transition-fast);
 }
 
 .glass-input:focus {
   outline: none;
-  border-color: var(--neon-cyan);
-  box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+  border-color: var(--theme-crimson);
 }
 
 .refresh-btn {
-  background: transparent;
-  border: 1px solid rgba(0, 242, 255, 0.3);
-  color: var(--neon-cyan);
-  padding: 0.5rem;
-  border-radius: 4px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 0.45rem 0.6rem;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
 }
 
 .refresh-btn:hover {
-  background: rgba(0, 242, 255, 0.1);
-  box-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
+  color: var(--theme-crimson);
+  border-color: var(--theme-crimson);
 }
 
 .spinning {
@@ -473,44 +473,125 @@ const navigateToPath = (path) => {
   to { transform: rotate(360deg); }
 }
 
+/* Copy Bar */
+.copy-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-inline-start: 4px solid var(--theme-amber);
+  border-radius: var(--radius-sm);
+}
+
+.copy-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.copy-info :deep(svg) {
+  color: var(--theme-amber);
+}
+
+.copy-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+.copy-path {
+  font-family: var(--font-data);
+  color: var(--theme-amber);
+  font-size: 0.85rem;
+}
+
+.copy-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.paste-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--theme-crimson);
+  color: #ffffff;
+  border: none;
+  padding: 0.35rem 0.9rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  transition: opacity var(--transition-fast);
+}
+
+.paste-btn:hover {
+  opacity: 0.9;
+}
+
+.cancel-btn {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.cancel-btn:hover {
+  color: var(--theme-crimson);
+  border-color: var(--theme-crimson);
+}
+
+/* Breadcrumbs */
 .breadcrumb-container {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.8rem 1.5rem;
+  gap: 0.75rem;
+  padding: 0.65rem 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
 }
 
 .back-btn {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  background: rgba(0, 242, 255, 0.1);
-  border: 1px solid rgba(0, 242, 255, 0.3);
-  color: var(--neon-cyan);
-  padding: 0.4rem 0.8rem;
-  border-radius: 4px;
+  gap: 0.4rem;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   font-weight: 600;
-  transition: all 0.2s ease;
+  font-size: 0.8rem;
+  transition: all var(--transition-fast);
 }
 
 .back-btn:hover:not(:disabled) {
-  background: rgba(0, 242, 255, 0.2);
-  transform: translateX(-2px);
+  color: var(--theme-crimson);
+  border-color: var(--theme-crimson);
 }
 
 .back-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
 .breadcrumbs {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   overflow-x: auto;
   white-space: nowrap;
   flex: 1;
+  font-family: var(--font-data);
 }
 
 .crumb-link {
@@ -518,142 +599,178 @@ const navigateToPath = (path) => {
   border: none;
   color: var(--text-secondary);
   cursor: pointer;
-  font-size: 0.9rem;
-  transition: all 0.2s ease;
+  font-size: 0.85rem;
+  padding: 0.15rem 0.35rem;
+  border-radius: 2px;
+  transition: color var(--transition-fast);
 }
 
 .crumb-link:hover {
-  color: var(--neon-cyan);
+  color: var(--text-primary);
 }
 
 .crumb-link.active {
-  color: var(--neon-cyan);
+  color: var(--theme-crimson);
   font-weight: 700;
   cursor: default;
 }
 
 .crumb-separator {
-  color: rgba(255, 255, 255, 0.2);
+  color: var(--text-muted);
+  opacity: 0.5;
 }
 
+/* Files Table */
 .files-container {
   flex: 1;
   position: relative;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+}
+
+.table-scroll {
+  flex: 1;
+  overflow-y: auto;
 }
 
 .files-table {
   width: 100%;
   border-collapse: collapse;
-  text-align: left;
+  text-align: start;
 }
 
 .files-table th {
-  padding: 1rem 1.5rem;
-  font-size: 0.8rem;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.75rem;
+  font-weight: 700;
   color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 1px;
-  border-bottom: 1px solid rgba(0, 242, 255, 0.1);
-  background: rgba(255, 255, 255, 0.02);
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border-color);
+  background: rgba(0, 0, 0, 0.25);
 }
 
 .files-table td {
-  padding: 0.8rem 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  padding: 0.65rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   font-family: var(--font-data);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 .file-row {
-  transition: all 0.2s ease;
+  transition: background var(--transition-fast);
   cursor: pointer;
 }
 
 .file-row:hover {
-  background: rgba(0, 242, 255, 0.05);
+  background: rgba(220, 38, 38, 0.05);
 }
 
 .name-cell {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: 0.75rem;
   color: var(--text-primary);
 }
 
 .folder-icon {
-  color: var(--neon-cyan);
+  color: var(--theme-amber);
+  flex-shrink: 0;
 }
 
 .file-icon {
-  color: var(--text-secondary);
+  color: var(--text-muted);
+  flex-shrink: 0;
 }
 
 .dir-row .file-name {
-  color: var(--neon-cyan);
+  color: var(--text-primary);
   font-weight: 600;
 }
 
+.size-cell, .mode-cell {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.mode-cell code {
+  background: var(--bg-input);
+  padding: 0.15rem 0.4rem;
+  border-radius: 3px;
+  color: var(--theme-amber);
+  font-size: 0.78rem;
+  border: 1px solid var(--border-color);
+}
+
 .type-badge {
-  padding: 0.2rem 0.6rem;
-  border-radius: 4px;
+  padding: 0.15rem 0.5rem;
+  border-radius: 3px;
   font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .badge-dir {
-  background: rgba(0, 242, 255, 0.1);
-  color: var(--neon-cyan);
-  border: 1px solid rgba(0, 242, 255, 0.3);
+  background: rgba(217, 119, 6, 0.12);
+  color: var(--theme-amber);
+  border: 1px solid rgba(217, 119, 6, 0.3);
 }
 
 .badge-file {
   background: rgba(255, 255, 255, 0.05);
   color: var(--text-secondary);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-color);
 }
 
 .empty-msg {
   text-align: center;
   padding: 4rem !important;
-  color: var(--text-secondary);
+  color: var(--text-muted);
   font-style: italic;
-  letter-spacing: 2px;
 }
 
 .loading-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(5, 7, 10, 0.8);
+  background: rgba(12, 13, 17, 0.85);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10;
-  backdrop-filter: blur(5px);
+  backdrop-filter: blur(4px);
+}
+
+.glitch-text {
+  font-family: var(--font-data);
+  color: var(--theme-crimson);
+  font-weight: 700;
+  letter-spacing: 0.08em;
 }
 
 .actions-cell {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .action-btn {
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-color);
   color: var(--text-secondary);
-  padding: 0.4rem;
-  border-radius: 4px;
+  padding: 0.35rem;
+  border-radius: 3px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
-.view-btn:hover {
-  color: var(--neon-cyan);
-  border-color: var(--neon-cyan);
-  background: rgba(0, 242, 255, 0.1);
+.view-btn:hover, .copy-btn:hover {
+  color: var(--theme-crimson);
+  border-color: var(--theme-crimson);
+  background: rgba(220, 38, 38, 0.1);
 }
 
 .download-btn:disabled {
@@ -669,95 +786,20 @@ const navigateToPath = (path) => {
   transform: rotate(-90deg);
 }
 
-/* Copy Bar Styling */
-.copy-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.8rem 1.5rem;
-  background: rgba(0, 242, 255, 0.05);
-  border-left: 4px solid var(--neon-cyan);
-  animation: slideDown 0.3s ease;
-}
-
-@keyframes slideDown {
-  from { transform: translateY(-20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
-.copy-info {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-}
-
-.copy-label {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-}
-
-.copy-path {
-  font-family: var(--font-data);
-  color: var(--neon-cyan);
-  font-size: 0.9rem;
-}
-
-.copy-actions {
-  display: flex;
-  gap: 1rem;
-}
-
-.paste-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: var(--neon-cyan);
-  color: #000;
-  border: none;
-  padding: 0.4rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 700;
-  text-transform: uppercase;
-  font-size: 0.8rem;
-  transition: all 0.2s ease;
-}
-
-.paste-btn:hover {
-  box-shadow: 0 0 15px var(--neon-cyan);
-  transform: translateY(-1px);
-}
-
-.cancel-btn {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: var(--text-secondary);
-  padding: 0.4rem;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.cancel-btn:hover {
-  color: var(--neon-red, #ff3131);
-  border-color: var(--neon-red, #ff3131);
-}
-
-/* Copying Overlay */
+/* Copying Progress */
 .copy-progress-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1.25rem;
   width: 80%;
-  max-width: 400px;
+  max-width: 380px;
 }
 
 .progress-msg {
   font-family: var(--font-data);
   color: var(--text-secondary);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   text-align: center;
   word-break: break-all;
 }
@@ -765,7 +807,7 @@ const navigateToPath = (path) => {
 .loader-line {
   width: 100%;
   height: 2px;
-  background: rgba(0, 242, 255, 0.1);
+  background: rgba(255, 255, 255, 0.1);
   position: relative;
   overflow: hidden;
 }
@@ -773,32 +815,17 @@ const navigateToPath = (path) => {
 .loader-line::after {
   content: '';
   position: absolute;
-  left: 0;
+  inset-inline-start: 0;
   top: 0;
   height: 100%;
   width: 30%;
-  background: var(--neon-cyan);
-  box-shadow: 0 0 10px var(--neon-cyan);
+  background: var(--theme-crimson);
   animation: loadingLine 1.5s infinite linear;
 }
 
 @keyframes loadingLine {
-  from { left: -30%; }
-  to { left: 100%; }
-}
-
-.copy-btn:hover {
-  color: var(--neon-cyan);
-  border-color: var(--neon-cyan);
-}
-
-/* Glass Card Utility */
-.glass-card {
-  background: var(--bg-card);
-  backdrop-filter: blur(20px);
-  border: 1px solid var(--neon-cyan-glow);
-  border-radius: 4px;
-  box-shadow: var(--card-shadow);
+  from { inset-inline-start: -30%; }
+  to { inset-inline-start: 100%; }
 }
 
 @media (max-width: 768px) {
@@ -809,9 +836,5 @@ const navigateToPath = (path) => {
   .glass-input {
     width: 150px;
   }
-}
-
-.letter-spacing-2 {
-  letter-spacing: 2px;
 }
 </style>

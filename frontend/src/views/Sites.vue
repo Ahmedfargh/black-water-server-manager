@@ -264,35 +264,38 @@ const getStatusColor = (status) => {
 }
 
 .site-card {
-  padding: 1.5rem;
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  border-top: 3px solid transparent;
+  gap: 1.25rem;
+  border-inline-start: 4px solid transparent;
 }
 
 @media (max-width: 480px) {
   .site-card { padding: 1rem; }
 }
 
-.site-card.up { border-top-color: var(--neon-cyan); }
-.site-card.down { border-top-color: var(--neon-orange); }
+.site-card.up { border-inline-start-color: var(--linux-green); }
+.site-card.down { border-inline-start-color: var(--rdr-crimson); }
 
 .card-header {
   display: flex;
   align-items: center;
-  gap: 1.2rem;
+  gap: 1rem;
 }
 
 .icon-wrap {
-  background: rgba(255, 255, 255, 0.03);
-  padding: 0.8rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(220, 38, 38, 0.08);
+  padding: 0.75rem;
+  border: 1px solid var(--border-crimson);
+  border-radius: 4px;
+  color: var(--rdr-crimson);
 }
 
 .node-info h3 {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   margin-bottom: 0.2rem;
+  color: #fff;
 }
 
 .title-row {
@@ -305,32 +308,30 @@ const getStatusColor = (status) => {
 .edit-btn {
   background: transparent;
   border: none;
-  color: var(--text-secondary);
+  color: var(--text-muted);
   cursor: pointer;
   padding: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
-  opacity: 0.6;
+  transition: all 0.15s ease;
 }
 
 .edit-btn:hover {
-  color: var(--neon-cyan);
-  opacity: 1;
-  text-shadow: 0 0 8px var(--neon-cyan-glow);
+  color: var(--rdr-crimson);
 }
 
 .url-link {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
+  font-size: 0.78rem;
+  color: var(--text-muted);
   text-decoration: none;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  font-family: var(--font-data);
 }
 
-.url-link:hover { color: var(--neon-cyan); }
+.url-link:hover { color: var(--rdr-crimson); }
 
 .card-body {
   display: flex;

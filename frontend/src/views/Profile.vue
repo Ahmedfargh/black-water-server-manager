@@ -104,14 +104,17 @@ const submitNotificationSettings = async () => {
 <template>
   <div class="profile-view">
     <div class="header-row">
-      <h2 class="glow-cyan">PERSONNEL DOSSIER</h2>
+      <div class="header-title-block">
+        <h2 class="page-title">OPERATOR DOSSIER</h2>
+        <span class="sub-label">ACCOUNT SECURITY & TELEMETRY DISPATCH</span>
+      </div>
     </div>
 
     <div class="profile-grid">
       <!-- Profile Card -->
       <div class="tron-card settings-card">
         <div class="card-header">
-           <User class="glow-cyan" :size="24" />
+           <User class="crimson-icon" :size="20" />
            <h3>ACCOUNT CONFIGURATION</h3>
         </div>
         
@@ -125,7 +128,7 @@ const submitNotificationSettings = async () => {
           </div>
           
           <div class="input-group">
-            <label>EMAIL TRANSMISSION VECTOR</label>
+            <label>EMAIL ADDRESS</label>
             <div class="input-with-icon">
               <Mail :size="16" class="field-icon" />
               <input v-model="email" type="email" placeholder="Grid Address" required />
@@ -134,15 +137,15 @@ const submitNotificationSettings = async () => {
 
           <div class="input-group">
             <label>SECURITY KEY (PASSWORD)</label>
-            <span class="hint-text">Leave blank to maintain current clearance code</span>
+            <span class="hint-text">Leave blank to maintain current passphrase</span>
             <div class="input-with-icon">
               <Lock :size="16" class="field-icon" />
-              <input v-model="password" type="password" placeholder="********" />
+              <input v-model="password" type="password" placeholder="••••••••" />
             </div>
           </div>
           
           <div class="input-group">
-            <label>BIOMETRIC SCAN (AVATAR)</label>
+            <label>OPERATOR BADGE (AVATAR)</label>
             <div class="current-avatar-preview" v-if="authStore.user?.image_path && authStore.user.image_path.includes('/uploads/')">
               <InteractiveImage :src="authStore.user.image_path" customClass="profile-avatar" />
             </div>
@@ -154,7 +157,7 @@ const submitNotificationSettings = async () => {
 
           <div class="form-actions">
             <button type="submit" class="tron-btn" :disabled="isProfileSubmitting">
-              <Save :size="18" />
+              <Save :size="16" />
               {{ isProfileSubmitting ? 'UPDATING...' : 'SAVE CONFIGURATION' }}
             </button>
           </div>
@@ -164,35 +167,35 @@ const submitNotificationSettings = async () => {
       <!-- Notifications Card -->
       <div class="tron-card settings-card">
         <div class="card-header">
-           <BellRing class="glow-cyan" :size="24" />
-           <h3>NOTIFICATION PROTOCOLS</h3>
+           <BellRing class="crimson-icon" :size="20" />
+           <h3>ALERT & DISPATCH PROTOCOLS</h3>
         </div>
         
         <form @submit.prevent="submitNotificationSettings" class="settings-form">
           <div class="input-group">
             <label>PRIMARY ALERT DRIVER</label>
             <select v-model="notificationDriver" required class="full-width">
-              <option value="Telegram">TELEGRAM NETWORK</option>
-              <option value="Discord">DISCORD RELAY</option>
-              <option value="Webhook">CUSTOM WEBHOOK</option>
-              <option value="None">SILENT MODE (NONE)</option>
+              <option value="Telegram">TELEGRAM BOT DISPATCH</option>
+              <option value="Discord">DISCORD WEBHOOK RELAY</option>
+              <option value="Webhook">CUSTOM HTTP WEBHOOK</option>
+              <option value="None">SILENT MODE (MUTED)</option>
             </select>
           </div>
 
           <div v-if="notificationDriver === 'Telegram'" class="driver-settings">
-            <h4 class="driver-title text-secondary">TELEGRAM CONFIGURATION</h4>
+            <h4 class="driver-title">TELEGRAM CONFIGURATION</h4>
             <div class="input-group">
               <label>BOT TOKEN</label>
               <input v-model="telegramBotToken" type="text" placeholder="Bot API Token" />
             </div>
             <div class="input-group">
               <label>CHAT ID</label>
-              <input v-model="telegramChatId" type="text" placeholder="Destination ID" />
+              <input v-model="telegramChatId" type="text" placeholder="Destination Chat ID" />
             </div>
           </div>
 
           <div v-if="notificationDriver === 'Discord'" class="driver-settings">
-            <h4 class="driver-title text-secondary">DISCORD CONFIGURATION</h4>
+            <h4 class="driver-title">DISCORD CONFIGURATION</h4>
             <div class="input-group">
               <label>BOT TOKEN</label>
               <input v-model="discordBotToken" type="text" placeholder="Bot API Token" />
@@ -204,7 +207,7 @@ const submitNotificationSettings = async () => {
           </div>
 
           <div v-if="notificationDriver === 'Webhook'" class="driver-settings">
-            <h4 class="driver-title text-secondary">WEBHOOK CONFIGURATION</h4>
+            <h4 class="driver-title">WEBHOOK CONFIGURATION</h4>
             <div class="input-group">
               <label>TARGET URL</label>
               <input v-model="webhookUrl" type="url" placeholder="https://api.yourdomain.com/webhook" />
@@ -217,7 +220,7 @@ const submitNotificationSettings = async () => {
 
           <div class="form-actions form-actions-spaced">
             <button type="submit" class="tron-btn" :disabled="isNotificationsSubmitting">
-              <Bell :size="18" />
+              <Bell :size="16" />
               {{ isNotificationsSubmitting ? 'UPDATING...' : 'UPDATE PROTOCOLS' }}
             </button>
           </div>
@@ -231,13 +234,43 @@ const submitNotificationSettings = async () => {
 .profile-view {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.5rem;
+}
+
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.header-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.page-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.sub-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  font-family: var(--font-data);
+  letter-spacing: 0.06em;
 }
 
 .profile-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 1.5rem;
 }
 
 @media (max-width: 600px) {
@@ -248,43 +281,51 @@ const submitNotificationSettings = async () => {
 
 .settings-card {
   padding: 1.5rem;
-  background: rgba(10, 15, 20, 0.4);
-  backdrop-filter: blur(10px);
+  border-inline-start: 3px solid var(--theme-crimson);
 }
 
 .card-header {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(0, 242, 255, 0.1);
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .card-header h3 {
-  font-size: 1.2rem;
-  letter-spacing: 2px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.crimson-icon {
+  color: var(--theme-crimson);
 }
 
 .settings-form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
 .input-group label {
   display: block;
-  font-size: 0.8rem;
-  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  margin-bottom: 0.4rem;
   color: var(--text-secondary);
-  letter-spacing: 1px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
 }
 
 .hint-text {
   font-size: 0.7rem;
-  color: var(--neon-orange);
-  margin-bottom: 0.5rem;
+  color: var(--theme-amber);
+  margin-bottom: 0.4rem;
   display: inline-block;
+  font-family: var(--font-data);
 }
 
 .input-with-icon {
@@ -295,46 +336,46 @@ const submitNotificationSettings = async () => {
 
 .field-icon {
   position: absolute;
-  left: 1rem;
-  color: var(--neon-cyan);
-  opacity: 0.7;
+  inset-inline-start: 0.85rem;
+  color: var(--text-muted);
+  pointer-events: none;
 }
 
 .input-with-icon input {
-  padding-left: 2.8rem;
+  padding-inline-start: 2.5rem !important;
 }
 
 .settings-form input,
 .settings-form select {
   width: 100%;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(0, 242, 255, 0.2);
-  padding: 0.8rem;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  padding: 0.6rem 0.85rem;
   color: var(--text-primary);
-  font-family: var(--font-header);
+  font-family: var(--font-data);
+  font-size: 0.85rem;
   outline: none;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
+  transition: border-color var(--transition-fast);
 }
 
 .settings-form input:focus,
 .settings-form select:focus {
-  border-color: var(--neon-cyan);
-  box-shadow: 0 0 10px var(--neon-cyan-glow);
+  border-color: var(--theme-crimson);
 }
 
 .file-input {
-  padding: 0.6rem!important;
-  font-size: 0.9rem;
+  padding: 0.45rem !important;
+  font-size: 0.8rem;
 }
 
 .current-avatar-preview {
-  margin-bottom: 1rem;
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
+  margin-bottom: 0.75rem;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
-  border: 2px solid var(--neon-cyan);
-  box-shadow: 0 0 10px var(--neon-cyan-glow);
+  border: 2px solid var(--theme-crimson);
 }
 
 .profile-avatar {
@@ -344,29 +385,32 @@ const submitNotificationSettings = async () => {
 }
 
 .driver-settings {
-  background: rgba(0, 242, 255, 0.02);
-  padding: 1.5rem;
-  border: 1px solid rgba(0, 242, 255, 0.1);
-  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 1.25rem;
+  border: 1px solid var(--border-color);
+  border-inline-start: 3px solid var(--theme-amber);
+  border-radius: var(--radius-sm);
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
-  margin-top: 1rem;
+  gap: 1rem;
+  margin-top: 0.5rem;
 }
 
 .driver-title {
-  font-size: 0.8rem;
-  letter-spacing: 2px;
-  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  margin: 0;
+  color: var(--theme-amber);
+  font-weight: 700;
 }
 
 .form-actions {
-  margin-top: 1rem;
+  margin-top: 0.5rem;
   display: flex;
   justify-content: flex-end;
 }
 
 .form-actions-spaced {
-  margin-top: 2.5rem;
+  margin-top: 1.5rem;
 }
 </style>

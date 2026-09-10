@@ -122,8 +122,8 @@ const chartData = computed(() => {
       {
         label: `${t('reports.cpu_usage_p') || 'CPU Usage (%)'}`,
         data: reports.map(r => r.cpu_usage),
-        borderColor: '#00f2ff',
-        backgroundColor: 'rgba(0, 242, 255, 0.1)',
+        borderColor: '#dc2626',
+        backgroundColor: 'rgba(220, 38, 38, 0.12)',
         fill: true,
         tension: 0.4,
         pointRadius: 0,
@@ -133,8 +133,8 @@ const chartData = computed(() => {
       {
         label: `${t('reports.ram_usage_p') || 'RAM Usage (%)'}`,
         data: reports.map(r => r.memory_usage),
-        borderColor: '#ff8c00',
-        backgroundColor: 'rgba(255, 140, 0, 0.1)',
+        borderColor: '#d97706',
+        backgroundColor: 'rgba(217, 119, 6, 0.12)',
         fill: true,
         tension: 0.4,
         pointRadius: 0,
@@ -144,8 +144,8 @@ const chartData = computed(() => {
       {
         label: `${t('reports.disk_usage_p') || 'Disk Usage (%)'}`,
         data: reports.map(r => r.disk_usage),
-        borderColor: '#7000ff',
-        backgroundColor: 'rgba(112, 0, 255, 0.1)',
+        borderColor: '#38bdf8',
+        backgroundColor: 'rgba(56, 189, 248, 0.12)',
         fill: true,
         tension: 0.4,
         pointRadius: 0,
@@ -163,21 +163,22 @@ const chartOptions = {
     legend: {
       position: 'top',
       labels: {
-        color: '#a0aec0',
+        color: '#94a3b8',
         usePointStyle: true,
         padding: 20,
         font: {
-          family: 'Inter, sans-serif'
+          family: 'JetBrains Mono, monospace',
+          size: 11
         }
       }
     },
     tooltip: {
       mode: 'index',
       intersect: false,
-      backgroundColor: 'rgba(5, 7, 10, 0.9)',
-      titleColor: '#00f2ff',
-      bodyColor: '#fff',
-      borderColor: 'rgba(0, 242, 255, 0.2)',
+      backgroundColor: 'rgba(12, 13, 17, 0.95)',
+      titleColor: '#f1f2f6',
+      bodyColor: '#cbd5e1',
+      borderColor: 'rgba(255, 255, 255, 0.1)',
       borderWidth: 1,
       padding: 12,
       displayColors: true,
@@ -194,10 +195,11 @@ const chartOptions = {
       max: 100,
       grid: {
         color: 'rgba(255, 255, 255, 0.05)',
-        borderDash: [5, 5]
+        borderDash: [4, 4]
       },
       ticks: {
-        color: '#a0aec0',
+        color: '#64748b',
+        font: { family: 'JetBrains Mono, monospace', size: 10 },
         callback: (value) => value + '%'
       }
     },
@@ -206,7 +208,8 @@ const chartOptions = {
         display: false
       },
       ticks: {
-        color: '#a0aec0',
+        color: '#64748b',
+        font: { family: 'JetBrains Mono, monospace', size: 10 },
         maxRotation: 45,
         minRotation: 0,
         autoSkip: true,
@@ -226,7 +229,7 @@ const chartOptions = {
     <header class="section-header">
       <div class="header-left">
         <div class="icon-orb">
-          <BarChart3 class="glow-cyan" />
+          <BarChart3 :size="22" />
         </div>
         <div>
           <h1>{{ $t('reports.analysis_grid') }}</h1>
@@ -270,43 +273,40 @@ const chartOptions = {
         </div>
 
         <button class="refresh-btn" @click="fetchData" :disabled="isLoading">
-          <RefreshCw :size="18" :class="{ spinning: isLoading }" />
+          <RefreshCw :size="16" :class="{ spinning: isLoading }" />
         </button>
       </div>
     </header>
 
     <div class="averages-grid">
       <div class="avg-card cpu">
-        <div class="card-glow"></div>
         <div class="avg-header">
-          <Cpu :size="20" class="glow-cyan" />
+          <Cpu :size="18" class="cpu-icon" />
           <span>{{ $t('reports.avg_cpu') }}</span>
         </div>
-        <div class="avg-value glow-cyan">
+        <div class="avg-value cpu-val">
           {{ systemStore.averages.cpu.toFixed(2) }}%
         </div>
         <div class="avg-footer">{{ $t('reports.throughput') }}</div>
       </div>
 
       <div class="avg-card memory">
-        <div class="card-glow"></div>
         <div class="avg-header">
-          <Zap :size="20" class="glow-orange" />
+          <Zap :size="18" class="ram-icon" />
           <span>{{ $t('reports.avg_mem') }}</span>
         </div>
-        <div class="avg-value glow-orange">
+        <div class="avg-value ram-val">
           {{ systemStore.averages.memory.toFixed(2) }}%
         </div>
         <div class="avg-footer">{{ $t('reports.allocation') }}</div>
       </div>
 
       <div class="avg-card disk">
-        <div class="card-glow"></div>
         <div class="avg-header">
-          <HardDrive :size="20" class="glow-purple" />
+          <HardDrive :size="18" class="disk-icon" />
           <span>{{ $t('reports.avg_storage') }}</span>
         </div>
-        <div class="avg-value glow-purple">
+        <div class="avg-value disk-val">
           {{ systemStore.averages.disk.toFixed(2) }}%
         </div>
         <div class="avg-footer">{{ $t('reports.density') }}</div>
@@ -315,7 +315,7 @@ const chartOptions = {
 
     <div class="chart-container-wrapper tron-card">
       <div class="card-header">
-        <h3> <ArrowBigRightDash :size="16" class="glow-cyan" /> {{ $t('reports.trendlines') }}</h3>
+        <h3><ArrowBigRightDash :size="16" class="crimson-accent" /> {{ $t('reports.trendlines') }}</h3>
         <div class="status-pill">
           <span class="dot"></span> {{ $t('reports.realtime_archive') || 'REAL-TIME ARCHIVE' }}
         </div>
@@ -327,11 +327,11 @@ const chartOptions = {
           :options="chartOptions" 
         />
         <div v-else-if="isLoading" class="chart-loading">
-          <RefreshCw class="spinning" :size="48" />
+          <RefreshCw class="spinning" :size="36" />
           <span>{{ $t('reports.syncing') || 'SYNCING WITH GRID...' }}</span>
         </div>
         <div v-else class="no-data">
-           <Calendar :size="48" />
+           <Calendar :size="36" />
            <span>{{ $t('reports.no_data') }}</span>
         </div>
       </div>
@@ -341,102 +341,100 @@ const chartOptions = {
 
 <style scoped>
 .reports-page {
-  animation: slideUp 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(30px); filter: blur(10px); }
-  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .section-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: 2.5rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid rgba(0, 242, 255, 0.1);
+  align-items: center;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
 }
 
 @media (max-width: 900px) {
   .section-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 1.5rem;
+    gap: 1rem;
   }
 }
 
 .header-left {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 .icon-orb {
-  width: 54px;
-  height: 54px;
-  background: rgba(0, 242, 255, 0.05);
-  border: 1px solid rgba(0, 242, 255, 0.2);
-  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 20px rgba(0, 242, 255, 0.1);
+  color: var(--theme-crimson);
 }
 
 h1 {
-  font-size: 1.8rem;
+  font-size: 1.35rem;
   font-weight: 800;
-  letter-spacing: 4px;
+  letter-spacing: 0.04em;
   margin: 0;
-  text-shadow: 0 0 15px rgba(0, 242, 255, 0.3);
+  color: var(--text-primary);
 }
 
 .subtitle {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  letter-spacing: 2px;
-  margin: 0.3rem 0 0 0;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  margin: 0.2rem 0 0 0;
+  font-family: var(--font-data);
 }
 
 .range-selector {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  background: rgba(255, 255, 255, 0.02);
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  gap: 0.75rem;
+  background: var(--bg-card);
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
 }
 
 .selector-label {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   font-size: 0.7rem;
   color: var(--text-secondary);
-  font-weight: 600;
-  letter-spacing: 1px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
 }
 
 .range-buttons {
   display: flex;
-  gap: 0.3rem;
-  background: rgba(0, 0, 0, 0.2);
+  gap: 0.25rem;
+  background: rgba(0, 0, 0, 0.3);
   padding: 0.2rem;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
 }
 
 .range-btn {
   background: transparent;
   border: none;
   color: var(--text-secondary);
-  padding: 0.4rem 0.8rem;
-  font-size: 0.75rem;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.72rem;
   font-weight: 700;
   cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.2s ease;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  font-family: var(--font-data);
 }
 
 .range-btn:hover {
@@ -444,9 +442,8 @@ h1 {
 }
 
 .range-btn.active {
-  background: rgba(0, 242, 255, 0.1);
-  color: var(--neon-cyan);
-  box-shadow: 0 0 10px rgba(0, 242, 255, 0.2);
+  background: var(--theme-crimson);
+  color: #ffffff;
 }
 
 .refresh-btn {
@@ -454,19 +451,19 @@ h1 {
   border: none;
   color: var(--text-secondary);
   cursor: pointer;
-  padding: 0.5rem;
+  padding: 0.4rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.2s;
+  transition: color var(--transition-fast);
 }
 
 .refresh-btn:hover:not(:disabled) {
-  color: var(--neon-cyan);
+  color: var(--theme-crimson);
 }
 
 .refresh-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
@@ -474,69 +471,38 @@ h1 {
 .custom-inputs {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding-left: 1rem;
-  border-left: 1px solid rgba(0, 242, 255, 0.1);
-  animation: fadeInRight 0.3s ease-out;
-}
-
-@keyframes fadeInRight {
-  from { opacity: 0; transform: translateX(10px); }
-  to { opacity: 1; transform: translateX(0); }
+  gap: 0.5rem;
+  padding-inline-start: 0.75rem;
+  border-inline-start: 1px solid var(--border-color);
 }
 
 .input-group {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.35rem;
 }
 
 .input-label {
-  font-size: 0.6rem;
+  font-size: 0.65rem;
   font-weight: 700;
   color: var(--text-secondary);
-  letter-spacing: 1px;
-}
-
-.tron-input {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(0, 242, 255, 0.2);
-  color: var(--text-primary);
-  font-family: var(--font-data);
-  font-size: 0.8rem;
-  padding: 0.4rem 0.6rem;
-  border-radius: 4px;
-  outline: none;
-  transition: all 0.2s;
-}
-
-.tron-input:focus {
-  border-color: var(--neon-cyan);
-  box-shadow: 0 0 10px rgba(0, 242, 255, 0.1);
-}
-
-/* For browser support of dark mode in inputs */
-::-webkit-calendar-picker-indicator {
-  filter: invert(1);
-  cursor: pointer;
+  letter-spacing: 0.04em;
 }
 
 .apply-btn {
-  background: rgba(0, 242, 255, 0.1);
-  border: 1px solid rgba(0, 242, 255, 0.3);
-  color: var(--neon-cyan);
-  padding: 0.4rem 1rem;
-  border-radius: 4px;
-  font-weight: 800;
-  font-size: 0.7rem;
+  background: var(--theme-crimson);
+  border: none;
+  color: #ffffff;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: 0.72rem;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: opacity var(--transition-fast);
 }
 
 .apply-btn:hover:not(:disabled) {
-  background: var(--neon-cyan);
-  color: #000;
-  box-shadow: 0 0 15px var(--neon-cyan-glow);
+  opacity: 0.9;
 }
 
 .apply-btn:disabled {
@@ -547,124 +513,122 @@ h1 {
 @media (max-width: 1200px) {
   .range-selector {
     flex-wrap: wrap;
-    justify-content: center;
   }
   .custom-inputs {
-    border-left: none;
-    padding-left: 0;
+    border-inline-start: none;
+    padding-inline-start: 0;
     margin-top: 0.5rem;
     width: 100%;
-    justify-content: center;
   }
 }
 
 /* Averages Grid */
 .averages-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
 }
 
 .avg-card {
   position: relative;
   background: var(--bg-card);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  padding: 1.8rem;
-  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  padding: 1.25rem 1.5rem;
+  border-radius: var(--radius-sm);
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: border-color var(--transition-fast);
 }
 
-.avg-card:hover {
-  transform: translateY(-5px);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-.card-glow {
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.03) 0%, transparent 70%);
-  pointer-events: none;
-}
+.avg-card.cpu { border-inline-start: 4px solid var(--theme-crimson); }
+.avg-card.memory { border-inline-start: 4px solid var(--theme-amber); }
+.avg-card.disk { border-inline-start: 4px solid var(--theme-sky); }
 
 .avg-header {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: 0.5rem;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-secondary);
-  letter-spacing: 1px;
-  margin-bottom: 1rem;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.75rem;
 }
 
+.cpu-icon { color: var(--theme-crimson); }
+.ram-icon { color: var(--theme-amber); }
+.disk-icon { color: var(--theme-sky); }
+
 .avg-value {
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 800;
   font-family: var(--font-data);
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
 }
+
+.cpu-val { color: var(--theme-crimson); }
+.ram-val { color: var(--theme-amber); }
+.disk-val { color: var(--theme-sky); }
 
 .avg-footer {
   font-size: 0.65rem;
-  color: rgba(255, 255, 255, 0.3);
-  letter-spacing: 1px;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
   text-transform: uppercase;
+  font-weight: 600;
 }
-
-.avg-card.cpu { border-left: 3px solid var(--neon-cyan); }
-.avg-card.memory { border-left: 3px solid var(--neon-orange); }
-.avg-card.disk { border-left: 3px solid var(--neon-purple); }
 
 /* Chart Area */
 .chart-container-wrapper {
-  padding: 2rem;
-  border-radius: 12px;
+  padding: 1.5rem;
+  border-radius: var(--radius-sm);
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
 }
 
 .card-header h3 {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: 0.5rem;
   margin: 0;
-  font-size: 1rem;
-  letter-spacing: 2px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
+}
+
+.crimson-accent {
+  color: var(--theme-crimson);
 }
 
 .status-pill {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
   font-size: 0.65rem;
   font-weight: 700;
   color: var(--text-secondary);
-  background: rgba(0, 0, 0, 0.2);
-  padding: 0.3rem 0.8rem;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.25rem 0.65rem;
   border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  font-family: var(--font-data);
 }
 
 .status-pill .dot {
   width: 6px;
   height: 6px;
-  background: var(--neon-cyan);
+  background: var(--theme-emerald);
   border-radius: 50%;
-  box-shadow: 0 0 5px var(--neon-cyan);
 }
 
 .chart-area {
-  height: 450px;
+  height: 420px;
   position: relative;
 }
 
@@ -674,23 +638,19 @@ h1 {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1.5rem;
-  color: var(--text-secondary);
+  gap: 1rem;
+  color: var(--text-muted);
   font-weight: 600;
-  letter-spacing: 1px;
+  font-family: var(--font-data);
+  font-size: 0.85rem;
 }
 
 .spinning {
-  animation: spin 2s linear infinite;
+  animation: spin 1.5s linear infinite;
 }
 
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
-}
-
-.glow-purple {
-  color: #7000ff;
-  filter: drop-shadow(0 0 5px rgba(112, 0, 255, 0.5));
 }
 </style>

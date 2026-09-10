@@ -129,43 +129,48 @@ const handleToggle = async () => {
 }
 
 .status-info h3 {
-  font-size: 1.5rem;
-  margin-bottom: 0.5rem;
+  font-size: 1.3rem;
+  margin-bottom: 0.35rem;
 }
 
-.status-card.active .status-text { color: var(--neon-cyan); text-shadow: var(--text-glow); }
-.status-card.inactive .status-text { color: var(--neon-orange); text-shadow: 0 0 10px var(--neon-orange-glow); }
+.status-card.active { border-inline-start: 4px solid var(--linux-green); }
+.status-card.inactive { border-inline-start: 4px solid var(--rdr-crimson); }
+
+.status-card.active .status-text { color: var(--linux-green); }
+.status-card.inactive .status-text { color: var(--rdr-crimson); }
 
 .status-info p {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-size: 0.88rem;
 }
 
 .toggle-btn {
-  margin-left: auto;
-  background: transparent;
-  border: 1px solid var(--neon-orange);
-  color: var(--neon-orange);
-  padding: 1.5rem 2.5rem;
+  margin-inline-start: auto;
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid var(--border-crimson);
+  color: #fca5a5;
+  padding: 1rem 2rem;
+  border-radius: 4px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   font-family: var(--font-header);
   font-weight: 700;
-  letter-spacing: 2px;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.15s ease;
 }
 
 .toggle-btn.on {
-  border-color: var(--neon-cyan);
-  color: var(--neon-cyan);
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.35);
+  color: var(--linux-green);
 }
 
 .toggle-btn:hover {
-  box-shadow: 0 0 20px currentColor;
-  background: rgba(255, 255, 255, 0.02);
+  filter: brightness(1.15);
 }
 
 /* Rules Display */
@@ -176,29 +181,30 @@ const handleToggle = async () => {
 }
 
 .card-header {
-  padding: 1.5rem;
+  padding: 1.25rem;
   display: flex;
   align-items: center;
-  gap: 1rem;
-  border-bottom: 1px solid rgba(0, 242, 255, 0.1);
+  gap: 0.75rem;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .rules-content {
-  padding: 1.5rem;
+  padding: 1.25rem;
   flex: 1;
-  background: rgba(0, 0, 0, 0.3);
+  background: #0d0f14;
 }
 
 .raw-output {
   white-space: pre-wrap;
   word-wrap: break-word;
   color: var(--text-primary);
-  font-size: 0.9rem;
+  font-size: 0.86rem;
   line-height: 1.5;
-  background: rgba(255, 255, 255, 0.02);
-  padding: 1.5rem;
+  background: #11131a;
+  padding: 1.25rem;
   border-radius: 4px;
-  border: 1px solid rgba(0, 242, 255, 0.1);
+  border: 1px solid var(--border-subtle);
+  font-family: var(--font-data);
 }
 
 .loading-state {

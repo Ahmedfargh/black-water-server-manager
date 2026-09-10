@@ -5,8 +5,8 @@ export const useSystemStore = defineStore('system', {
   state: () => ({
     cpu: { usage: 0, model: '', cores: 0, temp: 0 },
     ram: { total: 0, used: 0, free: 0, usage: 0 },
-    disk: { total: 0, used: 0, free: 0, usage: 0 },
-    network: { bytesSent: 0, bytesRecv: 0 },
+    disk: { total: 0, used: 0, free: 0, usage: 0, devices: [] },
+    network: { sentRate: 0, recvRate: 0, totalSent: 0, totalRecv: 0, bytesSent: 0, bytesRecv: 0 },
     history: {
       cpu: [],
       ram: [],
@@ -31,7 +31,7 @@ export const useSystemStore = defineStore('system', {
         ])
 
         // Update real usages from report
-        const report = reportRes.data.report
+        const report = reportRes.data?.report
         if (report) {
           this.cpu.usage = parseFloat(report.cpu_usage.toFixed(1))
           this.ram.usage = parseFloat(report.memory_usage.toFixed(1))
@@ -41,12 +41,12 @@ export const useSystemStore = defineStore('system', {
         // CPU specs
         this.cpu = { 
           ...this.cpu, 
-          model: cpuRes.data.Cpu_Hard_Ware_Info[0]?.model || 'Generic CPU',
-          cores: cpuRes.data.Logical_core 
+          model: cpuRes.data?.Cpu_Hard_Ware_Info?.[0]?.model || 'Generic CPU',
+          cores: cpuRes.data?.Logical_core || 0
         }
 
         // RAM specs
-        const ramData = ramRes.data.Vertiual_info
+        const ramData = ramRes.data?.Vertiual_info
         if (ramData) {
           this.ram = {
             ...this.ram,
@@ -57,22 +57,42 @@ export const useSystemStore = defineStore('system', {
         }
 
         // Disk specs
-        const primaryDisk = diskRes.data.Disks?.[0]
-        if (primaryDisk) {
-          this.disk = {
-            ...this.disk,
-            total: primaryDisk.TotalGB * 1024 * 1024 * 1024,
-            used: primaryDisk.UsedGB * 1024 * 1024 * 1024,
-            free: primaryDisk.FreeGB * 1024 * 1024 * 1024
-          }
+        const diskData = diskRes.data || {}
+        const devices = diskData.devices || []
+        const total = diskData.total_bytes || (diskData.Disks?.[0]?.TotalGB ? diskData.Disks[0].TotalGB * 1024 * 1024 * 1024 : 0)
+        const used = diskData.used_bytes || (diskData.Disks?.[0]?.UsedGB ? diskData.Disks[0].UsedGB * 1024 * 1024 * 1024 : 0)
+        const free = diskData.free_bytes || (diskData.Disks?.[0]?.FreeGB ? diskData.Disks[0].FreeGB * 1024 * 1024 * 1024 : 0)
+        const calculatedUsage = total > 0 ? parseFloat(((used / total) * 100).toFixed(1)) : this.disk.usage
+
+        this.disk = {
+          ...this.disk,
+          total,
+          used,
+          free,
+          usage: calculatedUsage || this.disk.usage,
+          devices
         }
 
         // Network
-        const netData = netRes.data.network?.[0]
-        if (netData) {
+        const netData = netRes.data?.network?.[0]
+        const rates = netRes.data?.rates
+        if (rates) {
           this.network = {
-            bytesSent: netData.bytesSent,
-            bytesRecv: netData.bytesRecv
+            sentRate: Number(rates.sentPerSec) || 0,
+            recvRate: Number(rates.recvPerSec) || 0,
+            totalSent: Number(rates.totalSent) || (netData?.bytesSent || 0),
+            totalRecv: Number(rates.totalRecv) || (netData?.bytesRecv || 0),
+            bytesSent: Number(rates.totalSent) || (netData?.bytesSent || 0),
+            bytesRecv: Number(rates.totalRecv) || (netData?.bytesRecv || 0)
+          }
+        } else if (netData) {
+          this.network = {
+            sentRate: 0,
+            recvRate: 0,
+            totalSent: netData.bytesSent || 0,
+            totalRecv: netData.bytesRecv || 0,
+            bytesSent: netData.bytesSent || 0,
+            bytesRecv: netData.bytesRecv || 0
           }
         }
 

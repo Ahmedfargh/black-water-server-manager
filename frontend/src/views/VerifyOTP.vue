@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth'
 import { useToastStore } from '../stores/toast'
 import { ShieldCheck, Lock, Loader2, ArrowLeft } from 'lucide-vue-next'
+import BrandLogo from '../components/BrandLogo.vue'
 
 const { t } = useI18n()
 const authStore = useAuthStore()
@@ -58,59 +59,62 @@ const handleResend = async () => {
 
 <template>
   <div class="login-page">
-    <div class="bg-grid"></div>
+    <div class="frontier-backdrop"></div>
     
     <div class="login-container">
       <div class="tron-card login-card">
+        <div class="login-brand">
+          <BrandLogo size="md" :badgeText="$t('auth.verify_otp')" />
+        </div>
+
         <div class="login-header">
-          <div class="logo-glow">
-            <ShieldCheck class="glow-cyan" :size="48" />
-          </div>
-          <h1>{{ $t('auth.verify_otp') }}</h1>
           <p class="subtitle">{{ $t('auth.code_sent') }}</p>
-          <p class="email-display">{{ email }}</p>
+          <p class="email-display font-data">{{ email }}</p>
         </div>
 
         <form @submit.prevent="handleVerify" class="login-form">
           <div class="input-group">
-            <label>{{ $t('auth.verification_code') }}</label>
+            <label class="font-data">{{ $t('auth.verification_code') }}</label>
             <div class="input-wrapper">
-              <Lock :size="18" />
+              <Lock :size="17" class="input-icon" />
               <input 
                 v-model="code" 
                 type="text" 
                 maxlength="6"
-                :placeholder="'_ _ _ _ _ _'" 
+                placeholder="000000" 
                 required
                 autocomplete="one-time-code"
-                class="otp-input"
+                class="otp-input font-data"
               />
             </div>
           </div>
 
-          <div v-if="error" class="error-msg glow-orange">
+          <div v-if="error" class="error-msg font-data">
             {{ error }}
           </div>
 
-          <button :disabled="isLoading || code.length < 6" type="submit" class="login-btn">
+          <button :disabled="isLoading || code.length < 6" type="submit" class="frontier-btn font-data">
             <Loader2 v-if="isLoading" class="spinner" :size="18" />
             <span v-else>{{ $t('auth.verify') }}</span>
           </button>
         </form>
 
         <div class="actions">
-          <button @click="handleResend" :disabled="isResending" class="text-btn">
+          <button @click="handleResend" :disabled="isResending" class="text-btn font-data">
             {{ isResending ? $t('common.loading') : $t('auth.resend_code') }}
           </button>
-          <router-link to="/login" class="text-btn back-btn">
+          <router-link to="/login" class="text-btn back-btn font-data">
             <ArrowLeft :size="14" />
             {{ $t('nav.login') }}
           </router-link>
         </div>
 
-        <div class="login-footer">
+        <div class="login-footer font-data">
           <span class="system-tag">{{ $t('app.system_v') }}</span>
-          <span class="status-tag">{{ $t('app.status') }}: {{ $t('app.secure') }}</span>
+          <span class="status-tag active">
+            <span class="beacon-online"></span>
+            {{ $t('app.secure') }}
+          </span>
         </div>
       </div>
     </div>
@@ -124,189 +128,179 @@ const handleResend = async () => {
   align-items: center;
   justify-content: center;
   position: relative;
-  background-color: var(--bg-black);
+  background-color: #0c0d11;
+  overflow: hidden;
 }
 
-.bg-grid {
+.frontier-backdrop {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background-image: 
-    linear-gradient(var(--grid-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-  background-size: 80px 80px;
-  opacity: 0.3;
+    radial-gradient(circle at 50% 25%, rgba(220, 38, 38, 0.08) 0%, transparent 60%),
+    radial-gradient(circle at 80% 80%, rgba(217, 119, 6, 0.04) 0%, transparent 50%);
+  pointer-events: none;
 }
 
 .login-container {
   width: 100%;
-  max-width: 420px;
+  max-width: 440px;
   z-index: 10;
   padding: 1.5rem;
 }
 
 .login-card {
-  padding: 3rem 2rem;
+  padding: 2.8rem 2.2rem;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.75rem;
+  border: 1px solid var(--border-crimson);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+  background: #13151d;
+  border-radius: 4px;
+}
+
+.login-brand {
+  display: flex;
+  justify-content: center;
 }
 
 .login-header {
   text-align: center;
 }
 
-.logo-glow {
-  margin-bottom: 1.5rem;
-  display: inline-block;
-  padding: 1rem;
-  border: 1px solid rgba(0, 242, 255, 0.2);
-  border-radius: 50%;
-  box-shadow: 0 0 20px rgba(0, 242, 255, 0.1);
-}
-
-.login-header h1 {
-  font-size: 1.5rem;
-  margin-bottom: 0.5rem;
-  text-shadow: var(--text-glow);
-  letter-spacing: 2px;
-}
-
 .subtitle {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  line-height: 1.4;
+  font-size: 0.82rem;
+  color: var(--text-muted);
 }
 
 .email-display {
-  font-family: var(--font-data);
-  color: var(--neon-cyan);
-  font-size: 0.8rem;
-  margin-top: 0.5rem;
-  text-shadow: 0 0 5px var(--neon-cyan-glow);
+  color: var(--rdr-amber);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 0.35rem;
 }
 
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
 .input-group label {
   display: block;
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  margin-bottom: 0.5rem;
-  letter-spacing: 2px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-bottom: 0.45rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
 
 .input-wrapper {
   position: relative;
   display: flex;
   align-items: center;
-  border: 1px solid rgba(0, 242, 255, 0.2);
-  background: rgba(0, 242, 255, 0.02);
-  transition: all 0.3s ease;
+  border: 1px solid var(--border-subtle);
+  background: #0f1118;
+  border-radius: 3px;
+  transition: all 0.15s ease;
 }
 
 .input-wrapper:focus-within {
-  border-color: var(--neon-cyan);
-  box-shadow: 0 0 10px rgba(0, 242, 255, 0.1);
+  border-color: var(--rdr-crimson);
+  background: #151722;
 }
 
-.input-wrapper svg {
-  margin: 0 1rem;
-  color: var(--text-secondary);
+.input-icon {
+  margin: 0 0.85rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
 }
 
 .input-wrapper input {
   flex: 1;
   background: transparent;
   border: none;
-  padding: 0.8rem 0;
-  color: var(--text-primary);
+  padding: 0.75rem 0.85rem 0.75rem 0;
+  color: #ffffff;
   font-family: var(--font-data);
-  outline: none;
+  font-size: 1.1rem;
   letter-spacing: 4px;
-}
-
-.otp-input {
   text-align: center;
-  font-size: 1.2rem !important;
-  font-weight: bold;
+  outline: none;
 }
 
-.login-btn {
-  margin-top: 1rem;
-  background: transparent;
-  border: 1px solid var(--neon-cyan);
-  color: var(--neon-cyan);
-  padding: 1rem;
+.frontier-btn {
+  margin-top: 0.5rem;
+  background: var(--rdr-crimson);
+  border: 1px solid var(--rdr-crimson-hover);
+  color: #ffffff;
+  padding: 0.75rem 1.2rem;
   font-family: var(--font-header);
   font-weight: 700;
-  letter-spacing: 3px;
+  font-size: 0.88rem;
+  letter-spacing: 1.5px;
+  border-radius: 3px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.15s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.8rem;
+  gap: 0.6rem;
+  text-transform: uppercase;
 }
 
-.login-btn:hover:not(:disabled) {
-  background: var(--neon-cyan);
-  color: var(--bg-black);
-  box-shadow: 0 0 20px var(--neon-cyan-glow);
+.frontier-btn:hover:not(:disabled) {
+  background: var(--rdr-crimson-hover);
+  box-shadow: 0 4px 16px var(--rdr-crimson-glow);
 }
 
-.login-btn:disabled {
-  opacity: 0.5;
+.frontier-btn:disabled {
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
 .actions {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  gap: 1rem;
+  padding-top: 0.5rem;
 }
 
 .text-btn {
   background: transparent;
   border: none;
-  color: var(--text-secondary);
-  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.8rem;
   cursor: pointer;
-  transition: color 0.3s ease;
-  letter-spacing: 1px;
-}
-
-.text-btn:hover {
-  color: var(--neon-cyan);
-}
-
-.back-btn {
+  transition: color 0.15s ease;
+  text-decoration: none;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  text-decoration: none;
+  gap: 0.4rem;
+}
+
+.text-btn:hover:not(:disabled) {
+  color: var(--rdr-crimson);
 }
 
 .error-msg {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   text-align: center;
-  font-style: italic;
+  color: #f87171;
+  background: rgba(220, 38, 38, 0.1);
+  padding: 0.5rem;
+  border-radius: 3px;
+  border: 1px solid rgba(220, 38, 38, 0.25);
 }
 
 .login-footer {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   font-size: 0.7rem;
-  color: var(--text-secondary);
-  border-top: 1px solid rgba(0, 242, 255, 0.1);
-  padding-top: 1.5rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 1.25rem;
 }
 
 .spinner {

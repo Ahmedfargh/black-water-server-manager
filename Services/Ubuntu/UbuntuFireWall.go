@@ -8,10 +8,15 @@ type UbuntuFireWall struct {
 func NewUbuntuFireWall() *UbuntuFireWall {
 	return &UbuntuFireWall{}
 }
-func (f *UbuntuFireWall) UFWAction(action string) (string, error) {
-	cmd := exec.Command("ufw", action)
+func (f *UbuntuFireWall) UFWAction(args ...string) (string, error) {
+	cmd := exec.Command("ufw", args...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
+		cmdSudo := exec.Command("sudo", append([]string{"ufw"}, args...)...)
+		outSudo, errSudo := cmdSudo.CombinedOutput()
+		if errSudo == nil {
+			return string(outSudo), nil
+		}
 		return "", err
 	}
 	return string(output), nil
@@ -26,10 +31,10 @@ func (f *UbuntuFireWall) Status() (string, error) {
 	return f.UFWAction("status")
 }
 func (f *UbuntuFireWall) Rules() (string, error) {
-	return f.UFWAction("numbered")
+	return f.UFWAction("status", "numbered")
 }
 func (f *UbuntuFireWall) ListRules() (string, error) {
-	return f.UFWAction("list")
+	return f.UFWAction("status")
 }
 func (f *UbuntuFireWall) AddRule() bool {
 	return true

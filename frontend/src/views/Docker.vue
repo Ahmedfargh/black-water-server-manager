@@ -325,16 +325,15 @@ const formatBytes = (bytes) => {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  border-left: 4px solid transparent;
+  border-inline-start: 4px solid transparent;
 }
 
 .container-card.running {
-  border-left-color: var(--neon-cyan);
+  border-inline-start-color: var(--neon-cyan);
 }
 
 .container-card.stopped {
-  border-left-color: var(--neon-orange);
-  opacity: 0.8;
+  border-inline-start-color: var(--neon-orange);
 }
 
 .card-header {
@@ -344,7 +343,7 @@ const formatBytes = (bytes) => {
 }
 
 .node-icon {
-  color: var(--text-secondary);
+  color: var(--neon-cyan);
 }
 
 .node-info {
@@ -357,24 +356,32 @@ const formatBytes = (bytes) => {
   font-weight: 700;
   font-size: 1.1rem;
   letter-spacing: 1px;
+  color: #ffffff;
 }
 
 .node-id {
   font-family: var(--font-data);
   font-size: 0.75rem;
-  color: var(--text-secondary);
+  color: var(--text-muted);
 }
 
 .status-badge {
   font-size: 0.7rem;
   padding: 0.2rem 0.6rem;
   border: 1px solid currentColor;
-  border-radius: 2px;
+  border-radius: 4px;
   letter-spacing: 1px;
+  font-weight: 600;
 }
 
-.container-card.running .status-badge { color: var(--neon-cyan); }
-.container-card.stopped .status-badge { color: var(--neon-orange); }
+.container-card.running .status-badge { 
+  color: var(--neon-cyan); 
+  background: rgba(0, 242, 254, 0.08);
+}
+.container-card.stopped .status-badge { 
+  color: var(--neon-orange); 
+  background: rgba(255, 159, 28, 0.08);
+}
 
 .card-body {
   display: flex;
@@ -394,6 +401,7 @@ const formatBytes = (bytes) => {
 
 .detail-row .value {
   font-family: var(--font-data);
+  color: #ffffff;
 }
 
 .stats-grid {
@@ -449,22 +457,24 @@ const formatBytes = (bytes) => {
 }
 
 .action-btn {
-  background: transparent;
-  border: 1px solid rgba(224, 250, 255, 0.1);
-  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
   width: 36px;
   height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .action-btn:hover {
-  background: rgba(0, 242, 255, 0.05);
+  background: rgba(0, 242, 254, 0.15);
   border-color: var(--neon-cyan);
+  color: var(--neon-cyan);
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
 }
 
 /* Modal Styling */

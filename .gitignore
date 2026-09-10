@@ -3,3 +3,7 @@ node_modules/
 dist/
 *.local
 uploads/
+
+# AI Agent Skills & Configuration
+.agents/
+.gemini/

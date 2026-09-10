@@ -88,6 +88,9 @@ func (f *Firewall) Enable(UserId int) (string, error) {
 	}
 }
 func (f *Firewall) recordLog(message string, UserId uint) {
+	if Config.DB == nil {
+		return
+	}
 	audit := NewAuditLogCRUD()
 	var userIDPtr *uint
 	if UserId != 0 {

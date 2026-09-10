@@ -28,9 +28,10 @@ func SeedAll(userCRUD *crud.UserCRUD, roleCRUD *crud.RoleCRUD, permissionCRUD *c
 		"view_audit_logs", "site_create", "site_checks", "site_delete", "site_update", "site_read", "site_anayltics",
 		"read_file", "write_file", "delete_file",
 		"browse_filesystem",
+		"read_packages",
 	}
 	developerPermissions := []string{
-		"read_user", "update_user",
+		"read_user", "update_user", "read_packages",
 	}
 
 	// 3. Create Roles and assign permissions
@@ -87,12 +88,13 @@ func SeedAll(userCRUD *crud.UserCRUD, roleCRUD *crud.RoleCRUD, permissionCRUD *c
 		}
 
 		user := &models.User{
-			Username:  userData.Username,
-			Email:     userData.Email,
-			Password:  string(hashedPassword),
-			RoleID:    role.ID,
-			ImagePath: userData.ImagePath,
-			Status:    userData.Status,
+			Username:      userData.Username,
+			Email:         userData.Email,
+			Password:      string(hashedPassword),
+			RoleID:        role.ID,
+			ImagePath:     userData.ImagePath,
+			Status:        userData.Status,
+			EmailVerified: true,
 		}
 
 		err = userCRUD.CreateUser(user)
