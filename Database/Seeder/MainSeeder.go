@@ -29,6 +29,8 @@ func SeedAll(userCRUD *crud.UserCRUD, roleCRUD *crud.RoleCRUD, permissionCRUD *c
 		"read_file", "write_file", "delete_file",
 		"browse_filesystem",
 		"read_packages",
+		"manage_packages",
+		"terminal_access",
 	}
 	developerPermissions := []string{
 		"read_user", "update_user", "read_packages",

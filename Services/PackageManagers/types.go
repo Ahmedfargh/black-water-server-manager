@@ -54,3 +54,22 @@ type PackagesOverview struct {
 	Managers       []ManagerMetadata `json:"managers"`
 	GeneratedAt    time.Time         `json:"generated_at"`
 }
+
+// OperationResult standardizes output from package manager mutations
+type OperationResult struct {
+	Success         bool      `json:"success"`
+	Action          string    `json:"action"`
+	Manager         string    `json:"manager"`
+	TargetPackage   string    `json:"target_package,omitempty"`
+	Command         string    `json:"command"`
+	Output          string    `json:"output"`
+	ExecutionTimeMs int64     `json:"execution_time_ms"`
+	ExecutedAt      time.Time `json:"executed_at"`
+	Message         string    `json:"message"`
+}
+
+// PackageActionRequest encapsulates request payload for package operations
+type PackageActionRequest struct {
+	Package string `json:"package" binding:"required"`
+	Purge   bool   `json:"purge"`
+}

@@ -17,7 +17,17 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Terminal,
-  Server
+  Server,
+  Trash2,
+  PlusCircle,
+  Zap,
+  Sparkles,
+  X,
+  Copy,
+  Check,
+  ShieldAlert,
+  Clock,
+  DownloadCloud
 } from 'lucide-vue-next'
 
 const { t } = useI18n()
@@ -45,6 +55,28 @@ const updatesList = ref([])
 const updatesSearch = ref('')
 const updatesPage = ref(1)
 const updatesPageSize = ref(25)
+
+// Operation execution & modals state
+const executingAction = ref(false)
+const actionTitle = ref('')
+const showOutputModal = ref(false)
+const outputResult = ref(null)
+const copiedOutput = ref(false)
+
+const showInstallModal = ref(false)
+const installPackageName = ref('')
+
+const showConfirmModal = ref(false)
+const confirmData = ref({
+  title: '',
+  message: '',
+  action: null,
+  packageName: '',
+  hasPurge: false,
+  purge: false,
+  btnText: '',
+  isDanger: false
+})
 
 const fetchOverview = async (forceRefresh = false) => {
   loadingOverview.value = true
@@ -128,6 +160,158 @@ const switchTab = (tab) => {
     fetchPackages()
   } else {
     fetchUpdates()
+  }
+}
+
+// ----------------------------------------------------
+// Package Lifecycle Mutation Operations
+// ----------------------------------------------------
+
+const runOperation = async (title, apiCall) => {
+  executingAction.value = true
+  actionTitle.value = title
+  outputResult.value = null
+  showOutputModal.value = true
+  copiedOutput.value = false
+
+  try {
+    const res = await apiCall()
+    outputResult.value = res.data?.data || {
+      success: true,
+      action: title,
+      manager: selectedManager.value,
+      command: 'Executed successfully',
+      output: res.data?.message || 'Operation completed.',
+      execution_time_ms: 0
+    }
+    // Refresh background state
+    await fetchOverview(true)
+    if (activeTab.value === 'installed') {
+      fetchPackages()
+    } else {
+      fetchUpdates()
+    }
+  } catch (err) {
+    const errorData = err.response?.data?.data
+    outputResult.value = errorData || {
+      success: false,
+      action: title,
+      manager: selectedManager.value,
+      command: 'Failed',
+      output: err.response?.data?.message || err.message || 'Operation encountered an error',
+      execution_time_ms: 0
+    }
+  } finally {
+    executingAction.value = false
+  }
+}
+
+// Clean Cache Action
+const triggerCleanCache = () => {
+  confirmData.value = {
+    title: t('packages.clean_cache') || 'CLEAN CACHE',
+    message: t('packages.clean_cache_desc') || 'Purge local cache and unused package archives to free up disk space.',
+    action: () => {
+      showConfirmModal.value = false
+      runOperation(t('packages.clean_cache') || 'Clean Cache', () => {
+        return api.post(`/packages/${selectedManager.value}/clean-cache`)
+      })
+    },
+    packageName: '',
+    hasPurge: false,
+    purge: false,
+    btnText: t('packages.clean_cache') || 'CLEAN CACHE',
+    isDanger: false
+  }
+  showConfirmModal.value = true
+}
+
+// Refresh Repositories Action
+const triggerRefreshRepos = () => {
+  runOperation(t('packages.refresh_repos') || 'Refresh Repositories', () => {
+    return api.post(`/packages/${selectedManager.value}/refresh`)
+  })
+}
+
+// Upgrade System Action
+const triggerUpgradeSystem = () => {
+  confirmData.value = {
+    title: t('packages.upgrade_system') || 'UPGRADE SYSTEM',
+    message: t('packages.upgrade_system_desc') || 'Upgrade all installed packages with available upstream updates.',
+    action: () => {
+      showConfirmModal.value = false
+      runOperation(t('packages.upgrade_system') || 'Upgrade System', () => {
+        return api.post(`/packages/${selectedManager.value}/upgrade-system`)
+      })
+    },
+    packageName: '',
+    hasPurge: false,
+    purge: false,
+    btnText: t('packages.upgrade_system') || 'UPGRADE SYSTEM',
+    isDanger: false
+  }
+  showConfirmModal.value = true
+}
+
+// Open Install Modal
+const openInstallModal = () => {
+  installPackageName.value = ''
+  showInstallModal.value = true
+}
+
+// Submit Install Package
+const submitInstallPackage = () => {
+  const pkg = installPackageName.value.trim()
+  if (!pkg) return
+  showInstallModal.value = false
+  runOperation(`${t('packages.install_pkg') || 'Install Package'}: ${pkg}`, () => {
+    return api.post(`/packages/${selectedManager.value}/install`, { package: pkg })
+  })
+}
+
+// Trigger Remove Package
+const triggerRemovePackage = (pkgName) => {
+  confirmData.value = {
+    title: t('packages.remove_pkg_title') || 'Uninstall Package',
+    message: (t('packages.remove_pkg_confirm', { name: pkgName }) || `Are you sure you want to remove package [${pkgName}]?`),
+    packageName: pkgName,
+    hasPurge: selectedManager.value === 'apt' || selectedManager.value === 'pacman' || selectedManager.value === 'apk' || selectedManager.value === 'snap',
+    purge: false,
+    action: () => {
+      const purgeVal = confirmData.value.purge
+      showConfirmModal.value = false
+      runOperation(`${t('packages.remove_pkg') || 'Uninstall'}: ${pkgName}`, () => {
+        return api.post(`/packages/${selectedManager.value}/remove`, { 
+          package: pkgName, 
+          purge: purgeVal 
+        })
+      })
+    },
+    btnText: t('packages.remove_pkg') || 'UNINSTALL',
+    isDanger: true
+  }
+  showConfirmModal.value = true
+}
+
+// Trigger Upgrade Single Package
+const triggerUpgradePackage = (pkgName) => {
+  runOperation(`${t('packages.upgrade_pkg') || 'Upgrade'}: ${pkgName}`, () => {
+    return api.post(`/packages/${selectedManager.value}/upgrade-package`, { package: pkgName })
+  })
+}
+
+// Copy Console Output
+const copyConsoleOutput = async () => {
+  if (!outputResult.value) return
+  const text = `Action: ${outputResult.value.action}\nCommand: ${outputResult.value.command}\n\nOutput:\n${outputResult.value.output}`
+  try {
+    await navigator.clipboard.writeText(text)
+    copiedOutput.value = true
+    setTimeout(() => {
+      copiedOutput.value = false
+    }, 2000)
+  } catch (e) {
+    // clipboard error
   }
 }
 
@@ -309,6 +493,62 @@ onMounted(async () => {
       </div>
     </div>
 
+    <!-- Manager Maintenance & Action Toolbar -->
+    <div class="tron-card manager-actions-bar" v-if="selectedManager">
+      <div class="bar-left">
+        <div class="engine-badge-pill">
+          <span class="dot-indicator"></span>
+          <span class="engine-name">{{ selectedManager.toUpperCase() }}</span>
+          <span class="engine-mode">{{ $t('packages.manage_packages') || 'ENGINE OPERATIONS' }}</span>
+        </div>
+      </div>
+
+      <div class="bar-right">
+        <!-- Clean Cache Button -->
+        <button 
+          @click="triggerCleanCache" 
+          class="action-pill-btn clean-btn"
+          :title="$t('packages.clean_cache_desc') || 'Purge package cache'"
+          :disabled="executingAction"
+        >
+          <Trash2 :size="15" />
+          <span>{{ $t('packages.clean_cache') || 'CLEAN CACHE' }}</span>
+        </button>
+
+        <!-- Refresh Repositories Button -->
+        <button 
+          @click="triggerRefreshRepos" 
+          class="action-pill-btn refresh-btn"
+          :title="$t('packages.refresh_repos_desc') || 'Fetch latest metadata'"
+          :disabled="executingAction"
+        >
+          <RefreshCw :size="15" :class="{ 'spin': executingAction && actionTitle.includes('Refresh') }" />
+          <span>{{ $t('packages.refresh_repos') || 'REFRESH REPOS' }}</span>
+        </button>
+
+        <!-- Upgrade System Button -->
+        <button 
+          @click="triggerUpgradeSystem" 
+          class="action-pill-btn upgrade-btn"
+          :title="$t('packages.upgrade_system_desc') || 'Upgrade all packages'"
+          :disabled="executingAction"
+        >
+          <Zap :size="15" />
+          <span>{{ $t('packages.upgrade_system') || 'UPGRADE SYSTEM' }}</span>
+        </button>
+
+        <!-- Install Package Button -->
+        <button 
+          @click="openInstallModal" 
+          class="action-pill-btn install-btn"
+          :disabled="executingAction"
+        >
+          <PlusCircle :size="15" />
+          <span>{{ $t('packages.install_pkg') || 'INSTALL PACKAGE' }}</span>
+        </button>
+      </div>
+    </div>
+
     <!-- Main Workspace Section -->
     <div class="tron-card workspace-card" v-if="selectedManager">
       <div class="workspace-header">
@@ -358,10 +598,21 @@ onMounted(async () => {
               class="cyber-input"
             />
           </div>
+
+          <button 
+            v-if="updatesList.length > 0"
+            @click="triggerUpgradeSystem" 
+            class="cyber-btn upgrade-all-btn"
+            :disabled="executingAction"
+          >
+            <Zap :size="15" />
+            <span>{{ $t('packages.upgrade_all') || 'UPGRADE ALL UPDATES' }}</span>
+          </button>
+
           <button 
             @click="fetchUpdates" 
             class="cyber-btn"
-            :disabled="loadingUpdates"
+            :disabled="loadingUpdates || executingAction"
           >
             <RefreshCw :size="16" :class="{ 'spin': loadingUpdates }" />
             <span>{{ $t('packages.check_updates') || 'CHECK UPDATES' }}</span>
@@ -390,6 +641,7 @@ onMounted(async () => {
                 <th>{{ $t('packages.version') || 'VERSION' }}</th>
                 <th>{{ $t('packages.engine') || 'SOURCE' }}</th>
                 <th v-if="selectedManager === 'flatpak'">{{ $t('packages.app_id') || 'APPLICATION ID' }}</th>
+                <th style="text-align: right; width: 140px;">{{ $t('packages.actions') || 'ACTIONS' }}</th>
               </tr>
             </thead>
             <tbody>
@@ -405,6 +657,28 @@ onMounted(async () => {
                 </td>
                 <td v-if="selectedManager === 'flatpak'" class="mono text-dim">
                   {{ pkg.description }}
+                </td>
+                <td style="text-align: right;">
+                  <div class="row-actions">
+                    <button 
+                      @click="triggerUpgradePackage(pkg.name)" 
+                      class="row-action-btn upgrade-row-btn"
+                      :title="$t('packages.upgrade_pkg') || 'Upgrade'"
+                      :disabled="executingAction"
+                    >
+                      <ArrowUpCircle :size="13" />
+                      <span>{{ $t('packages.upgrade_pkg') || 'UPGRADE' }}</span>
+                    </button>
+                    <button 
+                      @click="triggerRemovePackage(pkg.name)" 
+                      class="row-action-btn remove-row-btn"
+                      :title="$t('packages.remove_pkg') || 'Uninstall'"
+                      :disabled="executingAction"
+                    >
+                      <Trash2 :size="13" />
+                      <span>{{ $t('packages.remove_pkg') || 'REMOVE' }}</span>
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -435,7 +709,6 @@ onMounted(async () => {
 
             <!-- Right Navigation & Page Pills -->
             <div class="pagination-nav">
-              <!-- First & Prev -->
               <button 
                 @click="goToPage(1)" 
                 :disabled="currentPage <= 1 || loadingPackages"
@@ -453,7 +726,6 @@ onMounted(async () => {
                 <ChevronLeft :size="16" />
               </button>
 
-              <!-- Page Number Pills -->
               <div class="page-pills">
                 <button 
                   v-for="(p, idx) in visiblePages" 
@@ -470,7 +742,6 @@ onMounted(async () => {
                 </button>
               </div>
 
-              <!-- Next & Last -->
               <button 
                 @click="goToPage(currentPage + 1)" 
                 :disabled="currentPage >= totalPages || loadingPackages"
@@ -488,7 +759,6 @@ onMounted(async () => {
                 <ChevronsRight :size="16" />
               </button>
 
-              <!-- Jump to Page Input -->
               <div class="jump-box" v-if="totalPages > 5">
                 <span class="text-dim">{{ $t('packages.go_to') || 'Go to' }}:</span>
                 <input 
@@ -528,6 +798,7 @@ onMounted(async () => {
                 <th>{{ $t('packages.installed_version') || 'INSTALLED' }}</th>
                 <th>{{ $t('packages.latest_version') || 'UPSTREAM NEW' }}</th>
                 <th>{{ $t('packages.repository') || 'REPOSITORY' }}</th>
+                <th style="text-align: right; width: 120px;">{{ $t('packages.actions') || 'ACTIONS' }}</th>
               </tr>
             </thead>
             <tbody>
@@ -542,6 +813,16 @@ onMounted(async () => {
                   <span class="new-pill">{{ up.new_version }}</span>
                 </td>
                 <td class="text-dim">{{ up.repository || 'default' }}</td>
+                <td style="text-align: right;">
+                  <button 
+                    @click="triggerUpgradePackage(up.name)" 
+                    class="row-action-btn upgrade-row-btn"
+                    :disabled="executingAction"
+                  >
+                    <ArrowUpCircle :size="13" />
+                    <span>{{ $t('packages.upgrade_pkg') || 'UPGRADE' }}</span>
+                  </button>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -577,6 +858,167 @@ onMounted(async () => {
         </div>
       </div>
     </div>
+
+    <!-- Modal 1: Install Package Modal -->
+    <div class="modal-backdrop" v-if="showInstallModal" @click.self="showInstallModal = false">
+      <div class="modal-card tron-card">
+        <div class="modal-header">
+          <div class="modal-title-box">
+            <PlusCircle class="modal-title-icon glow-cyan" :size="20" />
+            <h3 class="modal-title">{{ $t('packages.install_pkg_title') || 'Install New Package' }}</h3>
+          </div>
+          <button @click="showInstallModal = false" class="modal-close-btn">
+            <X :size="18" />
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <p class="modal-desc">
+            Target Package Manager: <strong class="highlight mono">{{ selectedManager.toUpperCase() }}</strong>
+          </p>
+          <div class="modal-input-group">
+            <label class="input-label">{{ $t('packages.package_name') || 'PACKAGE NAME' }}</label>
+            <input 
+              v-model="installPackageName" 
+              @keyup.enter="submitInstallPackage"
+              type="text" 
+              :placeholder="$t('packages.install_pkg_placeholder') || 'Enter package name (e.g. htop, nginx, curl)...'"
+              class="cyber-input modal-input mono"
+              autofocus
+            />
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button @click="showInstallModal = false" class="btn-cancel">
+            {{ $t('packages.cancel') || 'CANCEL' }}
+          </button>
+          <button 
+            @click="submitInstallPackage" 
+            class="btn-primary-action"
+            :disabled="!installPackageName.trim()"
+          >
+            <PlusCircle :size="15" />
+            <span>{{ $t('packages.install_submit') || 'INSTALL' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal 2: Confirmation Modal (Uninstall, Clean, Upgrade) -->
+    <div class="modal-backdrop" v-if="showConfirmModal" @click.self="showConfirmModal = false">
+      <div class="modal-card tron-card" :class="{ 'danger-card': confirmData.isDanger }">
+        <div class="modal-header">
+          <div class="modal-title-box">
+            <ShieldAlert v-if="confirmData.isDanger" class="modal-title-icon glow-orange" :size="20" />
+            <Sparkles v-else class="modal-title-icon glow-cyan" :size="20" />
+            <h3 class="modal-title">{{ confirmData.title }}</h3>
+          </div>
+          <button @click="showConfirmModal = false" class="modal-close-btn">
+            <X :size="18" />
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <p class="modal-confirm-msg">{{ confirmData.message }}</p>
+          
+          <div v-if="confirmData.hasPurge" class="purge-checkbox-box">
+            <label class="custom-checkbox-label">
+              <input type="checkbox" v-model="confirmData.purge" class="custom-checkbox" />
+              <span>{{ $t('packages.purge_option') || 'Purge configuration files and orphaned dependencies' }}</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button @click="showConfirmModal = false" class="btn-cancel">
+            {{ $t('packages.cancel') || 'CANCEL' }}
+          </button>
+          <button 
+            @click="confirmData.action" 
+            class="btn-primary-action"
+            :class="{ 'danger-btn': confirmData.isDanger }"
+          >
+            <span>{{ confirmData.btnText || ($t('packages.confirm') || 'CONFIRM') }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal 3: Command Output & Execution Modal -->
+    <div class="modal-backdrop" v-if="showOutputModal" @click.self="!executingAction ? (showOutputModal = false) : null">
+      <div class="modal-card tron-card terminal-modal">
+        <div class="modal-header">
+          <div class="modal-title-box">
+            <Terminal class="modal-title-icon glow-cyan" :size="20" />
+            <h3 class="modal-title">{{ actionTitle }}</h3>
+          </div>
+          <button v-if="!executingAction" @click="showOutputModal = false" class="modal-close-btn">
+            <X :size="18" />
+          </button>
+        </div>
+
+        <div class="modal-body terminal-body">
+          <!-- Execution Progress -->
+          <div v-if="executingAction" class="terminal-running-state">
+            <RefreshCw :size="32" class="spin glow-cyan" />
+            <div class="running-info">
+              <h4>{{ $t('packages.executing') || 'EXECUTING OPERATION...' }}</h4>
+              <p class="mono text-dim">Invoking {{ selectedManager.toUpperCase() }} engine on host system...</p>
+            </div>
+          </div>
+
+          <!-- Execution Complete Result -->
+          <div v-else-if="outputResult" class="terminal-output-container">
+            <!-- Header Meta -->
+            <div class="output-meta-row">
+              <div class="meta-status">
+                <span 
+                  class="status-pill"
+                  :class="outputResult.success ? 'status-success' : 'status-failed'"
+                >
+                  <CheckCircle2 v-if="outputResult.success" :size="14" />
+                  <AlertCircle v-else :size="14" />
+                  {{ outputResult.success ? ($t('packages.operation_success') || 'SUCCESS') : ($t('packages.operation_failed') || 'FAILED') }}
+                </span>
+                <span class="meta-time mono" v-if="outputResult.execution_time_ms">
+                  <Clock :size="13" />
+                  {{ outputResult.execution_time_ms }} ms
+                </span>
+              </div>
+
+              <button @click="copyConsoleOutput" class="copy-output-btn">
+                <Check v-if="copiedOutput" :size="14" class="glow-cyan" />
+                <Copy v-else :size="14" />
+                <span>{{ copiedOutput ? ($t('packages.copied') || 'COPIED') : 'COPY' }}</span>
+              </button>
+            </div>
+
+            <!-- Command line -->
+            <div class="cmd-preview-box mono">
+              <span class="cmd-prompt">$</span>
+              <span class="cmd-text">{{ outputResult.command }}</span>
+            </div>
+
+            <!-- Terminal Output Log -->
+            <div class="terminal-logs-window mono">
+              <pre>{{ outputResult.output || 'No output returned.' }}</pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button 
+            v-if="!executingAction" 
+            @click="showOutputModal = false" 
+            class="btn-primary-action"
+          >
+            {{ $t('packages.close') || 'CLOSE' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -585,36 +1027,40 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  animation: fadeIn 0.3s ease-out;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+/* Card System - Charcoal & Industrial Outlaw Tech */
+.tron-card {
+  background: var(--bg-surface, #141721);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
 }
 
 /* OS Banner */
 .os-banner {
-  padding: 20px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 16px;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, rgba(20, 23, 33, 0.95) 0%, rgba(30, 20, 25, 0.85) 100%);
+  border-left: 4px solid var(--rdr-crimson, #dc2626);
 }
 
 .os-info {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 18px;
 }
 
 .os-avatar {
   width: 52px;
   height: 52px;
-  border-radius: 4px;
-  background: rgba(220, 38, 38, 0.1);
-  border: 1px solid var(--border-crimson);
+  background: rgba(220, 38, 38, 0.12);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -622,14 +1068,18 @@ onMounted(async () => {
 
 .os-label {
   font-size: 11px;
-  letter-spacing: 2px;
-  color: var(--text-muted);
+  letter-spacing: 1.5px;
+  color: var(--text-muted, #71717a);
+  font-weight: 700;
+  margin-bottom: 2px;
 }
 
 .os-title {
-  font-size: 22px;
-  color: var(--text-primary);
-  margin: 2px 0 6px 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 8px 0;
+  letter-spacing: 0.5px;
 }
 
 .os-badges {
@@ -641,96 +1091,124 @@ onMounted(async () => {
 .cyber-badge {
   font-size: 11px;
   padding: 2px 8px;
-  border-radius: 2px;
-  font-family: var(--font-data);
+  border-radius: 3px;
+  font-family: var(--font-data, monospace);
+  font-weight: 600;
+  letter-spacing: 0.5px;
 }
 
 .cyber-badge.cyan {
-  background: rgba(220, 38, 38, 0.12);
-  color: var(--rdr-crimson);
-  border: 1px solid rgba(220, 38, 38, 0.35);
+  background: rgba(220, 38, 38, 0.15);
+  color: var(--rdr-crimson, #dc2626);
+  border: 1px solid rgba(220, 38, 38, 0.3);
 }
 
 .cyber-badge.muted {
   background: rgba(255, 255, 255, 0.05);
-  color: var(--text-secondary);
+  color: var(--text-secondary, #a1a1aa);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .cyber-badge.primary-tag {
-  background: rgba(217, 119, 6, 0.12);
-  color: var(--rdr-amber);
-  border: 1px solid rgba(217, 119, 6, 0.35);
+  background: rgba(217, 119, 6, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(217, 119, 6, 0.3);
+}
+
+.cyber-btn {
+  background: #1c202d;
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1));
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.8px;
+  transition: all 0.2s ease;
+}
+
+.cyber-btn:hover:not(:disabled) {
+  border-color: var(--rdr-crimson, #dc2626);
+  background: rgba(220, 38, 38, 0.1);
+  color: #ffffff;
+}
+
+.cyber-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Managers Grid */
 .managers-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 16px;
 }
 
 .manager-card {
-  padding: 16px 18px;
+  padding: 16px;
   cursor: pointer;
   transition: all 0.2s ease;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 14px;
+  background: #141721;
 }
 
 .manager-card:hover {
-  border-color: rgba(220, 38, 38, 0.35);
+  transform: translateY(-2px);
+  border-color: rgba(220, 38, 38, 0.4);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
 }
 
 .manager-card.active-card {
-  border-color: var(--rdr-crimson);
-  background: #181b24;
-  box-shadow: 0 4px 16px rgba(220, 38, 38, 0.15);
+  border-color: var(--rdr-crimson, #dc2626);
+  background: linear-gradient(180deg, #171a26 0%, #1c1822 100%);
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 12px;
 }
 
 .mgr-title-box {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .mgr-icon {
-  color: var(--rdr-crimson);
+  color: var(--rdr-crimson, #dc2626);
 }
 
 .mgr-name {
-  font-size: 18px;
   font-weight: 700;
-  letter-spacing: 1px;
+  font-size: 15px;
   color: #fff;
+  letter-spacing: 0.8px;
 }
 
 .mgr-badge {
   font-size: 10px;
-  font-weight: 600;
   padding: 2px 6px;
-  border-radius: 2px;
+  border-radius: 3px;
+  font-weight: 700;
   letter-spacing: 0.5px;
 }
 
 .badge-primary {
-  background: rgba(220, 38, 38, 0.12);
-  color: var(--rdr-crimson);
-  border: 1px solid var(--border-crimson);
+  background: rgba(220, 38, 38, 0.2);
+  color: var(--rdr-crimson, #dc2626);
+  border: 1px solid rgba(220, 38, 38, 0.4);
 }
 
 .badge-universal {
-  background: rgba(217, 119, 6, 0.12);
-  color: var(--rdr-amber);
-  border: 1px solid rgba(217, 119, 6, 0.35);
+  background: rgba(217, 119, 6, 0.2);
+  color: #f59e0b;
+  border: 1px solid rgba(217, 119, 6, 0.4);
 }
 
 .card-metrics {
@@ -742,37 +1220,155 @@ onMounted(async () => {
 .metric-row {
   display: flex;
   justify-content: space-between;
-  font-size: 13px;
+  font-size: 12px;
+}
+
+.metric-label {
+  color: var(--text-muted, #71717a);
+}
+
+.metric-val {
+  color: #ffffff;
+}
+
+.metric-val.highlight {
+  color: var(--rdr-crimson, #dc2626);
+  font-weight: 700;
 }
 
 .path-row {
-  font-size: 11px;
-  border-top: 1px dashed rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
   padding-top: 6px;
   margin-top: 2px;
 }
 
-.metric-label {
-  color: var(--text-secondary);
-}
-
-.metric-val.highlight {
-  color: var(--rdr-crimson);
-  font-weight: 700;
-}
-
 .card-glow-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
   height: 2px;
-  width: 100%;
   background: transparent;
   transition: all 0.2s ease;
 }
 
 .card-glow-bar.bar-active {
-  background: linear-gradient(90deg, transparent, var(--rdr-crimson), transparent);
+  background: var(--rdr-crimson, #dc2626);
+  box-shadow: 0 0 10px var(--rdr-crimson, #dc2626);
 }
 
-/* Workspace */
+/* Manager Maintenance Toolbar */
+.manager-actions-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: #171b26;
+  border-left: 3px solid #f59e0b;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.engine-badge-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.dot-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+}
+
+.engine-name {
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.8px;
+  font-size: 13px;
+}
+
+.engine-mode {
+  color: var(--text-muted, #71717a);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+
+.bar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.action-pill-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1));
+  color: #e4e4e7;
+  padding: 6px 12px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.action-pill-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.clean-btn:hover:not(:disabled) {
+  border-color: #f59e0b;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.08);
+}
+
+.refresh-btn:hover:not(:disabled) {
+  border-color: #3b82f6;
+  color: #60a5fa;
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.upgrade-btn {
+  background: rgba(220, 38, 38, 0.12);
+  border-color: rgba(220, 38, 38, 0.3);
+  color: #ffffff;
+}
+
+.upgrade-btn:hover:not(:disabled) {
+  background: var(--rdr-crimson, #dc2626);
+  border-color: var(--rdr-crimson, #dc2626);
+  color: #ffffff;
+}
+
+.install-btn {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #34d399;
+}
+
+.install-btn:hover:not(:disabled) {
+  background: #10b981;
+  border-color: #10b981;
+  color: #ffffff;
+}
+
+.action-pill-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Workspace Card */
 .workspace-card {
   padding: 20px;
 }
@@ -781,11 +1377,11 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 20px;
   flex-wrap: wrap;
   gap: 16px;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   padding-bottom: 16px;
-  margin-bottom: 16px;
 }
 
 .tab-controls {
@@ -794,113 +1390,101 @@ onMounted(async () => {
 }
 
 .tab-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted, #71717a);
+  padding: 8px 16px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
-  padding: 6px 12px;
-  border-radius: 3px;
-  font-family: var(--font-header);
   font-size: 13px;
-  letter-spacing: 0.5px;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s ease;
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
 }
 
 .tab-btn:hover {
-  color: #fff;
-  border-color: rgba(220, 38, 38, 0.35);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .tab-btn.active {
-  background: rgba(220, 38, 38, 0.12);
+  background: rgba(220, 38, 38, 0.15);
+  border-color: rgba(220, 38, 38, 0.3);
   color: #ffffff;
-  border-color: var(--rdr-crimson);
 }
 
 .counter-pill {
-  font-family: var(--font-data);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
   font-size: 11px;
-  background: rgba(220, 38, 38, 0.15);
-  color: var(--rdr-crimson);
-  padding: 1px 6px;
+  font-family: var(--font-data, monospace);
+  padding: 2px 6px;
   border-radius: 10px;
 }
 
 .counter-pill.warn {
-  background: rgba(217, 119, 6, 0.15);
-  color: var(--rdr-amber);
+  background: #f59e0b;
+  color: #000;
+  font-weight: 700;
 }
 
 .search-box {
-  position: relative;
-  min-width: 280px;
+  display: flex;
+  align-items: center;
+  background: #0d0f17;
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1));
+  border-radius: 4px;
+  padding: 0 12px;
+  width: 320px;
+  transition: all 0.2s ease;
+}
+
+.search-box:focus-within {
+  border-color: var(--rdr-crimson, #dc2626);
+  box-shadow: 0 0 10px rgba(220, 38, 38, 0.2);
 }
 
 .search-box.small {
-  min-width: 200px;
+  width: 260px;
 }
 
 .search-icon {
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-muted);
+  color: var(--text-muted, #71717a);
+  margin-right: 8px;
+}
+
+.cyber-input {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 13px;
+  padding: 8px 0;
+  width: 100%;
+  outline: none;
 }
 
 .updates-header-actions {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
-.cyber-input {
-  width: 100%;
-  background: #11131a;
-  border: 1px solid var(--border-subtle);
-  border-radius: 3px;
-  padding: 7px 12px 7px 32px;
-  color: var(--text-primary);
-  font-family: var(--font-data);
-  font-size: 12px;
-  outline: none;
-  transition: border-color 0.15s ease;
-}
-
-.cyber-input:focus {
-  border-color: var(--rdr-crimson);
-}
-
-.cyber-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #181b24;
-  border: 1px solid var(--border-crimson);
-  color: #ffffff;
-  padding: 6px 12px;
-  border-radius: 3px;
-  font-family: var(--font-header);
-  font-size: 12px;
-  letter-spacing: 0.5px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.cyber-btn:hover:not(:disabled) {
-  background: var(--rdr-crimson);
+.upgrade-all-btn {
+  background: var(--rdr-crimson, #dc2626);
+  border-color: var(--rdr-crimson, #dc2626);
   color: #ffffff;
 }
 
-.cyber-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+.upgrade-all-btn:hover:not(:disabled) {
+  background: #b91c1c;
+  border-color: #b91c1c;
 }
 
-/* Table */
+/* Cyber Table */
 .table-responsive {
   overflow-x: auto;
 }
@@ -912,88 +1496,125 @@ onMounted(async () => {
   font-size: 13px;
 }
 
-[dir="rtl"] .cyber-table {
-  text-align: right;
-}
-
 .cyber-table th {
-  padding: 9px 12px;
-  color: var(--text-muted);
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  border-bottom: 1px solid var(--border-subtle);
+  padding: 12px 14px;
+  color: var(--text-muted, #71717a);
   font-size: 11px;
-  font-family: var(--font-data);
+  font-weight: 700;
+  letter-spacing: 1px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .cyber-table td {
-  padding: 8px 12px;
+  padding: 12px 14px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  vertical-align: middle;
 }
 
-.cyber-table tr:hover td {
-  background: rgba(220, 38, 38, 0.03);
+.cyber-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .pkg-name-cell {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .pkg-icon {
-  color: var(--rdr-crimson);
-  opacity: 0.8;
+  color: var(--text-muted, #71717a);
 }
 
 .pkg-title {
   font-weight: 600;
-  color: #fff;
+  color: #ffffff;
 }
 
 .pkg-ver {
-  color: var(--text-primary);
+  color: #a1a1aa;
 }
 
 .engine-tag {
-  font-size: 11px;
-  font-family: var(--font-data);
-  padding: 2px 6px;
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 2px;
-  color: var(--text-secondary);
-}
-
-.new-pill {
-  font-size: 12px;
-  background: rgba(220, 38, 38, 0.12);
-  color: var(--rdr-crimson);
-  padding: 2px 8px;
-  border-radius: 2px;
-  border: 1px solid var(--border-crimson);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  color: var(--text-secondary, #a1a1aa);
+  font-family: var(--font-data, monospace);
 }
 
 .old-ver {
-  color: var(--text-muted);
-  text-decoration: line-through;
+  color: var(--text-muted, #71717a);
 }
 
-.new-ver {
-  color: var(--rdr-crimson);
+.new-ver .new-pill {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+}
+
+/* Row Action Buttons */
+.row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.row-action-btn {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1));
+  padding: 4px 8px;
+  border-radius: 3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
   font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
-/* Enhanced Pagination Footer */
+.upgrade-row-btn {
+  color: #60a5fa;
+  border-color: rgba(96, 165, 250, 0.3);
+}
+
+.upgrade-row-btn:hover:not(:disabled) {
+  background: #3b82f6;
+  color: #ffffff;
+  border-color: #3b82f6;
+}
+
+.remove-row-btn {
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.3);
+}
+
+.remove-row-btn:hover:not(:disabled) {
+  background: #dc2626;
+  color: #ffffff;
+  border-color: #dc2626;
+}
+
+.row-action-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Pagination Footer */
 .pagination-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 16px 0 4px 0;
   flex-wrap: wrap;
   gap: 16px;
-  padding: 14px 4px 4px 4px;
-  font-size: 13px;
-  border-top: 1px solid var(--border-subtle);
-  margin-top: 12px;
 }
 
 .pagination-meta {
@@ -1004,12 +1625,12 @@ onMounted(async () => {
 }
 
 .pagination-info {
-  color: var(--text-muted);
+  color: var(--text-muted, #71717a);
   font-size: 12px;
 }
 
 .highlight {
-  color: var(--rdr-crimson);
+  color: var(--rdr-crimson, #dc2626);
   font-weight: 600;
 }
 
@@ -1018,23 +1639,23 @@ onMounted(async () => {
   align-items: center;
   gap: 8px;
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--text-secondary, #a1a1aa);
 }
 
 .cyber-select {
   background: #11131a;
-  border: 1px solid var(--border-subtle);
-  color: var(--text-primary);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1));
+  color: var(--text-primary, #ffffff);
   border-radius: 3px;
   padding: 3px 6px;
-  font-family: var(--font-data);
+  font-family: var(--font-data, monospace);
   font-size: 12px;
   outline: none;
   cursor: pointer;
 }
 
 .cyber-select:focus {
-  border-color: var(--rdr-crimson);
+  border-color: var(--rdr-crimson, #dc2626);
 }
 
 .pagination-nav {
@@ -1046,8 +1667,8 @@ onMounted(async () => {
 
 .nav-icon-btn {
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-primary);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1));
+  color: var(--text-primary, #ffffff);
   width: 30px;
   height: 30px;
   display: flex;
@@ -1059,8 +1680,8 @@ onMounted(async () => {
 }
 
 .nav-icon-btn:hover:not(:disabled) {
-  border-color: var(--rdr-crimson);
-  color: var(--rdr-crimson);
+  border-color: var(--rdr-crimson, #dc2626);
+  color: var(--rdr-crimson, #dc2626);
   background: rgba(220, 38, 38, 0.08);
 }
 
@@ -1080,9 +1701,9 @@ onMounted(async () => {
   height: 30px;
   padding: 0 6px;
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
-  font-family: var(--font-data);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1));
+  color: var(--text-secondary, #a1a1aa);
+  font-family: var(--font-data, monospace);
   font-size: 12px;
   display: flex;
   align-items: center;
@@ -1093,13 +1714,13 @@ onMounted(async () => {
 }
 
 .page-pill:hover:not(:disabled) {
-  border-color: var(--rdr-crimson);
+  border-color: var(--rdr-crimson, #dc2626);
   color: #fff;
 }
 
 .page-pill.pill-active {
-  background: var(--rdr-crimson);
-  border-color: var(--rdr-crimson-hover);
+  background: var(--rdr-crimson, #dc2626);
+  border-color: var(--rdr-crimson, #dc2626);
   color: #ffffff;
   font-weight: 700;
 }
@@ -1108,7 +1729,7 @@ onMounted(async () => {
   border: none;
   background: transparent;
   cursor: default;
-  color: var(--text-muted);
+  color: var(--text-muted, #71717a);
   padding: 0 4px;
   min-width: 20px;
 }
@@ -1119,13 +1740,13 @@ onMounted(async () => {
   gap: 6px;
   margin-left: 8px;
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--text-secondary, #a1a1aa);
 }
 
 .jump-input {
   width: 48px;
   background: #11131a;
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1));
   border-radius: 3px;
   padding: 3px 6px;
   color: #fff;
@@ -1135,13 +1756,13 @@ onMounted(async () => {
 }
 
 .jump-input:focus {
-  border-color: var(--rdr-crimson);
+  border-color: var(--rdr-crimson, #dc2626);
 }
 
 .jump-btn {
   background: #181b24;
-  border: 1px solid var(--border-crimson);
-  color: var(--rdr-crimson);
+  border: 1px solid rgba(220, 38, 38, 0.4);
+  color: var(--rdr-crimson, #dc2626);
   font-size: 11px;
   font-weight: 700;
   padding: 3px 8px;
@@ -1151,20 +1772,333 @@ onMounted(async () => {
 }
 
 .jump-btn:hover {
-  background: var(--rdr-crimson);
+  background: var(--rdr-crimson, #dc2626);
   color: #ffffff;
 }
 
-.pagination-buttons {
+/* Modals */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 520px;
+  background: #141721;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: 3px solid var(--rdr-crimson, #dc2626);
+  border-radius: 6px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+  animation: modalIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-card.danger-card {
+  border-top-color: #ef4444;
+}
+
+.modal-card.terminal-modal {
+  max-width: 720px;
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.96) translateY(-10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.modal-title-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+}
+
+.modal-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted, #71717a);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  transition: all 0.15s ease;
+}
+
+.modal-close-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.modal-desc {
+  color: var(--text-secondary, #a1a1aa);
+  font-size: 13px;
+  margin: 0 0 16px 0;
+}
+
+.modal-confirm-msg {
+  color: #e4e4e7;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0 0 16px 0;
+}
+
+.modal-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.input-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted, #71717a);
+  letter-spacing: 1px;
+}
+
+.modal-input {
+  background: #0d0f17;
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.12));
+  border-radius: 4px;
+  padding: 10px 14px;
+  font-size: 14px;
+}
+
+.modal-input:focus {
+  border-color: var(--rdr-crimson, #dc2626);
+}
+
+.purge-checkbox-box {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 4px;
+  padding: 10px 14px;
+  margin-top: 12px;
+}
+
+.custom-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: #fca5a5;
+  cursor: pointer;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px;
+  background: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.btn-cancel {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary, #a1a1aa);
+  padding: 8px 16px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+}
+
+.btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+.btn-primary-action {
+  background: var(--rdr-crimson, #dc2626);
+  border: 1px solid var(--rdr-crimson, #dc2626);
+  color: #ffffff;
+  padding: 8px 18px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.btn-primary-action:hover:not(:disabled) {
+  background: #b91c1c;
+  border-color: #b91c1c;
+}
+
+.btn-primary-action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.danger-btn {
+  background: #ef4444;
+  border-color: #ef4444;
+}
+
+.danger-btn:hover:not(:disabled) {
+  background: #dc2626;
+  border-color: #dc2626;
+}
+
+/* Terminal Modal Window */
+.terminal-running-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+  gap: 16px;
+}
+
+.running-info {
+  text-align: center;
+}
+
+.running-info h4 {
+  margin: 0 0 4px 0;
+  color: #ffffff;
+  font-size: 15px;
+}
+
+.terminal-output-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.output-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.meta-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 3px;
+  letter-spacing: 0.5px;
+}
+
+.status-success {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.status-failed {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.meta-time {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-muted, #71717a);
+}
+
+.copy-output-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary, #a1a1aa);
+  padding: 4px 10px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.copy-output-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.cmd-preview-box {
+  background: #090a10;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 12px;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.page-current {
+.cmd-prompt {
+  color: #10b981;
+  font-weight: 700;
+}
+
+.cmd-text {
+  color: #f3f4f6;
+  word-break: break-all;
+}
+
+.terminal-logs-window {
+  background: #090a10;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  padding: 14px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.terminal-logs-window pre {
+  margin: 0;
+  color: #d1d5db;
   font-size: 12px;
-  color: var(--rdr-crimson);
-  padding: 0 6px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 /* Loading & Empty states */
@@ -1175,7 +2109,7 @@ onMounted(async () => {
   justify-content: center;
   padding: 48px 16px;
   gap: 12px;
-  color: var(--text-secondary);
+  color: var(--text-secondary, #a1a1aa);
 }
 
 .empty-state.clean h3 {
@@ -1184,11 +2118,11 @@ onMounted(async () => {
 }
 
 .mono {
-  font-family: var(--font-data);
+  font-family: var(--font-data, monospace);
 }
 
 .text-dim {
-  color: var(--text-secondary);
+  color: var(--text-secondary, #a1a1aa);
 }
 
 .spin {

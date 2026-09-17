@@ -32,6 +32,8 @@ func SeedPermissions(permissionCRUD *crud.PermissionCRUD) {
 		"read_containers",
 		"manage_containers",
 		"read_packages",
+		"manage_packages",
+		"terminal_access",
 	}
 
 	for _, p := range permissions {

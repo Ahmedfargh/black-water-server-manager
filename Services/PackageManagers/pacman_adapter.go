@@ -5,6 +5,7 @@ import (
 	"context"
 	"regexp"
 	"strings"
+	"time"
 )
 
 // PacmanAdapter implements PackageManagerAdapter for Arch Linux / Manjaro
@@ -110,4 +111,41 @@ func (p *PacmanAdapter) GetInstalledPackages(ctx context.Context, query string, 
 
 	items, total := PaginateSlice(allItems, page, limit)
 	return items, total, nil
+}
+
+func (p *PacmanAdapter) CleanCache(ctx context.Context) (*OperationResult, error) {
+	return p.ExecuteMutation(ctx, "clean_cache", "", 2*time.Minute, nil, "-Sc", "--noconfirm")
+}
+
+func (p *PacmanAdapter) RefreshRepositories(ctx context.Context) (*OperationResult, error) {
+	return p.ExecuteMutation(ctx, "refresh_repositories", "", 3*time.Minute, nil, "-Sy", "--noconfirm")
+}
+
+func (p *PacmanAdapter) UpgradeSystem(ctx context.Context) (*OperationResult, error) {
+	return p.ExecuteMutation(ctx, "upgrade_system", "", 10*time.Minute, nil, "-Su", "--noconfirm")
+}
+
+func (p *PacmanAdapter) InstallPackage(ctx context.Context, packageName string) (*OperationResult, error) {
+	if err := ValidatePackageName(packageName); err != nil {
+		return nil, err
+	}
+	return p.ExecuteMutation(ctx, "install_package", packageName, 5*time.Minute, nil, "-S", "--noconfirm", packageName)
+}
+
+func (p *PacmanAdapter) RemovePackage(ctx context.Context, packageName string, purge bool) (*OperationResult, error) {
+	if err := ValidatePackageName(packageName); err != nil {
+		return nil, err
+	}
+	subFlag := "-R"
+	if purge {
+		subFlag = "-Rns"
+	}
+	return p.ExecuteMutation(ctx, "remove_package", packageName, 5*time.Minute, nil, subFlag, "--noconfirm", packageName)
+}
+
+func (p *PacmanAdapter) UpgradePackage(ctx context.Context, packageName string) (*OperationResult, error) {
+	if err := ValidatePackageName(packageName); err != nil {
+		return nil, err
+	}
+	return p.ExecuteMutation(ctx, "upgrade_package", packageName, 5*time.Minute, nil, "-S", "--noconfirm", packageName)
 }

@@ -5,6 +5,7 @@ import (
 	"context"
 	"regexp"
 	"strings"
+	"time"
 )
 
 // DnfAdapter implements PackageManagerAdapter for Red Hat/Fedora/CentOS distributions
@@ -62,7 +63,7 @@ func (d *DnfAdapter) GetPendingUpdates(ctx context.Context) ([]PackageUpdate, er
 	scanner := bufio.NewScanner(strings.NewReader(out))
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
-		if line == "" || strings.HasPrefix(line, "Last metadata") {
+		if line == "" || strings.HasPrefix(line, "Last metadata") || strings.HasPrefix(line, "Security:") {
 			continue
 		}
 		parts := strings.Fields(line)
@@ -108,4 +109,37 @@ func (d *DnfAdapter) GetInstalledPackages(ctx context.Context, query string, pag
 
 	items, total := PaginateSlice(allItems, page, limit)
 	return items, total, nil
+}
+
+func (d *DnfAdapter) CleanCache(ctx context.Context) (*OperationResult, error) {
+	return d.ExecuteMutation(ctx, "clean_cache", "", 2*time.Minute, nil, "clean", "all")
+}
+
+func (d *DnfAdapter) RefreshRepositories(ctx context.Context) (*OperationResult, error) {
+	return d.ExecuteMutation(ctx, "refresh_repositories", "", 3*time.Minute, nil, "makecache")
+}
+
+func (d *DnfAdapter) UpgradeSystem(ctx context.Context) (*OperationResult, error) {
+	return d.ExecuteMutation(ctx, "upgrade_system", "", 10*time.Minute, nil, "upgrade", "-y")
+}
+
+func (d *DnfAdapter) InstallPackage(ctx context.Context, packageName string) (*OperationResult, error) {
+	if err := ValidatePackageName(packageName); err != nil {
+		return nil, err
+	}
+	return d.ExecuteMutation(ctx, "install_package", packageName, 5*time.Minute, nil, "install", "-y", packageName)
+}
+
+func (d *DnfAdapter) RemovePackage(ctx context.Context, packageName string, purge bool) (*OperationResult, error) {
+	if err := ValidatePackageName(packageName); err != nil {
+		return nil, err
+	}
+	return d.ExecuteMutation(ctx, "remove_package", packageName, 5*time.Minute, nil, "remove", "-y", packageName)
+}
+
+func (d *DnfAdapter) UpgradePackage(ctx context.Context, packageName string) (*OperationResult, error) {
+	if err := ValidatePackageName(packageName); err != nil {
+		return nil, err
+	}
+	return d.ExecuteMutation(ctx, "upgrade_package", packageName, 5*time.Minute, nil, "upgrade", "-y", packageName)
 }

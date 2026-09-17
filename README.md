@@ -28,6 +28,48 @@ Combining a lightweight **Go (Gin)** backend with a high-contrast **Outlaw Tech*
 
 ---
 
+## ⚡ Quick Start (One Command)
+
+Blackwater includes a unified Go orchestrator [`setup.go`](setup.go) that automates environment preparation, toolchain checks, dependency installations, database migrations/seeders, and concurrent execution of both backend and frontend dev servers with colored log multiplexing:
+
+```bash
+# Clone the repository
+git clone https://github.com/ahmedfargh/server-manager.git
+cd black-water-server-manager
+
+# Full setup & run in a single command
+go run setup.go
+```
+
+| Service | URL | Credentials |
+| :--- | :--- | :--- |
+| **Frontend Web Dashboard** | [http://localhost:5173](http://localhost:5173) | — |
+| **Backend REST API** | [http://localhost:8080](http://localhost:8080) | — |
+| **Default Admin Account** | Login via Web UI | `admin` / `password` (or `admin@example.com` / `password`) |
+
+### Orchestrator Modes & Flags
+```bash
+# Start dev servers only (fast launch when already installed)
+go run setup.go -mode=dev
+
+# Install dependencies and environment files only
+go run setup.go -mode=install
+
+# Run database auto-migrations and seeders only
+go run setup.go -mode=seed
+
+# Compile production Go binary and Vite frontend bundle
+go run setup.go -mode=build
+
+# Optional flags:
+# -db=sqlite | mysql       (Default: sqlite)
+# -port=8080               (Backend HTTP port)
+# -front-port=5173         (Frontend Vite port)
+# -skip-npm                (Skip npm install)
+```
+
+---
+
 ## 🚀 Key Features
 
 ### 🖥️ Real-Time Telemetry & Hardware HUD
@@ -36,15 +78,23 @@ Combining a lightweight **Go (Gin)** backend with a high-contrast **Outlaw Tech*
 - **Signal Flow (Dynamic Network Throughput):** High-precision background sampler that calculates actual per-second upload and download throughput ($\Delta \text{Bytes}/\Delta t$) with dynamic auto-scaling units (`B/s`, `KB/s`, `MB/s`, `GB/s`), total lifetime transferred bytes, and bidirectional LTR/RTL formatting.
 - **Historical Performance Reports:** Multi-range historical graphing for CPU, Memory, and Disk metrics with automated usage averages.
 
-### 📦 Multi-Distro Package Management
-- **Universal Package Dashboard:** Detects and inspects system package managers across diverse Linux families:
+### 📦 Multi-Distro Package Management & Lifecycle Engine
+- **Universal Multi-Distro Support:** Cross-platform integration with native package managers across major Linux families:
   - **APT** (Debian, Ubuntu, Linux Mint)
   - **Pacman** (Arch Linux, Manjaro, EndeavourOS)
-  - **DNF** (Fedora, RHEL, CentOS Stream, Rocky Linux, AlmaLinux)
+  - **DNF / Yum** (Fedora, RHEL, CentOS Stream, Rocky Linux, AlmaLinux)
   - **Zypper** (openSUSE, SUSE Linux Enterprise)
   - **APK** (Alpine Linux)
   - **Snap** & **Flatpak** (Universal Sandboxed Formats)
-- **Updates & Package Inspection:** Query installed packages, search repositories, and track pending security and system updates directly through the API and dashboard.
+- **Full Lifecycle Operations:**
+  - 🧹 **Cache Cleaning:** Purge local deb/rpm/tarball archives and unused sync metadata to free up disk space.
+  - 🔄 **Repository Refresh:** Fetch the latest upstream indices and package metadata.
+  - ⚡ **Full System Upgrade:** Single-click system updates for all outdated packages.
+  - 📦 **Install Packages:** Safe installation modal with command-injection sanitization.
+  - 🗑️ **Uninstall / Purge Packages:** Remove software with optional removal of orphaned dependencies and configuration files.
+  - ⬆️ **Individual Package Upgrades:** Upgrade specific packages from the installed or updates tables.
+- **Interactive Terminal Output Drawer:** Displays live command output, exit status, and execution duration in milliseconds (`ms`).
+- **Resilient Host Execution:** Automated non-interactive `stdin` handling (prevents prompt hang/crashes) and automatic `sudo -n` elevation detection.
 
 ### 🛡️ Multi-Distro Firewall Engine
 - **Cross-Platform Firewall Automation:** Seamless compatibility across:
@@ -59,16 +109,28 @@ Combining a lightweight **Go (Gin)** backend with a high-contrast **Outlaw Tech*
 - **Volume & Storage Diagnostics:** Inspect host-to-container mount mappings and forcefully prune dormant containers and volumes.
 - **Multi-Channel Alerts:** Instant container notifications via **Telegram**, **Discord**, or **Custom Webhooks**.
 
-### 💻 Interactive System Terminal
-- **Bidirectional Web Terminal:** Integrated browser-based shell powered by WebSockets (`WS /ws/terminal`), allowing administrative host access with full PTY terminal emulation.
+### 💻 Hardened Interactive System Terminal
+- **Bidirectional Web Terminal (`WS /ws/terminal`):** Web-based shell for authorized administrators.
+- **Strict Pre-Upgrade Authentication Gate:** Verifies `terminal_access` permission or `super_admin` role prior to upgrading the WebSocket handshake (rejects unauthorized users with `403 Forbidden`).
+- **Destructive Command Pattern Blocklist:** Intercepts and blocks dangerous commands (root wipe `rm -rf /`, fork bombs `:(){ :|:& };:`, raw disk writes `dd if=... of=/dev/sd*`, kernel panic triggers).
+- **Execution Safeguards & Anti-DoS:**
+  - 30-second execution timeout with process group tree termination (`Setpgid: true` & `syscall.Kill(-pid, SIGKILL)`).
+  - Output buffer capped at 256 KB to protect browser memory and WebSocket channels.
+  - Thread-safe session pool (`sync.RWMutex`).
+  - Mandatory audit logging with user attribution and **Client IP address** logging.
+
+### 🌐 Web Service & Uptime Monitoring
+- **Endpoint Health Probes:** Configure continuous HTTP/HTTPS endpoint uptime checks.
+- **Latency & Status Reports:** Monitor response codes, latency trends, and overall service health status snapshots.
+- **Automated Incident Logging:** Track downtime events and service degradation.
 
 ### 📁 Advanced File Manager
 - **Server File Explorer:** Deep exploration of host directories with permission bits (mode), file sizes, hidden file toggle, and quick directory breadcrumbs.
 
 ### 📜 Auditing & Automated Maintenance
-- **System Audit Logging:** Records administrative actions (firewall toggles, terminal commands, process management) with user attribution and timestamping.
+- **System Audit Logging:** Records administrative actions (firewall toggles, terminal commands, process management, package actions) with user attribution, client IP, and timestamping.
 - **Payload Inspector Modal:** Glassmorphic modal that auto-detects and formats JSON action payloads and execution results for complete observability.
-- **Scheduled Retention Pruning:** Configurable background cron job that purges outdated audit logs according to retention periods (minutes to years) to keep databases fast and lean.
+- **Scheduled Retention Pruning:** Configurable background cron job (`AUDIT_PERIOD_TYPE` & `AUDIT_PERIOD_COUNTER`) that automatically purges outdated audit logs according to retention periods (minutes to years) to keep databases fast and lean.
 
 ### 🔐 Security & Identity
 - **Two-Factor Authentication (OTP):** Optional or mandatory 2FA with time-based verification codes.
@@ -90,7 +152,7 @@ graph TD
     C <-->|Follow Logs & Metrics| E[Docker Daemon Engine]
     B <-->|GORM| F[(MySQL / SQLite Database)]
     B <-->|lsblk / hwmon| D
-    B <-->|APT / Pacman / DNF / Zypper| G[Host Package Managers]
+    B <-->|APT / Pacman / DNF / Zypper / APK / Snap / Flatpak| G[Host Package Managers]
     B <-->|UFW / Firewalld| H[Linux Firewall Subsystem]
 ```
 
@@ -101,83 +163,67 @@ graph TD
 
 ---
 
-## 📋 Prerequisites
+## ⚙️ Environment Configuration
 
-Ensure you have the following installed on your host:
+Copy `.env.example` to `.env` or let `setup.go` configure it automatically.
 
-- **Go:** 1.24 or higher
-- **Node.js & npm:** Node 18+ (for frontend development/builds)
-- **Database:** MySQL 8+ or SQLite 3
-- **OS:** Linux (recommended for hardware telemetry, firewalls, and PTY terminals). *Docker compose mode is available for local testing on macOS and Windows.*
+| Variable | Default | Description |
+| :--- | :--- | :--- |
+| `APP_PORT` | `:8080` | Port for the backend Gin HTTP and WebSocket server |
+| `APP_URL` | `http://localhost:8080/` | Public application root URL |
+| `DB_HOST` | `127.0.0.1` | Database host (when using MySQL) |
+| `DB_PORT` | `3306` | Database port (when using MySQL) |
+| `DB_NAME` | `go_server` | Database schema name |
+| `DB_USER` | `root` | Database username |
+| `DB_PASSWORD` | `your_root_password` | Database password |
+| `JWT_SECRET` | *(Generated random string)* | Secret key for signing and verifying JWT tokens |
+| `DISCORD_BOT_TOKEN`| — | Optional Discord bot token for system and Docker alerts |
+| `DISCORD_CHANNEL_ID`| — | Optional Discord channel ID for alert notifications |
+| `MAIL_FROM` | `test@example.com` | Outgoing email address for verification and OTP codes |
+| `MAIL_SMTP_HOST` | `localhost` | SMTP host address |
+| `MAIL_SMTP_PORT` | `1025` | SMTP port |
+| `MAIL_AUTH_ENABLED`| `false` | Enable SMTP authentication (`true`/`false`) |
+| `AUDIT_PERIOD_TYPE`| `S` | Retention period unit: `S` (sec), `m` (min), `H` (hour), `D` (day), `M` (month), `Y` (year) |
+| `AUDIT_PERIOD_COUNTER`| `10` | Frequency/threshold counter for pruning old audit log records |
 
 ---
 
-## ⚙️ Installation & Setup
+## ⚙️ Manual Installation & Setup
 
-### 1. Clone Repository
+### 1. Backend Setup
 ```bash
-git clone https://github.com/ahmedfargh/server-manager.git
-cd black-water-server-manager
-```
+# Download dependencies
+go mod download
 
-### 2. Backend Setup
-Install Go modules:
-```bash
-go mod tidy
-```
-
-Configure your environment file:
-```bash
+# Configure environment
 cp .env.example .env
-```
 
-Edit `.env` to configure your database driver:
+# Run database seeders (creates default admin user and roles)
+go run seeder.go
 
-- **For MySQL:**
-  ```env
-  DB_DRIVER=mysql
-  DB_HOST=127.0.0.1
-  DB_PORT=3306
-  DB_NAME=blackwater
-  DB_USER=root
-  DB_PASSWORD=your_secure_password
-  ```
-
-- **For SQLite (Zero-Config, Recommended for Low-End Servers):**
-  ```env
-  DB_DRIVER=sqlite
-  DB_NAME=blackwater.db
-  ```
-
-Compile and run the server:
-```bash
+# Start backend server
 go run main.go
-# or compile a production binary:
-go build -o blackwater main.go
-./blackwater
+# Or build binary:
+go build -o server-manager main.go && ./server-manager
 ```
 
 The backend server runs on `http://localhost:8080` by default.
 
----
-
-### 3. Frontend Setup
-Navigate to the `frontend` directory:
+### 2. Frontend Setup
 ```bash
 cd frontend
+
+# Install node dependencies
 npm install
-```
 
-Start the Vite development server:
-```bash
+# Start Vite dev server
 npm run dev
-```
-The dashboard interface will be accessible at `http://localhost:5173`.
 
-To generate an optimized production bundle:
-```bash
+# Or build optimized production bundle
 npm run build
 ```
+
+The dashboard interface will be accessible at `http://localhost:5173`.
 
 ---
 
@@ -226,12 +272,18 @@ Access the application at `http://localhost:8080`.
 
 ---
 
-### 📦 Package Management (Auth Required)
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET`  | `/packages/overview` | Detect host OS and active package managers (APT, Pacman, DNF, etc.) |
-| `GET`  | `/packages/:manager/updates` | List available system & security updates for a package manager |
-| `GET`  | `/packages/:manager/list` | List installed packages (supports pagination and query filters) |
+### 📦 Package Management & Maintenance (Auth Required)
+| Method | Endpoint | Permission | Description |
+| :--- | :--- | :--- | :--- |
+| `GET`  | `/packages/overview` | `read_packages` | Detect host OS and active package managers (APT, Pacman, DNF, etc.) |
+| `GET`  | `/packages/:manager/updates` | `read_packages` | List available system & security updates for a package manager |
+| `GET`  | `/packages/:manager/list` | `read_packages` | List installed packages (supports pagination and query filters) |
+| `POST` | `/packages/:manager/clean-cache` | `manage_packages` | Purge package manager local cache and unused archives |
+| `POST` | `/packages/:manager/refresh` | `manage_packages` | Refresh repository metadata indices from upstream mirrors |
+| `POST` | `/packages/:manager/upgrade-system` | `manage_packages` | Perform full system upgrade across all installed packages |
+| `POST` | `/packages/:manager/install` | `manage_packages` | Install a new package (`{"package": "htop"}`) |
+| `POST` | `/packages/:manager/remove` | `manage_packages` | Uninstall package (`{"package": "htop", "purge": true}`) |
+| `POST` | `/packages/:manager/upgrade-package`| `manage_packages` | Upgrade a specific single package |
 
 ---
 
@@ -261,26 +313,38 @@ Access the application at `http://localhost:8080`.
 
 ---
 
+### 🌐 Web Service & Uptime Monitoring (Auth Required)
+| Method | Endpoint | Permission | Description |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/site/create` | `site_create` | Register a target web endpoint for continuous monitoring |
+| `GET`  | `/site/list` | `site_read` | List registered websites and basic status metrics |
+| `GET`  | `/site/full-checkup` | `site_read` | Trigger an immediate batch probe across all monitored sites |
+| `GET`  | `/site/health-status/:site_id` | `site_read` | Get live ping status and latency for a specific endpoint |
+| `GET`  | `/site/status-report/:site_id` | `site_read` | Retrieve historical uptime and incident reports |
+| `PUT`  | `/site/update/:id` | `site_read` | Update monitored URL or check frequency |
+
+---
+
 ### ⚙️ Processes, Terminal & Filesystem (Auth Required)
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET`  | `/info/processes` | List all active processes running on host |
-| `GET`  | `/info/process/single/:pid` | Deep inspection of an individual process |
-| `POST` | `/info/process/start` | Launch a new background process |
-| `DELETE`| `/info/process/kill/:pid` | Terminate a running process |
-| `GET`  | `/filesystem/browse` | Browse directories with permissions & file sizes (`?path=/...`) |
-| `GET`  | `/audit/list` | Filter and paginate security audit trails (`?page=&limit=&type=`) |
+| Method | Endpoint | Permission | Description |
+| :--- | :--- | :--- | :--- |
+| `GET`  | `/info/processes` | `read_processes` | List all active processes running on host |
+| `GET`  | `/info/process/single/:pid` | `read_process` | Deep inspection of an individual process |
+| `POST` | `/info/process/start` | `start_process` | Launch a new background process |
+| `DELETE`| `/info/process/kill/:pid` | `kill_process` | Terminate a running process |
+| `GET`  | `/filesystem/browse` | `browse_filesystem`| Browse directories with permissions & file sizes (`?path=/...`) |
+| `GET`  | `/audit/list` | `view_audit_logs` | Filter and paginate security audit trails (`?page=&limit=&type=`) |
 
 ---
 
 ### ⚡ WebSocket Hubs
-| Protocol | Endpoint | Description |
-| :--- | :--- | :--- |
-| `WS` | `/ws/cpu-temperature` | Broadcasts live CPU package temperature every 1s |
-| `WS` | `/ws/processes` | Streams running process updates every 5s |
-| `WS` | `/ws/docker/:containerId` | Live metrics stream for an individual container |
-| `WS` | `/ws/docker/:containerId/logs` | Real-time follow log stream from Docker daemon |
-| `WS` | `/ws/terminal` | Bidirectional PTY shell connection for interactive commands |
+| Protocol | Endpoint | Permission | Description |
+| :--- | :--- | :--- | :--- |
+| `WS` | `/ws/cpu-temperature` | `read_cpu` | Broadcasts live CPU package temperature every 1s |
+| `WS` | `/ws/processes` | `read_processes` | Streams running process updates every 5s |
+| `WS` | `/ws/docker/:containerId` | `read_containers` | Live metrics stream for an individual container |
+| `WS` | `/ws/docker/:containerId/logs` | `read_containers` | Real-time follow log stream from Docker daemon |
+| `WS` | `/ws/terminal` | `terminal_access` | Sanitized, hardened interactive shell with process group isolation |
 
 ---
 
@@ -301,6 +365,8 @@ Access the application at `http://localhost:8080`.
 | `view_firewall_rules` / `view_firewall_list` | Inspect active firewall port and subnet rules |
 | `read_containers` / `manage_containers` | Monitor Docker fleet and trigger lifecycle actions |
 | `read_packages` | Inspect installed packages, package managers, and updates |
+| `manage_packages` | Clean cache, refresh metadata, upgrade system, and install/remove packages |
+| `terminal_access` | Access the hardened interactive WebSocket system shell |
 | `view_audit_logs` | View and inspect security audit trail entries |
 | `browse_filesystem` | Explore host filesystem directories and files |
 | `site_create` / `site_read` | Configure and monitor external web service endpoints |
@@ -309,14 +375,37 @@ Access the application at `http://localhost:8080`.
 
 ## 💻 Companion CLI (`bwcli`)
 
-Blackwater includes a native command-line utility for local server management:
+Blackwater includes an interactive, colorized terminal companion CLI built with Cobra and PTerm:
 
 ```bash
-# Build the CLI tool
+# 1. Build the CLI binary
 go build -o bwcli ./cmd/cli
 
-# Display help and available subcommands
+# 2. Authenticate with your Blackwater server (saves JWT token locally)
+./bwcli login
+
+# 3. View live CPU architectures, core clock speeds, and RAM/Swap bar charts
+./bwcli system status
+
+# 4. View active Docker containers on the host
+./bwcli docker ls
+
+# 5. Display general help and subcommands
 ./bwcli --help
+```
+
+---
+
+## 🧪 Testing & Validation
+
+Run the Go backend test suite covering security sanitizers, package manager adapters, and hardware probes:
+
+```bash
+# Run all unit tests
+go test -v ./...
+
+# Run specific package tests
+go test -v ./WebSockets ./Services/PackageManagers
 ```
 
 ---

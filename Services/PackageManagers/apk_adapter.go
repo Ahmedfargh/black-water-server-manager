@@ -5,6 +5,7 @@ import (
 	"context"
 	"regexp"
 	"strings"
+	"time"
 )
 
 // ApkAdapter implements PackageManagerAdapter for Alpine Linux
@@ -105,4 +106,40 @@ func (a *ApkAdapter) GetInstalledPackages(ctx context.Context, query string, pag
 
 	items, total := PaginateSlice(allItems, page, limit)
 	return items, total, nil
+}
+
+func (a *ApkAdapter) CleanCache(ctx context.Context) (*OperationResult, error) {
+	return a.ExecuteMutation(ctx, "clean_cache", "", 2*time.Minute, nil, "cache", "clean")
+}
+
+func (a *ApkAdapter) RefreshRepositories(ctx context.Context) (*OperationResult, error) {
+	return a.ExecuteMutation(ctx, "refresh_repositories", "", 3*time.Minute, nil, "update")
+}
+
+func (a *ApkAdapter) UpgradeSystem(ctx context.Context) (*OperationResult, error) {
+	return a.ExecuteMutation(ctx, "upgrade_system", "", 10*time.Minute, nil, "upgrade")
+}
+
+func (a *ApkAdapter) InstallPackage(ctx context.Context, packageName string) (*OperationResult, error) {
+	if err := ValidatePackageName(packageName); err != nil {
+		return nil, err
+	}
+	return a.ExecuteMutation(ctx, "install_package", packageName, 5*time.Minute, nil, "add", packageName)
+}
+
+func (a *ApkAdapter) RemovePackage(ctx context.Context, packageName string, purge bool) (*OperationResult, error) {
+	if err := ValidatePackageName(packageName); err != nil {
+		return nil, err
+	}
+	if purge {
+		return a.ExecuteMutation(ctx, "remove_package", packageName, 5*time.Minute, nil, "del", "--purge", packageName)
+	}
+	return a.ExecuteMutation(ctx, "remove_package", packageName, 5*time.Minute, nil, "del", packageName)
+}
+
+func (a *ApkAdapter) UpgradePackage(ctx context.Context, packageName string) (*OperationResult, error) {
+	if err := ValidatePackageName(packageName); err != nil {
+		return nil, err
+	}
+	return a.ExecuteMutation(ctx, "upgrade_package", packageName, 5*time.Minute, nil, "add", "-u", packageName)
 }

@@ -1,11 +1,12 @@
 package routes
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
 	MiddleWare "github.com/ahmedfargh/server-manager/Authentication"
+	config "github.com/ahmedfargh/server-manager/Config"
+	models "github.com/ahmedfargh/server-manager/Database/Models"
 	"github.com/ahmedfargh/server-manager/WebSockets"
 	"github.com/gin-gonic/gin"
 )
@@ -84,11 +85,11 @@ func getContainerId(r *http.Request) string {
 	}
 	return containerId
 }
+
 func TerminalRealTimeHandler(c *gin.Context) {
-	fmt.Println("TerminalRealTimeHandler called")
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: User ID not found in context"})
 		return
 	}
 
@@ -98,15 +99,25 @@ func TerminalRealTimeHandler(c *gin.Context) {
 		return
 	}
 
-	fmt.Println("User ID from middleware:", user_id)
+	// Verify terminal authorization
+	var user models.User
+	if err := config.DB.Preload("Role").Preload("Role.Permissions").Preload("Permissions").First(&user, user_id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	if !user.HasPermission("terminal_access") && user.Role.Name != "super_admin" {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden: user lacks terminal_access permission"})
+		return
+	}
 
 	conn, err := WebSockets.DockerUpgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
-		// http.Error(w, "Failed to upgrade to WebSocket", http.StatusInternalServerError)
 		return
 	}
-	WebSockets.TerminalPool.ConnectSession(int32(user_id), conn)
 
+	clientIP := c.ClientIP()
+	WebSockets.TerminalPool.ConnectSession(int32(user_id), clientIP, user.Username, conn)
 }
 
 func DockerStatusHandler(w http.ResponseWriter, r *http.Request) {

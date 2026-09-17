@@ -116,3 +116,76 @@ func (s *PackageManagerService) GetInstalledPackages(ctx context.Context, name s
 	}
 	return adapter.GetInstalledPackages(ctx, query, page, limit)
 }
+
+// InvalidateCache clears the cached system overview
+func (s *PackageManagerService) InvalidateCache() {
+	s.cacheMu.Lock()
+	defer s.cacheMu.Unlock()
+	s.cachedStats = nil
+}
+
+// CleanCache cleans the cache for the designated package manager
+func (s *PackageManagerService) CleanCache(ctx context.Context, name string) (*OperationResult, error) {
+	adapter, ok := s.registry.Get(name)
+	if !ok || !adapter.IsAvailable() {
+		return nil, fmt.Errorf("package manager '%s' not found or unavailable on host", name)
+	}
+	res, err := adapter.CleanCache(ctx)
+	s.InvalidateCache()
+	return res, err
+}
+
+// RefreshRepositories updates repository metadata
+func (s *PackageManagerService) RefreshRepositories(ctx context.Context, name string) (*OperationResult, error) {
+	adapter, ok := s.registry.Get(name)
+	if !ok || !adapter.IsAvailable() {
+		return nil, fmt.Errorf("package manager '%s' not found or unavailable on host", name)
+	}
+	res, err := adapter.RefreshRepositories(ctx)
+	s.InvalidateCache()
+	return res, err
+}
+
+// UpgradeSystem performs a full system or package manager upgrade
+func (s *PackageManagerService) UpgradeSystem(ctx context.Context, name string) (*OperationResult, error) {
+	adapter, ok := s.registry.Get(name)
+	if !ok || !adapter.IsAvailable() {
+		return nil, fmt.Errorf("package manager '%s' not found or unavailable on host", name)
+	}
+	res, err := adapter.UpgradeSystem(ctx)
+	s.InvalidateCache()
+	return res, err
+}
+
+// InstallPackage installs a new package via the designated package manager
+func (s *PackageManagerService) InstallPackage(ctx context.Context, name string, packageName string) (*OperationResult, error) {
+	adapter, ok := s.registry.Get(name)
+	if !ok || !adapter.IsAvailable() {
+		return nil, fmt.Errorf("package manager '%s' not found or unavailable on host", name)
+	}
+	res, err := adapter.InstallPackage(ctx, packageName)
+	s.InvalidateCache()
+	return res, err
+}
+
+// RemovePackage uninstalls a package via the designated package manager
+func (s *PackageManagerService) RemovePackage(ctx context.Context, name string, packageName string, purge bool) (*OperationResult, error) {
+	adapter, ok := s.registry.Get(name)
+	if !ok || !adapter.IsAvailable() {
+		return nil, fmt.Errorf("package manager '%s' not found or unavailable on host", name)
+	}
+	res, err := adapter.RemovePackage(ctx, packageName, purge)
+	s.InvalidateCache()
+	return res, err
+}
+
+// UpgradePackage upgrades a specific package
+func (s *PackageManagerService) UpgradePackage(ctx context.Context, name string, packageName string) (*OperationResult, error) {
+	adapter, ok := s.registry.Get(name)
+	if !ok || !adapter.IsAvailable() {
+		return nil, fmt.Errorf("package manager '%s' not found or unavailable on host", name)
+	}
+	res, err := adapter.UpgradePackage(ctx, packageName)
+	s.InvalidateCache()
+	return res, err
+}

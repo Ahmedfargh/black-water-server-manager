@@ -5,6 +5,7 @@ import (
 	"context"
 	"regexp"
 	"strings"
+	"time"
 )
 
 // FlatpakAdapter implements PackageManagerAdapter for Flatpak packages
@@ -115,4 +116,37 @@ func (f *FlatpakAdapter) GetInstalledPackages(ctx context.Context, query string,
 
 	items, total := PaginateSlice(allItems, page, limit)
 	return items, total, nil
+}
+
+func (f *FlatpakAdapter) CleanCache(ctx context.Context) (*OperationResult, error) {
+	return f.ExecuteMutation(ctx, "clean_cache", "", 3*time.Minute, nil, "uninstall", "--unused", "-y")
+}
+
+func (f *FlatpakAdapter) RefreshRepositories(ctx context.Context) (*OperationResult, error) {
+	return f.ExecuteMutation(ctx, "refresh_repositories", "", 3*time.Minute, nil, "update", "--appstream")
+}
+
+func (f *FlatpakAdapter) UpgradeSystem(ctx context.Context) (*OperationResult, error) {
+	return f.ExecuteMutation(ctx, "upgrade_system", "", 10*time.Minute, nil, "update", "-y")
+}
+
+func (f *FlatpakAdapter) InstallPackage(ctx context.Context, packageName string) (*OperationResult, error) {
+	if err := ValidatePackageName(packageName); err != nil {
+		return nil, err
+	}
+	return f.ExecuteMutation(ctx, "install_package", packageName, 5*time.Minute, nil, "install", "-y", packageName)
+}
+
+func (f *FlatpakAdapter) RemovePackage(ctx context.Context, packageName string, purge bool) (*OperationResult, error) {
+	if err := ValidatePackageName(packageName); err != nil {
+		return nil, err
+	}
+	return f.ExecuteMutation(ctx, "remove_package", packageName, 5*time.Minute, nil, "uninstall", "-y", packageName)
+}
+
+func (f *FlatpakAdapter) UpgradePackage(ctx context.Context, packageName string) (*OperationResult, error) {
+	if err := ValidatePackageName(packageName); err != nil {
+		return nil, err
+	}
+	return f.ExecuteMutation(ctx, "upgrade_package", packageName, 5*time.Minute, nil, "update", "-y", packageName)
 }

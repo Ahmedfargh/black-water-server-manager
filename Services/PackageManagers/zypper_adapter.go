@@ -5,6 +5,7 @@ import (
 	"context"
 	"regexp"
 	"strings"
+	"time"
 )
 
 // ZypperAdapter implements PackageManagerAdapter for openSUSE / SLES
@@ -103,4 +104,37 @@ func (z *ZypperAdapter) GetInstalledPackages(ctx context.Context, query string, 
 
 	items, total := PaginateSlice(allItems, page, limit)
 	return items, total, nil
+}
+
+func (z *ZypperAdapter) CleanCache(ctx context.Context) (*OperationResult, error) {
+	return z.ExecuteMutation(ctx, "clean_cache", "", 2*time.Minute, nil, "clean", "--all")
+}
+
+func (z *ZypperAdapter) RefreshRepositories(ctx context.Context) (*OperationResult, error) {
+	return z.ExecuteMutation(ctx, "refresh_repositories", "", 3*time.Minute, nil, "refresh")
+}
+
+func (z *ZypperAdapter) UpgradeSystem(ctx context.Context) (*OperationResult, error) {
+	return z.ExecuteMutation(ctx, "upgrade_system", "", 10*time.Minute, nil, "--non-interactive", "update", "-y")
+}
+
+func (z *ZypperAdapter) InstallPackage(ctx context.Context, packageName string) (*OperationResult, error) {
+	if err := ValidatePackageName(packageName); err != nil {
+		return nil, err
+	}
+	return z.ExecuteMutation(ctx, "install_package", packageName, 5*time.Minute, nil, "--non-interactive", "install", "-y", packageName)
+}
+
+func (z *ZypperAdapter) RemovePackage(ctx context.Context, packageName string, purge bool) (*OperationResult, error) {
+	if err := ValidatePackageName(packageName); err != nil {
+		return nil, err
+	}
+	return z.ExecuteMutation(ctx, "remove_package", packageName, 5*time.Minute, nil, "--non-interactive", "remove", "-y", packageName)
+}
+
+func (z *ZypperAdapter) UpgradePackage(ctx context.Context, packageName string) (*OperationResult, error) {
+	if err := ValidatePackageName(packageName); err != nil {
+		return nil, err
+	}
+	return z.ExecuteMutation(ctx, "upgrade_package", packageName, 5*time.Minute, nil, "--non-interactive", "update", "-y", packageName)
 }

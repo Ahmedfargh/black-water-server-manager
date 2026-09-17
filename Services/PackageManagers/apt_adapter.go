@@ -5,6 +5,7 @@ import (
 	"context"
 	"regexp"
 	"strings"
+	"time"
 )
 
 // AptAdapter implements PackageManagerAdapter for Debian/Ubuntu distributions
@@ -115,4 +116,47 @@ func (a *AptAdapter) GetInstalledPackages(ctx context.Context, query string, pag
 
 	items, total := PaginateSlice(allItems, page, limit)
 	return items, total, nil
+}
+
+func (a *AptAdapter) CleanCache(ctx context.Context) (*OperationResult, error) {
+	env := []string{"DEBIAN_FRONTEND=noninteractive"}
+	return a.ExecuteMutation(ctx, "clean_cache", "", 2*time.Minute, env, "clean")
+}
+
+func (a *AptAdapter) RefreshRepositories(ctx context.Context) (*OperationResult, error) {
+	env := []string{"DEBIAN_FRONTEND=noninteractive"}
+	return a.ExecuteMutation(ctx, "refresh_repositories", "", 3*time.Minute, env, "update", "-y")
+}
+
+func (a *AptAdapter) UpgradeSystem(ctx context.Context) (*OperationResult, error) {
+	env := []string{"DEBIAN_FRONTEND=noninteractive"}
+	return a.ExecuteMutation(ctx, "upgrade_system", "", 10*time.Minute, env, "upgrade", "-y")
+}
+
+func (a *AptAdapter) InstallPackage(ctx context.Context, packageName string) (*OperationResult, error) {
+	if err := ValidatePackageName(packageName); err != nil {
+		return nil, err
+	}
+	env := []string{"DEBIAN_FRONTEND=noninteractive"}
+	return a.ExecuteMutation(ctx, "install_package", packageName, 5*time.Minute, env, "install", "-y", packageName)
+}
+
+func (a *AptAdapter) RemovePackage(ctx context.Context, packageName string, purge bool) (*OperationResult, error) {
+	if err := ValidatePackageName(packageName); err != nil {
+		return nil, err
+	}
+	env := []string{"DEBIAN_FRONTEND=noninteractive"}
+	subCmd := "remove"
+	if purge {
+		subCmd = "purge"
+	}
+	return a.ExecuteMutation(ctx, "remove_package", packageName, 5*time.Minute, env, subCmd, "-y", packageName)
+}
+
+func (a *AptAdapter) UpgradePackage(ctx context.Context, packageName string) (*OperationResult, error) {
+	if err := ValidatePackageName(packageName); err != nil {
+		return nil, err
+	}
+	env := []string{"DEBIAN_FRONTEND=noninteractive"}
+	return a.ExecuteMutation(ctx, "upgrade_package", packageName, 5*time.Minute, env, "install", "--only-upgrade", "-y", packageName)
 }
