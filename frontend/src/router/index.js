@@ -81,6 +81,11 @@ const routes = [
         component: () => import('../views/Packages.vue'),
       },
       {
+        path: 'services',
+        name: 'Services',
+        component: () => import('../views/Services.vue'),
+      },
+      {
         path: 'files',
         name: 'Files',
         component: () => import('../views/FileManager.vue'),

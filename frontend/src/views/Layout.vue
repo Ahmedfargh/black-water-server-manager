@@ -20,7 +20,8 @@ import {
   FolderClosed,
   Package,
   Activity,
-  Server
+  Server,
+  Sliders
 } from 'lucide-vue-next'
 import { useAuthStore } from '../stores/auth'
 import { useToastStore } from '../stores/toast'
@@ -106,6 +107,7 @@ const localizedRouteName = computed(() => {
     'firewall': 'nav.firewall',
     'sites': 'nav.sites',
     'packages': 'nav.packages',
+    'services': 'nav.services',
     'users': 'nav.users',
     'auditlogs': 'nav.audit_logs',
     'profile': 'nav.profile',
@@ -127,6 +129,7 @@ const menuItems = computed(() => [
   { name: t('nav.firewall'), path: '/firewall', icon: ShieldCheck },
   { name: t('nav.sites'), path: '/sites', icon: Globe },
   { name: t('nav.packages'), path: '/packages', icon: Package },
+  { name: t('nav.services'), path: '/services', icon: Sliders },
   { name: t('nav.users'), path: '/users', icon: Users },
   { name: t('nav.audit_logs'), path: '/audit', icon: History },
   { name: t('nav.reports'), path: '/reports', icon: BarChart3 },

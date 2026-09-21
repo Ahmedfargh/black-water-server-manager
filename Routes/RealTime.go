@@ -17,7 +17,9 @@ func RegisterRealTimeRoutes(router *gin.Engine) {
 	router.GET("/ws/cpu-temperature", MiddleWare.AuthMiddleware(), gin.WrapH(http.HandlerFunc(CpuTemperatureRealTimeHandler)))
 	router.GET("/ws/docker/:containerId", MiddleWare.AuthMiddleware(), gin.WrapH(http.HandlerFunc(DockerRealTimeHandler)))
 	router.GET("/ws/docker/:containerId/logs", MiddleWare.AuthMiddleware(), gin.WrapH(http.HandlerFunc(DockerRealTimeLogsHandler)))
+	router.GET("/ws/systemd/:unit/logs", MiddleWare.AuthMiddleware(), gin.WrapH(http.HandlerFunc(SystemdRealTimeLogsHandler)))
 	router.GET("/ws/terminal", MiddleWare.AuthMiddleware(), TerminalRealTimeHandler)
+	router.GET("/ws/ssh/terminal", MiddleWare.AuthMiddleware(), SSHTerminalRealTimeHandler)
 	router.GET("/ws/:container_id/status", MiddleWare.AuthMiddleware(), gin.WrapH(http.HandlerFunc(DockerStatusHandler)))
 	router.GET("/ws/file-system", MiddleWare.AuthMiddleware(), gin.WrapH(http.HandlerFunc(FileSystemRealTimeHandler)))
 }
@@ -70,6 +72,34 @@ func DockerRealTimeLogsHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to connect to WebSocket", http.StatusInternalServerError)
 		return
 	}
+}
+
+func SystemdRealTimeLogsHandler(w http.ResponseWriter, r *http.Request) {
+	unitName := getUnitName(r)
+	if unitName == "" {
+		http.Error(w, "unit name is required", http.StatusBadRequest)
+		return
+	}
+	hub := WebSockets.GetSystemdLogHub(unitName)
+	err := hub.Connect(w, r)
+	if err != nil {
+		http.Error(w, "Failed to connect to WebSocket", http.StatusInternalServerError)
+		return
+	}
+}
+
+func getUnitName(r *http.Request) string {
+	unit := r.URL.Query().Get("unit")
+	if unit == "" {
+		parts := strings.Split(r.URL.Path, "/")
+		for i, part := range parts {
+			if part == "systemd" && i+1 < len(parts) {
+				unit = parts[i+1]
+				break
+			}
+		}
+	}
+	return unit
 }
 
 func getContainerId(r *http.Request) string {
@@ -132,4 +162,33 @@ func FileSystemRealTimeHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to connect to WebSocket", http.StatusInternalServerError)
 		return
 	}
+}
+
+func SSHTerminalRealTimeHandler(c *gin.Context) {
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: User ID not found in context"})
+		return
+	}
+
+	user_id, ok := userID.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid User ID type"})
+		return
+	}
+
+	// Verify terminal authorization (ssh_terminal_access or super_admin)
+	var user models.User
+	if err := config.DB.Preload("Role").Preload("Role.Permissions").Preload("Permissions").First(&user, user_id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	if !user.HasPermission("ssh_terminal_access") && !user.HasPermission("terminal_access") && user.Role.Name != "super_admin" {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden: user lacks ssh_terminal_access permission"})
+		return
+	}
+
+	clientIP := c.ClientIP()
+	WebSockets.HandleSSHTerminal(c.Writer, c.Request, user.ID, user.Username, clientIP)
 }

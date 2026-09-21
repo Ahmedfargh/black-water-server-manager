@@ -70,6 +70,110 @@ go run setup.go -mode=build
 
 ---
 
+## 🚀 Production VPS Auto-Deployment
+
+Blackwater includes a dedicated **Automated VPS Deployer** (`cmd/deployer` and `scripts/deploy.sh`) for rapid, one-command deployment to remote servers (Ubuntu, Debian, CentOS, RHEL, AlmaLinux, Rocky Linux):
+
+```bash
+# Run the interactive deployment wizard on your VPS:
+sudo ./scripts/deploy.sh
+```
+
+Or execute via Go directly:
+```bash
+# Non-interactive automated deployment (ideal for CI/CD / cloud-init)
+sudo go run cmd/deployer/main.go \
+  --domain="panel.yourdomain.com" \
+  --email="admin@yourdomain.com" \
+  --ssl=true \
+  --db="sqlite" \
+  --yes
+```
+
+### What the Auto-Deployer Provisions:
+1. **Dependency Engine**: Detects Linux distro (`apt`, `dnf`, `yum`) and installs `nginx`, `git`, `gcc`, `certbot`, `nodejs`, and `ufw`/`firewalld`.
+2. **Environment & Security**: Generates a production `.env` with a cryptographically secure 256-bit `JWT_SECRET`.
+3. **Go Backend Binary**: Compiles an optimized, stripped production binary (`server-manager`) with CGO enabled.
+4. **Vue 3 Frontend**: Installs dependencies and builds the production SPA into `frontend/dist`.
+5. **Systemd Service**: Registers and starts `/etc/systemd/system/blackwater.service` with auto-restart on boot.
+6. **Nginx Reverse Proxy & WebSockets**: Configures reverse proxy with HTTP/1.1 WebSocket upgrading (`/ws/*`), API rewriting (`/api/*`), and Vue Router SPA fallback.
+7. **Let's Encrypt SSL**: Automatically issues and binds free SSL certificates via Certbot.
+
+### Service Management Commands
+```bash
+# Inspect systemd daemon status
+sudo systemctl status blackwater
+
+# Stream live backend & telemetry logs
+sudo journalctl -u blackwater -f
+
+# Restart Blackwater service
+sudo systemctl restart blackwater
+
+# Reload Nginx reverse proxy
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+---
+
+## 🌐 Nginx Reverse Proxy Reference Configuration
+
+For manual VPS setups, use the following production Nginx block:
+
+```nginx
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+upstream blackwater_backend {
+    server 127.0.0.1:8080;
+    keepalive 32;
+}
+
+server {
+    listen 80;
+    server_name panel.yourdomain.com;
+
+    root /var/www/black-water-server-manager/frontend/dist;
+    index index.html;
+    client_max_body_size 500M;
+
+    # API Proxy (strips /api)
+    location /api/ {
+        rewrite ^/api/(.*)$ /$1 break;
+        proxy_pass http://blackwater_backend;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # WebSockets (Terminal, Hardware HUD, Live Logs)
+    location /ws/ {
+        proxy_pass http://blackwater_backend;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_buffering off;
+        proxy_read_timeout 86400s;
+        proxy_send_timeout 86400s;
+    }
+
+    # Frontend Single-Page App (SPA) Routing
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
+```
+
+---
+
 ## 🚀 Key Features
 
 ### 🖥️ Real-Time Telemetry & Hardware HUD
@@ -123,6 +227,17 @@ go run setup.go -mode=build
 - **Endpoint Health Probes:** Configure continuous HTTP/HTTPS endpoint uptime checks.
 - **Latency & Status Reports:** Monitor response codes, latency trends, and overall service health status snapshots.
 - **Automated Incident Logging:** Track downtime events and service degradation.
+
+### ⚙️ Systemd & Task Automation ("The Engine Room")
+- **Systemd Unit Manager:** Inspect, search, and manage systemd services, timers, and sockets.
+  - Lifecycle actions: `Start`, `Stop`, `Restart`, `Reload`, `Enable`, `Disable`.
+  - Detailed unit status inspection (`systemctl status`).
+  - **Live Journalctl Streaming (`WS /ws/systemd/:unit/logs`):** Follow real-time service logs directly within an in-browser console drawer.
+- **Visual Crontab & Automation Builder:**
+  - Full crontab parser and generator with humanized schedule translations (e.g. `0 0 * * *` -> *"Every day at midnight"*).
+  - Quick presets (Every 5 mins, Hourly, Daily, Weekly, Monthly, `@reboot`).
+  - Toggle scheduled task states (enable/disable) without removing commands.
+  - One-click **Manual Task Execution** with live stdout/stderr capture and runtime benchmarking.
 
 ### 📁 Advanced File Manager
 - **Server File Explorer:** Deep exploration of host directories with permission bits (mode), file sizes, hidden file toggle, and quick directory breadcrumbs.
@@ -325,6 +440,20 @@ Access the application at `http://localhost:8080`.
 
 ---
 
+### ⚙️ Systemd Units & Cron Tasks (Auth Required)
+| Method | Endpoint | Permission | Description |
+| :--- | :--- | :--- | :--- |
+| `GET`  | `/systemd/units` | `read_systemd` | List active & inactive units with stats (supports `?type=` & `?search=`) |
+| `GET`  | `/systemd/unit/:unit/status` | `read_systemd` | Fetch detailed `systemctl status` output |
+| `POST` | `/systemd/unit/:unit/action` | `manage_systemd` | Execute unit action (`start`, `stop`, `restart`, `reload`, `enable`, `disable`) |
+| `GET`  | `/cron/jobs` | `read_cron` | List crontab tasks with human-readable schedules |
+| `POST` | `/cron/jobs` | `manage_cron` | Create or update a crontab entry |
+| `DELETE`| `/cron/jobs/:id` | `manage_cron` | Remove a crontab entry |
+| `POST` | `/cron/jobs/:id/toggle` | `manage_cron` | Toggle job enabled / disabled state |
+| `POST` | `/cron/jobs/:id/run` | `manage_cron` | Manually execute a scheduled task and capture output |
+
+---
+
 ### ⚙️ Processes, Terminal & Filesystem (Auth Required)
 | Method | Endpoint | Permission | Description |
 | :--- | :--- | :--- | :--- |
@@ -344,6 +473,7 @@ Access the application at `http://localhost:8080`.
 | `WS` | `/ws/processes` | `read_processes` | Streams running process updates every 5s |
 | `WS` | `/ws/docker/:containerId` | `read_containers` | Live metrics stream for an individual container |
 | `WS` | `/ws/docker/:containerId/logs` | `read_containers` | Real-time follow log stream from Docker daemon |
+| `WS` | `/ws/systemd/:unit/logs` | `read_systemd` | Real-time follow log stream from Journalctl for a systemd unit |
 | `WS` | `/ws/terminal` | `terminal_access` | Sanitized, hardened interactive shell with process group isolation |
 
 ---
@@ -366,6 +496,10 @@ Access the application at `http://localhost:8080`.
 | `read_containers` / `manage_containers` | Monitor Docker fleet and trigger lifecycle actions |
 | `read_packages` | Inspect installed packages, package managers, and updates |
 | `manage_packages` | Clean cache, refresh metadata, upgrade system, and install/remove packages |
+| `read_systemd` | Inspect systemd units, statuses, and live journalctl logs |
+| `manage_systemd` | Start, stop, restart, reload, enable, and disable systemd units |
+| `read_cron` | View scheduled crontab tasks and humanized schedules |
+| `manage_cron` | Create, update, delete, toggle, and manually execute cron tasks |
 | `terminal_access` | Access the hardened interactive WebSocket system shell |
 | `view_audit_logs` | View and inspect security audit trail entries |
 | `browse_filesystem` | Explore host filesystem directories and files |

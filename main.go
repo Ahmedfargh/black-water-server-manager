@@ -18,6 +18,7 @@ import (
 	Mgrs "github.com/ahmedfargh/server-manager/Managers"
 
 	routes "github.com/ahmedfargh/server-manager/Routes"
+	sslservice "github.com/ahmedfargh/server-manager/Services/SSL"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -28,9 +29,13 @@ func InitBackgroundTasks(mgr *Mgrs.BackgroundTaskManager) {
 	}
 	fmt.Println("Init Background Task")
 	AuditLogCleaner := &CronJobs.ClearAuditLog{}
+	sslExpiryChecker := &CronJobs.SSLCertificateExpiryChecker{
+		CheckInterval: 6 * time.Hour,
+	}
 
 	mgr.AddTask(hardwareReport)
 	mgr.AddTask(AuditLogCleaner)
+	mgr.AddTask(sslExpiryChecker)
 }
 func StartBackgroundTasks(mgr *Mgrs.BackgroundTaskManager) {
 	fmt.Println("Start Background Task")
@@ -57,11 +62,43 @@ func main() {
 	// 4. Setup Router
 	router := setupRouter(userCRUD, authService, roleCRUD)
 	fmt.Println("Router initialized")
-	// 5. Start Server in background
+	// 5. Start Server (HTTP or HTTPS)
 	go func() {
-		fmt.Println("🚀 Server starting on :8080...")
-		if err := router.Run(":8080"); err != nil {
-			fmt.Printf("Router shutdown: %v\n", err)
+		sslEnabled := config.GetKey("SSL_ENABLED") == "true"
+		port := config.GetKey("PORT")
+		if port == "" {
+			port = "8080"
+		}
+
+		if sslEnabled {
+			sslPort := config.GetKey("SSL_PORT")
+			if sslPort == "" {
+				sslPort = "8443"
+			}
+			certPath := config.GetKey("SSL_CERT_PATH")
+			keyPath := config.GetKey("SSL_KEY_PATH")
+
+			// Auto generate self-signed certificate if requested and certs don't exist
+			if certPath == "" || keyPath == "" || config.GetKey("SSL_AUTO_SELF_SIGNED") == "true" {
+				if certPath == "" {
+					certPath = "./certs/server.crt"
+				}
+				if keyPath == "" {
+					keyPath = "./certs/server.key"
+				}
+				_ = sslservice.EnsureSelfSignedCertificate(certPath, keyPath)
+			}
+
+			fmt.Printf("🔒 HTTPS Server starting on :%s...\n", sslPort)
+			if err := router.RunTLS(":"+sslPort, certPath, keyPath); err != nil {
+				fmt.Printf("HTTPS Router shutdown/error: %v. Falling back to HTTP...\n", err)
+				_ = router.Run(":" + port)
+			}
+		} else {
+			fmt.Printf("🚀 HTTP Server starting on :%s...\n", port)
+			if err := router.Run(":" + port); err != nil {
+				fmt.Printf("Router shutdown: %v\n", err)
+			}
 		}
 	}()
 
@@ -90,7 +127,7 @@ func initDatabase() {
 		&models.User{}, &models.Role{}, &models.Permission{},
 		&models.Process{}, &models.AuditLog{}, &models.Site{},
 		&models.SiteHealthStatus{}, &models.Docker{},
-		&models.HardWareReport{},
+		&models.HardWareReport{}, &models.SSHKey{},
 	)
 }
 
@@ -111,6 +148,9 @@ func setupRouter(u *crud.UserCRUD, a *service.AuthService, r *crud.RoleCRUD) *gi
 	routes.RegisterHardwareReportRoutes(router)
 	routes.RegisterFileSystemRoutes(router)
 	routes.RegisterPackageManagerRoutes(router)
+	routes.SystemAutomationRoutes(router)
+	routes.SSHRoutes(router)
+	routes.SSLRoutes(router)
 	return router
 }
 
