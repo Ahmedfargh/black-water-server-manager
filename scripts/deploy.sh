@@ -40,3 +40,9 @@ else
     fi
     go run cmd/deployer/main.go "$@"
 fi
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=centeral_clinic_system
+DB_USERNAME=clinic_user
+DB_PASSWORD=ClinicSaas@2026!

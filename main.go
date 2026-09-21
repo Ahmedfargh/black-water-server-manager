@@ -151,6 +151,7 @@ func setupRouter(u *crud.UserCRUD, a *service.AuthService, r *crud.RoleCRUD) *gi
 	routes.SystemAutomationRoutes(router)
 	routes.SSHRoutes(router)
 	routes.SSLRoutes(router)
+	routes.NginxRoutes(router)
 	return router
 }
 

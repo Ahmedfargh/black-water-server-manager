@@ -113,6 +113,7 @@ const localizedRouteName = computed(() => {
     'profile': 'nav.profile',
     'reports': 'nav.reports',
     'files': 'nav.files',
+    'nginx': 'nav.nginx',
     'login': 'nav.login'
   }
   
@@ -128,6 +129,7 @@ const menuItems = computed(() => [
   { name: t('nav.processes'), path: '/processes', icon: Cpu },
   { name: t('nav.firewall'), path: '/firewall', icon: ShieldCheck },
   { name: t('nav.sites'), path: '/sites', icon: Globe },
+  { name: t('nav.nginx', 'Nginx Manager'), path: '/nginx', icon: Server },
   { name: t('nav.packages'), path: '/packages', icon: Package },
   { name: t('nav.services'), path: '/services', icon: Sliders },
   { name: t('nav.users'), path: '/users', icon: Users },

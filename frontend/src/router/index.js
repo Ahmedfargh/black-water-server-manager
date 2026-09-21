@@ -89,6 +89,11 @@ const routes = [
         path: 'files',
         name: 'Files',
         component: () => import('../views/FileManager.vue'),
+      },
+      {
+        path: 'nginx',
+        name: 'Nginx',
+        component: () => import('../views/Nginx.vue'),
       }
     ]
   }

@@ -15,6 +15,7 @@
     "processes": "Processes",
     "firewall": "Firewall",
     "sites": "Sites",
+    "nginx": "Nginx Manager",
     "packages": "Packages",
     "services": "Services & Tasks",
     "users": "Users",

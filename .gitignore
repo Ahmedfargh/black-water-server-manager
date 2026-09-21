@@ -3,6 +3,11 @@ node_modules/
 dist/
 *.local
 uploads/
+*.db
+server-manager
+main
+bwcli
+seeder
 
 # AI Agent Skills & Configuration
 .agents/

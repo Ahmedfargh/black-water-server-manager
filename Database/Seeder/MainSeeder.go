@@ -40,9 +40,11 @@ func SeedAll(userCRUD *crud.UserCRUD, roleCRUD *crud.RoleCRUD, permissionCRUD *c
 		"ssh_terminal_access",
 		"manage_ssl",
 		"read_ssl",
+		"manage_nginx",
+		"read_nginx",
 	}
 	developerPermissions := []string{
-		"read_user", "update_user", "read_packages", "read_systemd", "read_cron", "read_ssh_keys", "read_ssl",
+		"read_user", "update_user", "read_packages", "read_systemd", "read_cron", "read_ssh_keys", "read_ssl", "read_nginx",
 	}
 
 	// 3. Create Roles and assign permissions
