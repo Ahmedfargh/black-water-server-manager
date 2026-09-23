@@ -3,6 +3,7 @@ package Services
 import (
 	"bufio"
 	"fmt"
+	"net"
 	"os"
 	"strings"
 
@@ -20,6 +21,32 @@ type Firewall struct {
 	archFirewall   *Arch.ArchFireWall
 	redHatFirewall *RedHat.RedHatFireWall
 	Platform       string
+}
+
+// ValidateIPOrCIDR validates whether input is a valid IPv4/IPv6 address or CIDR subnet
+func ValidateIPOrCIDR(input string) (string, bool, error) {
+	trimmed := strings.TrimSpace(input)
+	if trimmed == "" {
+		return "", false, fmt.Errorf("ip address cannot be empty")
+	}
+
+	// Check if it's a CIDR
+	if strings.Contains(trimmed, "/") {
+		ip, _, err := net.ParseCIDR(trimmed)
+		if err != nil {
+			return "", false, fmt.Errorf("invalid CIDR subnet format: %w", err)
+		}
+		isIPv6 := ip.To4() == nil
+		return trimmed, isIPv6, nil
+	}
+
+	// Check if it's a single IP
+	parsedIP := net.ParseIP(trimmed)
+	if parsedIP == nil {
+		return "", false, fmt.Errorf("invalid IP address format: %s", trimmed)
+	}
+	isIPv6 := parsedIP.To4() == nil
+	return trimmed, isIPv6, nil
 }
 
 func NewAuditLogCRUD() *CRUD.AuditLogCRUD {
@@ -173,3 +200,54 @@ func (f *Firewall) ListRules() (string, error) {
 		return "UNSUPPORTED PLATFORM: " + f.Platform, fmt.Errorf("unsupported platform: %s", f.Platform)
 	}
 }
+
+func (f *Firewall) BlockIP(ip string, UserId int) (string, error) {
+	cleanedIP, isIPv6, err := ValidateIPOrCIDR(ip)
+	if err != nil {
+		return "", err
+	}
+	fmt.Printf("Blocking IP %s on platform: %s\n", cleanedIP, f.Platform)
+
+	var message string
+	switch f.Platform {
+	case "debian", "ubuntu":
+		message, err = f.ubuntuFirewall.BlockIP(cleanedIP)
+	case "arch":
+		message, err = f.archFirewall.BlockIP(cleanedIP, isIPv6)
+	case "redhat":
+		message, err = f.redHatFirewall.BlockIP(cleanedIP, isIPv6)
+	default:
+		return "UNSUPPORTED PLATFORM: " + f.Platform, fmt.Errorf("unsupported platform: %s", f.Platform)
+	}
+
+	if err == nil {
+		f.recordLog(fmt.Sprintf("Blocked IP %s: %s", cleanedIP, message), uint(UserId))
+	}
+	return message, err
+}
+
+func (f *Firewall) UnblockIP(ip string, UserId int) (string, error) {
+	cleanedIP, isIPv6, err := ValidateIPOrCIDR(ip)
+	if err != nil {
+		return "", err
+	}
+	fmt.Printf("Unblocking IP %s on platform: %s\n", cleanedIP, f.Platform)
+
+	var message string
+	switch f.Platform {
+	case "debian", "ubuntu":
+		message, err = f.ubuntuFirewall.UnblockIP(cleanedIP)
+	case "arch":
+		message, err = f.archFirewall.UnblockIP(cleanedIP, isIPv6)
+	case "redhat":
+		message, err = f.redHatFirewall.UnblockIP(cleanedIP, isIPv6)
+	default:
+		return "UNSUPPORTED PLATFORM: " + f.Platform, fmt.Errorf("unsupported platform: %s", f.Platform)
+	}
+
+	if err == nil {
+		f.recordLog(fmt.Sprintf("Unblocked IP %s: %s", cleanedIP, message), uint(UserId))
+	}
+	return message, err
+}
+

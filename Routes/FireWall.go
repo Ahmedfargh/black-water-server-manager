@@ -14,5 +14,8 @@ func FireWallRoute(router *gin.Engine) {
 		firewallGroup.GET("/status", authentication.AuthMiddleware(), authentication.CheckRole("view_firewall_status"), functionalscontrollers.StatusFireWallHandler())
 		firewallGroup.GET("/rules", authentication.AuthMiddleware(), authentication.CheckRole("view_firewall_rules"), functionalscontrollers.RulesFireWallHandler())
 		firewallGroup.GET("/list", authentication.AuthMiddleware(), authentication.CheckRole("view_firewall_rules"), functionalscontrollers.ListRulesFireWallHandler())
+		firewallGroup.POST("/block-ip", authentication.AuthMiddleware(), authentication.CheckRole("enable_firewall"), functionalscontrollers.BlockIPHandler())
+		firewallGroup.POST("/unblock-ip", authentication.AuthMiddleware(), authentication.CheckRole("enable_firewall"), functionalscontrollers.UnblockIPHandler())
 	}
 }
+

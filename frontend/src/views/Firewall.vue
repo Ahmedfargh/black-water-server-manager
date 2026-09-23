@@ -1,17 +1,25 @@
 <script setup>
-import { onMounted, computed } from 'vue'
+import { onMounted, computed, ref } from 'vue'
 import { 
   ShieldCheck, 
   ShieldAlert, 
   List, 
   RefreshCw,
-  Power
+  Power,
+  Ban,
+  Unlock,
+  Globe
 } from 'lucide-vue-next'
 import { useFirewallStore } from '../stores/firewall'
 import { useToastStore } from '../stores/toast'
 
 const firewallStore = useFirewallStore()
 const toast = useToastStore()
+
+const ipToBlock = ref('')
+const ipToUnblock = ref('')
+const isBlocking = ref(false)
+const isUnblocking = ref(false)
 
 const isActive = computed(() => {
   if (!firewallStore.status) return false
@@ -32,15 +40,58 @@ const handleToggle = async () => {
   const action = actionText.value
   const targetState = !isActive.value
   
-    try {
-      toast.info(`INITIATING FIREWALL ${action} SEQUENCE...`)
-      await firewallStore.toggleFirewall(targetState)
-      toast.success(`FIREWALL ${action}D SUCCESSFULLY`)
-    } catch (err) {
-      console.error('Firewall toggle error:', err)
-      toast.error(`PROTOCOL FAILED: Unable to ${action} firewall.`)
-    }
-  
+  try {
+    toast.info(`INITIATING FIREWALL ${action} SEQUENCE...`)
+    await firewallStore.toggleFirewall(targetState)
+    toast.success(`FIREWALL ${action}D SUCCESSFULLY`)
+  } catch (err) {
+    console.error('Firewall toggle error:', err)
+    toast.error(`PROTOCOL FAILED: Unable to ${action} firewall.`)
+  }
+}
+
+const handleBlockIP = async () => {
+  const ip = ipToBlock.value.trim()
+  if (!ip) {
+    toast.warning('Please enter an IP address or CIDR subnet to block.')
+    return
+  }
+
+  isBlocking.value = true
+  try {
+    toast.info(`ENFORCING BLOCK RULE FOR ${ip}...`)
+    const res = await firewallStore.blockIP(ip)
+    toast.success(res.message || `IP ${ip} BLOCKED SUCCESSFULLY`)
+    ipToBlock.value = ''
+  } catch (err) {
+    console.error('Block IP error:', err)
+    const errMsg = err.response?.data?.error || err.response?.data?.message || 'Failed to block IP'
+    toast.error(`BLOCK RULE FAILED: ${errMsg}`)
+  } finally {
+    isBlocking.value = false
+  }
+}
+
+const handleUnblockIP = async () => {
+  const ip = ipToUnblock.value.trim()
+  if (!ip) {
+    toast.warning('Please enter an IP address or CIDR subnet to unblock.')
+    return
+  }
+
+  isUnblocking.value = true
+  try {
+    toast.info(`REMOVING BLOCK RULE FOR ${ip}...`)
+    const res = await firewallStore.unblockIP(ip)
+    toast.success(res.message || `IP ${ip} UNBLOCKED SUCCESSFULLY`)
+    ipToUnblock.value = ''
+  } catch (err) {
+    console.error('Unblock IP error:', err)
+    const errMsg = err.response?.data?.error || err.response?.data?.message || 'Failed to unblock IP'
+    toast.error(`UNBLOCK RULE FAILED: ${errMsg}`)
+  } finally {
+    isUnblocking.value = false
+  }
 }
 </script>
 
@@ -70,6 +121,67 @@ const handleToggle = async () => {
           <Power :size="24" />
           <span>{{ actionText }}</span>
         </button>
+      </div>
+    </div>
+
+    <!-- IP Blocking & Rule Management Grid -->
+    <div class="firewall-grid">
+      <!-- Block IP Card -->
+      <div class="tron-card ip-action-card block-card">
+        <div class="card-header">
+          <Ban :size="20" class="glow-orange" />
+          <h3>IP DEFENSE: BLOCK TRAFFIC</h3>
+        </div>
+        <div class="card-body">
+          <p class="card-desc">
+            Immediately deny all incoming packets from an IPv4 / IPv6 address or CIDR subnet block.
+          </p>
+          <form @submit.prevent="handleBlockIP" class="ip-form">
+            <div class="input-wrap">
+              <Globe :size="16" class="input-icon" />
+              <input 
+                v-model="ipToBlock" 
+                type="text" 
+                placeholder="e.g. 192.168.1.100 or 10.0.0.0/24" 
+                class="tron-input font-data"
+                :disabled="isBlocking"
+              />
+            </div>
+            <button type="submit" class="action-btn btn-block" :disabled="isBlocking || !ipToBlock.trim()">
+              <Ban :size="16" />
+              <span>{{ isBlocking ? 'BLOCKING...' : 'ENFORCE BLOCK' }}</span>
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Unblock IP Card -->
+      <div class="tron-card ip-action-card unblock-card">
+        <div class="card-header">
+          <Unlock :size="20" class="glow-cyan" />
+          <h3>IP DEFENSE: UNBLOCK TRAFFIC</h3>
+        </div>
+        <div class="card-body">
+          <p class="card-desc">
+            Remove an active block rule to restore incoming packet flow for a specific IP or subnet.
+          </p>
+          <form @submit.prevent="handleUnblockIP" class="ip-form">
+            <div class="input-wrap">
+              <Globe :size="16" class="input-icon" />
+              <input 
+                v-model="ipToUnblock" 
+                type="text" 
+                placeholder="e.g. 192.168.1.100 or 10.0.0.0/24" 
+                class="tron-input font-data"
+                :disabled="isUnblocking"
+              />
+            </div>
+            <button type="submit" class="action-btn btn-unblock" :disabled="isUnblocking || !ipToUnblock.trim()">
+              <Unlock :size="16" />
+              <span>{{ isUnblocking ? 'UNBLOCKING...' : 'LIFT BLOCK' }}</span>
+            </button>
+          </form>
+        </div>
       </div>
     </div>
 
@@ -173,6 +285,111 @@ const handleToggle = async () => {
   filter: brightness(1.15);
 }
 
+/* IP Actions Grid */
+.firewall-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.ip-action-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.ip-action-card .card-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.card-desc {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.ip-form {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.input-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 0.85rem;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.tron-input {
+  width: 100%;
+  background: rgba(13, 15, 20, 0.95);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.tron-input:focus {
+  outline: none;
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 4px;
+  font-family: var(--font-header);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-block {
+  background: rgba(220, 38, 38, 0.15);
+  border: 1px solid var(--border-crimson);
+  color: #fca5a5;
+}
+
+.btn-block:not(:disabled):hover {
+  background: rgba(220, 38, 38, 0.3);
+  box-shadow: 0 0 12px rgba(220, 38, 38, 0.4);
+}
+
+.btn-unblock {
+  background: rgba(0, 240, 255, 0.12);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  color: var(--neon-cyan);
+}
+
+.btn-unblock:not(:disabled):hover {
+  background: rgba(0, 240, 255, 0.25);
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.4);
+}
+
 /* Rules Display */
 .rules-card {
   display: flex;
@@ -234,3 +451,4 @@ const handleToggle = async () => {
   letter-spacing: 2px;
 }
 </style>
+

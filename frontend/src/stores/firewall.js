@@ -37,6 +37,27 @@ export const useFirewallStore = defineStore('firewall', {
         console.error('Failed to toggle firewall:', error)
         throw error
       }
+    },
+    async blockIP(ip) {
+      try {
+        const response = await api.post('/firewall/block-ip', { ip })
+        await this.fetchRules()
+        return response.data
+      } catch (error) {
+        console.error('Failed to block IP:', error)
+        throw error
+      }
+    },
+    async unblockIP(ip) {
+      try {
+        const response = await api.post('/firewall/unblock-ip', { ip })
+        await this.fetchRules()
+        return response.data
+      } catch (error) {
+        console.error('Failed to unblock IP:', error)
+        throw error
+      }
     }
   }
 })
+

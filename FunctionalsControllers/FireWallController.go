@@ -2,10 +2,15 @@ package functionalscontrollers
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/ahmedfargh/server-manager/Services"
 	"github.com/gin-gonic/gin"
 )
+
+type IPBlockRequest struct {
+	IP string `json:"ip" binding:"required"`
+}
 
 func EnableFireWallHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -66,3 +71,68 @@ func ListRulesFireWallHandler() gin.HandlerFunc {
 		c.JSON(200, gin.H{"message": text})
 	}
 }
+
+func BlockIPHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var req IPBlockRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  "error",
+				"message": "Invalid request payload. 'ip' field is required.",
+				"error":   err.Error(),
+			})
+			return
+		}
+
+		firewall := Services.NewFirewall()
+		userID := c.GetInt("userID")
+		msg, err := firewall.BlockIP(req.IP, userID)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  "error",
+				"message": "Failed to block IP",
+				"error":   err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "success",
+			"message": msg,
+			"ip":      req.IP,
+		})
+	}
+}
+
+func UnblockIPHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var req IPBlockRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  "error",
+				"message": "Invalid request payload. 'ip' field is required.",
+				"error":   err.Error(),
+			})
+			return
+		}
+
+		firewall := Services.NewFirewall()
+		userID := c.GetInt("userID")
+		msg, err := firewall.UnblockIP(req.IP, userID)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  "error",
+				"message": "Failed to unblock IP",
+				"error":   err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "success",
+			"message": msg,
+			"ip":      req.IP,
+		})
+	}
+}
+

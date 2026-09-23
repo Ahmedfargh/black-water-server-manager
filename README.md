@@ -28,28 +28,31 @@ Combining a lightweight **Go (Gin)** backend with a high-contrast **Outlaw Tech*
 
 ---
 
-## ⚡ Quick Start (One Command)
+## ⚡ Quick Start: The Easiest Way to Install & Run
 
-Blackwater includes a unified Go orchestrator [`setup.go`](setup.go) that automates environment preparation, toolchain checks, dependency installations, database migrations/seeders, and concurrent execution of both backend and frontend dev servers with colored log multiplexing:
+The absolute easiest way to install, configure, and launch the entire Blackwater Server Manager (Backend + Frontend + Database) is using the unified Go orchestrator [`setup.go`](setup.go).
+
+It automatically checks your system toolchain, creates required `.env` configurations with secure cryptographic secrets, downloads Go and Node.js dependencies, runs SQLite database auto-migrations and seeders, and starts both the Go API and Vue 3 frontend simultaneously with colored terminal logging:
 
 ```bash
-# Clone the repository
+# 1. Clone the repository
 git clone https://github.com/ahmedfargh/server-manager.git
 cd black-water-server-manager
 
-# Full setup & run in a single command
+# 2. Run the all-in-one setup orchestrator (Zero manual configuration needed!)
 go run setup.go
 ```
 
-| Service | URL | Credentials |
+| Service | URL | Default Credentials |
 | :--- | :--- | :--- |
 | **Frontend Web Dashboard** | [http://localhost:5173](http://localhost:5173) | — |
 | **Backend REST API** | [http://localhost:8080](http://localhost:8080) | — |
-| **Default Admin Account** | Login via Web UI | `admin` / `password` (or `admin@example.com` / `password`) |
+| **Default Administrator** | Login via Web UI | Username: `admin` / Password: `password` (or `admin@example.com`) |
 
-### Orchestrator Modes & Flags
+### Orchestrator Modes & Commands
+Once installed, you can re-run or target specific workflows with flags:
 ```bash
-# Start dev servers only (fast launch when already installed)
+# Fast launch dev servers only (when dependencies are already installed)
 go run setup.go -mode=dev
 
 # Install dependencies and environment files only
@@ -57,6 +60,7 @@ go run setup.go -mode=install
 
 # Run database auto-migrations and seeders only
 go run setup.go -mode=seed
+
 
 # Compile production Go binary and Vite frontend bundle
 go run setup.go -mode=build
@@ -200,11 +204,16 @@ server {
 - **Interactive Terminal Output Drawer:** Displays live command output, exit status, and execution duration in milliseconds (`ms`).
 - **Resilient Host Execution:** Automated non-interactive `stdin` handling (prevents prompt hang/crashes) and automatic `sudo -n` elevation detection.
 
-### 🛡️ Multi-Distro Firewall Engine
+### 🛡️ Multi-Distro Firewall Engine & IP Defense
 - **Cross-Platform Firewall Automation:** Seamless compatibility across:
   - **UFW** on Debian, Ubuntu, and Arch Linux
   - **Firewalld** on Red Hat, Fedora, CentOS, Rocky, and AlmaLinux
-- **Rule Management:** Enable or disable firewall services, view numbered rule tables, and safely inspect active port filters.
+  - **iptables** fallback where applicable
+- **Rule & IP Management:**
+  - Enable or disable firewall service with automatic privilege escalation.
+  - Inspect numbered rule tables and active port filters.
+  - **Instant IP & Subnet Blocking:** Block and unblock single IPv4/IPv6 addresses or CIDR subnet blocks (`10.0.0.0/24`) with strict command sanitization and user audit trail logging.
+
 
 ### 🐳 Docker Container Fleet & Auto-Healing
 - **Auto-Discovery & Sync:** Background daemon automatically identifies, persists, and synchronizes running host containers every 10 seconds.
@@ -342,17 +351,22 @@ The dashboard interface will be accessible at `http://localhost:5173`.
 
 ---
 
-## 🐳 Docker Deployment (Zero-Config)
+## 🐳 Docker Deployment (For Windows Users Testing the Tool)
 
-You can launch Blackwater with Docker Compose for immediate evaluation:
+> [!WARNING]
+> **Docker is intended for Windows users (and non-Linux testers) who want to test and evaluate the tool in a sandbox.**
+> 
+> Because Blackwater is engineered for direct Linux kernel sensor telemetry (`hwmon`), host systemd unit control, multi-distro firewall automation (`ufw`/`firewalld`/`iptables`), and native PTY terminal shells, running in Docker limits direct host hardware interaction.
+> 
+> For **production deployments or real server administration**, install natively on a Linux host/VPS using [`go run setup.go`](#⚡-quick-start-the-easiest-way-to-install--run) or the [Automated VPS Deployer](#-production-vps-auto-deployment).
+
+If you are on Windows (or testing the web interface, database models, and API endpoints without installing Go/Node locally), launch Blackwater via Docker Compose:
 
 ```bash
 docker compose up --build -d
 ```
 Access the application at `http://localhost:8080`.
 
-> [!TIP]
-> While Docker Compose allows testing the API, database, and web interface on macOS and Windows, full low-level hardware diagnostics, firewall controls, and terminal PTY features require a native Linux host.
 
 ---
 
@@ -405,11 +419,14 @@ Access the application at `http://localhost:8080`.
 ### 🛡️ Firewall Management (Auth Required)
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| `GET`  | `/firewall/status` | Current firewall state (UFW or Firewalld) |
+| `GET`  | `/firewall/status` | Current firewall state (UFW, Firewalld, or iptables) |
 | `GET`  | `/firewall/enable` | Enable system firewall service |
 | `GET`  | `/firewall/disable` | Disable system firewall service |
 | `GET`  | `/firewall/rules` | Detailed / numbered list of firewall filtering rules |
 | `GET`  | `/firewall/list` | Active firewall rules summary |
+| `POST` | `/firewall/block-ip` | Block incoming traffic from an IP or CIDR subnet (`{"ip": "1.2.3.4"}`) |
+| `POST` | `/firewall/unblock-ip` | Remove an IP or subnet block rule (`{"ip": "1.2.3.4"}`) |
+
 
 ---
 
@@ -493,6 +510,7 @@ Access the application at `http://localhost:8080`.
 | `view_firewall_status` | Check firewall status (UFW or Firewalld) |
 | `enable_firewall` / `disable_firewall` | Enable or shut down the host firewall |
 | `view_firewall_rules` / `view_firewall_list` | Inspect active firewall port and subnet rules |
+| `block_ip` / `manage_firewall_rules` | Enforce or lift IP & subnet blocking rules |
 | `read_containers` / `manage_containers` | Monitor Docker fleet and trigger lifecycle actions |
 | `read_packages` | Inspect installed packages, package managers, and updates |
 | `manage_packages` | Clean cache, refresh metadata, upgrade system, and install/remove packages |

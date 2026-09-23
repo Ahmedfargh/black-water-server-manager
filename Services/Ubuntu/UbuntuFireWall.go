@@ -1,6 +1,10 @@
 package Ubuntu
 
-import "os/exec"
+import (
+	"context"
+	"os/exec"
+	"time"
+)
 
 type UbuntuFireWall struct {
 }
@@ -9,10 +13,13 @@ func NewUbuntuFireWall() *UbuntuFireWall {
 	return &UbuntuFireWall{}
 }
 func (f *UbuntuFireWall) UFWAction(args ...string) (string, error) {
-	cmd := exec.Command("ufw", args...)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, "ufw", args...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		cmdSudo := exec.Command("sudo", append([]string{"ufw"}, args...)...)
+		cmdSudo := exec.CommandContext(ctx, "sudo", append([]string{"-n", "ufw"}, args...)...)
 		outSudo, errSudo := cmdSudo.CombinedOutput()
 		if errSudo == nil {
 			return string(outSudo), nil
@@ -21,6 +28,7 @@ func (f *UbuntuFireWall) UFWAction(args ...string) (string, error) {
 	}
 	return string(output), nil
 }
+
 func (f *UbuntuFireWall) Enable() (string, error) {
 	return f.UFWAction("enable")
 }
@@ -36,6 +44,14 @@ func (f *UbuntuFireWall) Rules() (string, error) {
 func (f *UbuntuFireWall) ListRules() (string, error) {
 	return f.UFWAction("status")
 }
+func (f *UbuntuFireWall) BlockIP(ip string) (string, error) {
+	return f.UFWAction("deny", "from", ip)
+}
+
+func (f *UbuntuFireWall) UnblockIP(ip string) (string, error) {
+	return f.UFWAction("delete", "deny", "from", ip)
+}
+
 func (f *UbuntuFireWall) AddRule() bool {
 	return true
 }
@@ -48,3 +64,4 @@ func (f *UbuntuFireWall) UpdateRule() bool {
 func (f *UbuntuFireWall) ClearRules() bool {
 	return true
 }
+

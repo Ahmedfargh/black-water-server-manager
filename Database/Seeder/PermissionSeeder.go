@@ -29,6 +29,8 @@ func SeedPermissions(permissionCRUD *crud.PermissionCRUD) {
 		"view_firewall_status",
 		"view_firewall_rules",
 		"view_firewall_list",
+		"block_ip",
+		"manage_firewall_rules",
 		"read_containers",
 		"manage_containers",
 		"read_packages",
