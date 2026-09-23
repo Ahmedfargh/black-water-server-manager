@@ -248,8 +248,15 @@ server {
   - Toggle scheduled task states (enable/disable) without removing commands.
   - One-click **Manual Task Execution** with live stdout/stderr capture and runtime benchmarking.
 
-### 📁 Advanced File Manager
-- **Server File Explorer:** Deep exploration of host directories with permission bits (mode), file sizes, hidden file toggle, and quick directory breadcrumbs.
+### 🌐 Nginx Web Server & Virtual Hosts Engine
+- **Server Health & Diagnostics:** Live daemon state, installed version, configuration syntax validation (`nginx -t`), and one-click graceful reload / restart.
+- **Virtual Host (vHost) Manager:** Create, edit, toggle (enable/disable symlinks in `sites-enabled`), and delete Nginx site configurations with automated syntax linting prior to deployment.
+- **Log Streamer & Traffic Analytics:** Live access and error log inspection with instant traffic metrics (HTTP status code distributions, bandwidth, top requested paths, and client IP analytics).
+
+### 📁 Advanced File Manager & Storage Explorer
+- **Host Filesystem Browser:** Deep directory exploration with absolute path sanitization, permission bits (POSIX octal and symbolic modes), file sizes, modification timestamps, and directory breadcrumb navigation.
+- **Secure File Operations:** Read, inspect, create, edit, and delete files safely within defined security boundaries to prevent path traversal attacks.
+
 
 ### 📜 Auditing & Automated Maintenance
 - **System Audit Logging:** Records administrative actions (firewall toggles, terminal commands, process management, package actions) with user attribution, client IP, and timestamping.
@@ -471,6 +478,25 @@ Access the application at `http://localhost:8080`.
 
 ---
 
+### 🌐 Nginx Web Server Management (Auth Required)
+| Method | Endpoint | Permission | Description |
+| :--- | :--- | :--- | :--- |
+| `GET`  | `/nginx/overview` | `read_nginx` | Overview of Nginx daemon status, version, and site counts |
+| `GET`  | `/nginx/sites` | `read_nginx` | List all discovered virtual hosts (`?include_content=true`) |
+| `GET`  | `/nginx/sites/:name` | `read_nginx` | Fetch full configuration content for a specific site |
+| `POST` | `/nginx/sites` | `manage_nginx` | Create or update a virtual host (`{"filename": "...", "content": "..."}`) |
+| `DELETE`| `/nginx/sites/:name` | `manage_nginx` | Delete a virtual host configuration file |
+| `POST` | `/nginx/sites/:name/toggle` | `manage_nginx` | Enable or disable a site (`{"enable": true/false}`) |
+| `POST` | `/nginx/test` | `read_nginx` | Run `nginx -t` configuration syntax validation |
+| `POST` | `/nginx/reload` | `manage_nginx` | Gracefully reload Nginx daemon configuration |
+| `POST` | `/nginx/restart` | `manage_nginx` | Restart the Nginx system service |
+| `GET`  | `/nginx/logs/files` | `read_nginx` | Discover available access and error log files |
+| `GET`  | `/nginx/logs/access` | `read_nginx` | Retrieve recent access log entries (`?limit=100&file=...`) |
+| `GET`  | `/nginx/logs/error` | `read_nginx` | Retrieve recent error log entries (`?limit=100&file=...`) |
+| `GET`  | `/nginx/logs/analytics` | `read_nginx` | Consolidated HTTP traffic & status code distribution analytics |
+
+---
+
 ### ⚙️ Processes, Terminal & Filesystem (Auth Required)
 | Method | Endpoint | Permission | Description |
 | :--- | :--- | :--- | :--- |
@@ -511,6 +537,8 @@ Access the application at `http://localhost:8080`.
 | `enable_firewall` / `disable_firewall` | Enable or shut down the host firewall |
 | `view_firewall_rules` / `view_firewall_list` | Inspect active firewall port and subnet rules |
 | `block_ip` / `manage_firewall_rules` | Enforce or lift IP & subnet blocking rules |
+| `read_nginx` / `manage_nginx` | View, edit, test, reload, and analyze Nginx virtual hosts & logs |
+| `read_ssl` / `manage_ssl` | Inspect certificates, issue Let's Encrypt SSL, and manage auto-renewals |
 | `read_containers` / `manage_containers` | Monitor Docker fleet and trigger lifecycle actions |
 | `read_packages` | Inspect installed packages, package managers, and updates |
 | `manage_packages` | Clean cache, refresh metadata, upgrade system, and install/remove packages |
@@ -522,6 +550,7 @@ Access the application at `http://localhost:8080`.
 | `view_audit_logs` | View and inspect security audit trail entries |
 | `browse_filesystem` | Explore host filesystem directories and files |
 | `site_create` / `site_read` | Configure and monitor external web service endpoints |
+
 
 ---
 
