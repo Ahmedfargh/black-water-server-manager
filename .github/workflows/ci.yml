@@ -1,0 +1,46 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  go-test:
+    name: Run Go Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+
+      - name: Install Dependencies
+        run: go mod download
+
+      - name: Run Unit Tests
+        run: go test -v ./...
+
+  docker-build:
+    name: Test Docker Compose Stack
+    runs-on: ubuntu-latest
+    needs: go-test
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Create Dummy .env File
+        run: cp .env.example .env || touch .env
+
+      - name: Build Docker Stack
+        run: docker compose build
+
+      - name: Cleanup
+        if: always()
+        run: docker compose down -v
