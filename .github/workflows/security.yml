@@ -1,0 +1,55 @@
+name: Security Scan (SAST & DAST)
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  sast_scan:
+    name: Run SAST (Code & Container Analysis)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 1. Static Source Code Analysis for Go
+      - name: Run Semgrep SAST
+        run: |
+          docker run --rm -v "${{ github.workspace }}:/src" returntocorp/semgrep semgrep scan --config=auto
+
+      # 2. Secret & Vulnerability Scanning with Trivy
+      - name: Run Trivy Security Scan
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: 'fs'
+          ignore-unfixed: true
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+
+  dast_scan:
+    name: Run DAST (OWASP ZAP API Analysis)
+    runs-on: ubuntu-latest
+    needs: sast_scan
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Create Dummy .env File
+        run: cp .env.example .env || touch .env
+
+      # 1. Spin up Go application + MySQL Database
+      - name: Launch App Stack for DAST Testing
+        run: |
+          docker compose up -d
+          sleep 15
+
+      # 2. Attack the running application endpoint
+      - name: OWASP ZAP Baseline DAST Scan
+        uses: zaproxy/action-baseline@v0.15.0
+        with:
+          target: 'http://localhost:8080'
+          fail_action: false
