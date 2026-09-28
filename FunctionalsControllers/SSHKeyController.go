@@ -1,22 +1,25 @@
 package functionalscontrollers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 
+	Config "github.com/ahmedfargh/server-manager/Config"
 	crud "github.com/ahmedfargh/server-manager/Database/CRUD"
 	models "github.com/ahmedfargh/server-manager/Database/Models"
+	repository "github.com/ahmedfargh/server-manager/Database/Repository"
 	sshservice "github.com/ahmedfargh/server-manager/Services/SSH"
 	"github.com/gin-gonic/gin"
 )
 
 type GenerateSSHKeyRequest struct {
-	Name                  string `json:"name" binding:"required"`
-	KeyType               string `json:"key_type" binding:"required"` // ed25519 or rsa
-	Comment               string `json:"comment"`
-	AddToAuthorizedKeys   bool   `json:"add_to_authorized_keys"`
-	RsaBits               int    `json:"rsa_bits"` // optional, default 4096
+	Name                string `json:"name" binding:"required"`
+	KeyType             string `json:"key_type" binding:"required"` // ed25519 or rsa
+	Comment             string `json:"comment"`
+	AddToAuthorizedKeys bool   `json:"add_to_authorized_keys"`
+	RsaBits             int    `json:"rsa_bits"` // optional, default 4096
 }
 
 type ImportSSHKeyRequest struct {
@@ -24,6 +27,25 @@ type ImportSSHKeyRequest struct {
 	PublicKey           string `json:"public_key" binding:"required"`
 	Comment             string `json:"comment"`
 	AddToAuthorizedKeys bool   `json:"add_to_authorized_keys"`
+}
+
+func recordSSHKeyAuditLog(action string, keyID string, userID uint, result string) {
+	if Config.DB == nil {
+		return
+	}
+	var uidPtr *uint
+	if userID != 0 {
+		uidPtr = &userID
+	}
+	auditCrud := crud.NewAuditLogCRUD(repository.NewAuditRepository(Config.DB))
+	audit := models.AuditLog{
+		UserID:      uidPtr,
+		ServiceType: "ssh_keys",
+		ServiceID:   keyID,
+		Action:      action,
+		Results:     result,
+	}
+	_ = auditCrud.CreateAudit(&audit)
 }
 
 func GenerateSSHKeyHandler() gin.HandlerFunc {
@@ -72,10 +94,17 @@ func GenerateSSHKeyHandler() gin.HandlerFunc {
 			return
 		}
 
+		recordSSHKeyAuditLog(
+			"generate_ssh_key",
+			fmt.Sprintf("%d", sshModel.ID),
+			userID,
+			fmt.Sprintf("Generated %s key '%s' (authorized: %t)", sshModel.KeyType, sshModel.Name, req.AddToAuthorizedKeys),
+		)
+
 		c.JSON(http.StatusCreated, gin.H{
-			"message":          "SSH Key generated successfully",
-			"key":              sshModel,
-			"private_key_pem":  generated.PrivateKeyPEM,
+			"message":         "SSH Key generated successfully",
+			"key":             sshModel,
+			"private_key_pem": generated.PrivateKeyPEM,
 		})
 	}
 }
@@ -129,6 +158,13 @@ func ImportSSHKeyHandler() gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save key in database: " + err.Error()})
 			return
 		}
+
+		recordSSHKeyAuditLog(
+			"import_ssh_key",
+			fmt.Sprintf("%d", sshModel.ID),
+			userID,
+			fmt.Sprintf("Imported %s key '%s' (authorized: %t)", sshModel.KeyType, sshModel.Name, req.AddToAuthorizedKeys),
+		)
 
 		c.JSON(http.StatusCreated, gin.H{
 			"message": "SSH Public Key imported successfully",
@@ -197,6 +233,20 @@ func DeleteSSHKeyHandler() gin.HandlerFunc {
 			return
 		}
 
+		var userID uint
+		if uid, exists := c.Get("userID"); exists {
+			if u, ok := uid.(uint); ok {
+				userID = u
+			}
+		}
+
+		recordSSHKeyAuditLog(
+			"delete_ssh_key",
+			fmt.Sprintf("%d", id),
+			userID,
+			fmt.Sprintf("Deleted key '%s' (%s)", key.Name, key.Fingerprint),
+		)
+
 		c.JSON(http.StatusOK, gin.H{"message": "SSH Key removed successfully"})
 	}
 }
@@ -241,6 +291,20 @@ func ToggleAuthorizedSSHKeyHandler() gin.HandlerFunc {
 
 		key.AddedToAuthorizedKeys = newStatus
 		_ = sshCrud.UpdateSSHKey(key, uint(id))
+
+		var userID uint
+		if uid, exists := c.Get("userID"); exists {
+			if u, ok := uid.(uint); ok {
+				userID = u
+			}
+		}
+
+		recordSSHKeyAuditLog(
+			"toggle_authorized_ssh_key",
+			fmt.Sprintf("%d", id),
+			userID,
+			fmt.Sprintf("Toggled authorization for key '%s' to %t", key.Name, newStatus),
+		)
 
 		c.JSON(http.StatusOK, gin.H{
 			"message":                  "SSH key authorization toggled successfully",

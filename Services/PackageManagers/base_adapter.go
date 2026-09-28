@@ -112,7 +112,7 @@ func ValidatePackageName(packageName string) error {
 // ExecuteMutation executes a mutation command with timing, sudo detection, and structured OperationResult return
 func (b *BaseAdapter) ExecuteMutation(ctx context.Context, action string, targetPkg string, timeout time.Duration, extraEnv []string, args ...string) (*OperationResult, error) {
 	start := time.Now()
-	
+
 	execPath := b.ExecutablePath
 	execArgs := args
 	usedSudo := false
@@ -140,8 +140,8 @@ func (b *BaseAdapter) ExecuteMutation(ctx context.Context, action string, target
 	elapsed := time.Since(start).Milliseconds()
 
 	// Append permission advice if command failed due to root permissions
-	if err != nil && (strings.Contains(output, "you cannot perform this operation unless you are root") || 
-		strings.Contains(output, "Permission denied") || 
+	if err != nil && (strings.Contains(output, "you cannot perform this operation unless you are root") ||
+		strings.Contains(output, "Permission denied") ||
 		strings.Contains(output, "are you root?")) {
 		output = output + "\n\n⚠️ [PRIVILEGE NOTICE] Root privileges required for system package operations.\nOptions:\n1. Run the Blackwater backend process with root/sudo.\n2. Or grant passwordless sudo for package manager in /etc/sudoers (e.g. `%wheel ALL=(ALL) NOPASSWD: ALL` or `%wheel ALL=(ALL) NOPASSWD: /usr/bin/" + b.ExecutableName + "`)"
 	}

@@ -77,7 +77,7 @@ var statusCmd = &cobra.Command{
 			tableData = append(tableData, []string{"Core/Thread", "Model", "Physical Cores", "MHz"})
 			for k, v := range hardwareInfo {
 				hwMap := v.(map[string]interface{})
-				
+
 				modelName := "Unknown"
 				if m, ok := hwMap["model_name"].(string); ok {
 					modelName = m
@@ -90,7 +90,7 @@ var statusCmd = &cobra.Command{
 				if m, ok := hwMap["mhz"].(string); ok {
 					mhz = m
 				}
-				
+
 				tableData = append(tableData, []string{
 					k,
 					modelName,
@@ -103,7 +103,7 @@ var statusCmd = &cobra.Command{
 
 		// Render RAM
 		pterm.DefaultSection.Println("Memory Metrics (MB)")
-		
+
 		var usedRam, freeRam, totalRam int
 		if virtualInfo, ok := ramData["Vertiual_info"].(map[string]interface{}); ok {
 			totalRam = int(virtualInfo["Total_memory"].(float64))

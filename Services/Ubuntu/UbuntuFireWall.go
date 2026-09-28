@@ -64,4 +64,3 @@ func (f *UbuntuFireWall) UpdateRule() bool {
 func (f *UbuntuFireWall) ClearRules() bool {
 	return true
 }
-

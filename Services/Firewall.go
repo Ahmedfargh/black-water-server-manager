@@ -250,4 +250,3 @@ func (f *Firewall) UnblockIP(ip string, UserId int) (string, error) {
 	}
 	return message, err
 }
-

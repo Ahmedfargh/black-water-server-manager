@@ -82,4 +82,3 @@ func TestFirewallBlockInvalidIP(t *testing.T) {
 		t.Error("Expected error when unblocking invalid IP, got nil")
 	}
 }
-

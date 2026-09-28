@@ -21,7 +21,8 @@ import {
   Package,
   Activity,
   Server,
-  Sliders
+  Sliders,
+  Key
 } from 'lucide-vue-next'
 import { useAuthStore } from '../stores/auth'
 import { useToastStore } from '../stores/toast'
@@ -114,6 +115,7 @@ const localizedRouteName = computed(() => {
     'reports': 'nav.reports',
     'files': 'nav.files',
     'nginx': 'nav.nginx',
+    'sshkeys': 'nav.ssh_keys',
     'login': 'nav.login'
   }
   
@@ -128,6 +130,7 @@ const menuItems = computed(() => [
   { name: t('nav.terminal'), path: '/terminal', icon: Terminal },
   { name: t('nav.processes'), path: '/processes', icon: Cpu },
   { name: t('nav.firewall'), path: '/firewall', icon: ShieldCheck },
+  { name: t('nav.ssh_keys', 'SSH Keys'), path: '/ssh-keys', icon: Key },
   { name: t('nav.sites'), path: '/sites', icon: Globe },
   { name: t('nav.nginx', 'Nginx Manager'), path: '/nginx', icon: Server },
   { name: t('nav.packages'), path: '/packages', icon: Package },

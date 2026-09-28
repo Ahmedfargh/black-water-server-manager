@@ -19,11 +19,11 @@ import (
 )
 
 type GeneratedKeyPair struct {
-	KeyType        string `json:"key_type"`
-	PublicKey      string `json:"public_key"`
-	PrivateKeyPEM  string `json:"private_key_pem"`
-	Fingerprint    string `json:"fingerprint"`
-	Comment        string `json:"comment"`
+	KeyType       string `json:"key_type"`
+	PublicKey     string `json:"public_key"`
+	PrivateKeyPEM string `json:"private_key_pem"`
+	Fingerprint   string `json:"fingerprint"`
+	Comment       string `json:"comment"`
 }
 
 type SSHKeyService struct {

@@ -94,6 +94,11 @@ const routes = [
         path: 'nginx',
         name: 'Nginx',
         component: () => import('../views/Nginx.vue'),
+      },
+      {
+        path: 'ssh-keys',
+        name: 'SSHKeys',
+        component: () => import('../views/SSHKeys.vue'),
       }
     ]
   }

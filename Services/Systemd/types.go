@@ -20,11 +20,11 @@ type UnitActionRequest struct {
 
 // UnitActionResponse represents the execution result of a unit action
 type UnitActionResponse struct {
-	Unit      string `json:"unit"`
-	Action    string `json:"action"`
-	Success   bool   `json:"success"`
-	Output    string `json:"output,omitempty"`
-	DurationMs int64 `json:"duration_ms"`
+	Unit       string `json:"unit"`
+	Action     string `json:"action"`
+	Success    bool   `json:"success"`
+	Output     string `json:"output,omitempty"`
+	DurationMs int64  `json:"duration_ms"`
 }
 
 // SystemdOverview contains system-level service stats

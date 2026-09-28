@@ -78,13 +78,13 @@ func generateRandomHex(n int) string {
 }
 
 type Config struct {
-	Domain      string
-	Email       string
-	Port        string
-	DBDriver    string
-	DBName      string
-	InstallDir  string
-	EnableSSL   bool
+	Domain         string
+	Email          string
+	Port           string
+	DBDriver       string
+	DBName         string
+	InstallDir     string
+	EnableSSL      bool
 	NonInteractive bool
 }
 

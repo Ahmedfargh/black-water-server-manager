@@ -83,9 +83,9 @@ func (dss *DockerContainerStateSocket) Connect(w http.ResponseWriter, r *http.Re
 func (dss *DockerContainerStateSocket) WritePump() {
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
-	
+
 	dockerServices, _ := DockerService.NewDockerService()
-	
+
 	for {
 		select {
 		case <-ticker.C:
@@ -97,16 +97,16 @@ func (dss *DockerContainerStateSocket) WritePump() {
 				ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
 				container_status, err := dockerServices.ContainerStatus(ctx, container_id)
 				cancel()
-				
+
 				if err != nil {
 					continue
 				}
-				
+
 				data, err := json.Marshal(container_status)
 				if err != nil {
 					continue
 				}
-				
+
 				for _, client := range conns {
 					select {
 					case client.Send <- data:

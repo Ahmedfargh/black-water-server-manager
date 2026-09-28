@@ -44,7 +44,6 @@ func (f *ArchFireWall) UFWAction(args ...string) (string, error) {
 	return string(output), nil
 }
 
-
 func (f *ArchFireWall) Enable() (string, error) {
 	if f.hasBinary("ufw") {
 		return f.UFWAction("enable")
@@ -188,4 +187,3 @@ func (f *ArchFireWall) UpdateRule() bool {
 func (f *ArchFireWall) ClearRules() bool {
 	return true
 }
-

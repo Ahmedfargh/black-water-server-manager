@@ -18,4 +18,3 @@ func FireWallRoute(router *gin.Engine) {
 		firewallGroup.POST("/unblock-ip", authentication.AuthMiddleware(), authentication.CheckRole("enable_firewall"), functionalscontrollers.UnblockIPHandler())
 	}
 }
-

@@ -100,7 +100,7 @@ func (f *RedHatFireWall) BlockIP(ip string, isIPv6 bool) (string, error) {
 		family = "ipv6"
 	}
 	richRule := "rule family='" + family + "' source address='" + ip + "' drop"
-	
+
 	// Add permanent and runtime rules
 	f.Command("--add-rich-rule=" + richRule)
 	out, err := f.Command("--permanent", "--add-rich-rule="+richRule)
@@ -139,4 +139,3 @@ func (f *RedHatFireWall) UpdateRule() bool {
 func (f *RedHatFireWall) ClearRules() bool {
 	return true
 }
-
